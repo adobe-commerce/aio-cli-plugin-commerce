@@ -15,5 +15,5 @@ import { stdout } from 'stdout-stderr'
 stdout.print = true
 
 test('boilerplate help test', async () => {
-  await expect(() => execa('./bin/run.js', ['PLUGINNAME', '--help'], { stdio: 'inherit' })).not.toThrow()
+  await expect(() => execa('./bin/run.js', ['commerce', '--help'], { stdio: 'inherit' })).not.toThrow()
 })

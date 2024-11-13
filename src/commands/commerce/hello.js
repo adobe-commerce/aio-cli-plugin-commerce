@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 */
 import { Args, Command, Flags } from '@oclif/core'
 import Logger from '@adobe/aio-lib-core-logging'
-const aioLogger = Logger('PLUGINNAME:hello', { provider: 'debug' })
+const aioLogger = Logger('commerce:hello', { provider: 'debug' })
 
 export class HelloCommand extends Command {
   async run () {
@@ -32,5 +32,5 @@ HelloCommand.args = {
 
 HelloCommand.description = 'A hello world sample command.'
 HelloCommand.examples = [
-  '$ aio PLUGINNAME:hello myself -f myflag'
+  '$ aio commerce:hello myself -f myflag'
 ]

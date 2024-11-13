@@ -9,13 +9,24 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Command, Help } from '@oclif/core'
+import { Help } from '@oclif/core'
+import { IndexCommand } from '../../../src/commands/commerce'
+import { jest } from '@jest/globals'
 
-export class IndexCommand extends Command {
-  async run () {
-    const help = new Help(this.config)
-    await help.showHelp(['PLUGINNAME'])
-  }
-}
+describe('command tests', () => {
+  let command
 
-IndexCommand.description = 'Your description here'
+  beforeEach(() => {
+    command = new IndexCommand([])
+    command.config = {
+      runHook: jest.fn().mockResolvedValue({})
+    }
+  })
+
+  test('run', async () => {
+    command.argv = []
+    const spy = jest.spyOn(Help.prototype, 'showHelp').mockReturnValue(true)
+    await expect(command.run()).resolves.not.toThrow()
+    expect(spy).toHaveBeenCalledWith(['commerce'])
+  })
+})

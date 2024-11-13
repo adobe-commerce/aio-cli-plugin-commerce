@@ -1,5 +1,5 @@
 {
-  "name": "@adobe/aio-cli-plugin-PLUGINNAME",
+  "name": "@adobe/aio-cli-plugin-commerce",
   "version": "0.0.0",
   "dependencies": {
     "@adobe/aio-lib-core-config": "^5",
@@ -38,7 +38,7 @@
       "@oclif/plugin-help"
     ]
   },
-  "main": "src/commands/PLUGINNAME/index.js",
+  "main": "src/commands/commerce/index.js",
   "scripts": {
     "lint": "eslint src test e2e",
     "posttest": "npm run lint",

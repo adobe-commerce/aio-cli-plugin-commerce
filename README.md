@@ -1,40 +1,6 @@
-# aio-cli-plugin-boilerplate
+# aio-cli-plugin-commerce
 
-Basic working repo structure for Adobe teams to use as a starting point for their own plugins, and available as a github template to the @adobe github org.
-
-## How to use this template
-
-- create a new repo from the github.com/adobe and select it in the templates
-- give it a unique name ( plugins are typically named aio-cli-plugin-xxxx )
-- enter a description
-- pick options
-- create repository
-- `git clone`, `npm i`
-- make some changes to names of things readme, ...
-- `git add .`
-- `git commit -m 'A new begining'`
-
-## How to use this repo, ( like a repo )
-
-- Click 'Clone or Download' and download a zip
-- extract it to a directory on your machine
-- if you cloned, delete the hidden `.git` folder
-- run `git init`
-- make some changes to names of things readme, ...
-- `git add .`
-- `git commit -m 'A new begining'`
-
-- Create the new empty repo here on github
-- grab the remote url 
-
-### back in your directory ...
-
-- `git remote add origin new-repo-url`
-- `git push origin master`
-
----
-
-`PLUGINNAME` commands for the Adobe I/O CLI
+`commerce` commands for the Adobe I/O CLI
 
 <!-- toc -->
 * [aio-cli-plugin-boilerplate](#aio-cli-plugin-boilerplate)
@@ -45,17 +11,17 @@ Basic working repo structure for Adobe teams to use as a starting point for thei
 # Usage
 
 ```sh-session
-$ aio plugins:install @adobe/aio-cli-plugin-PLUGINNAME
+$ aio plugins:install @adobe/aio-cli-plugin-commerce
 $ # OR
 $ aio discover -i
-$ aio PLUGINNAME --help
+$ aio commerce --help
 ```
 
 # Commands
 <!-- commands -->
 * [`aio help [COMMAND]`](#aio-help-command)
-* [`aio PLUGINNAME`](#aio-pluginname)
-* [`aio PLUGINNAME hello [NAME]`](#aio-pluginname-hello-name)
+* [`aio commerce`](#aio-pluginname)
+* [`aio commerce hello [NAME]`](#aio-pluginname-hello-name)
 
 ## `aio help [COMMAND]`
 
@@ -77,25 +43,24 @@ DESCRIPTION
 
 _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.6/src/commands/help.ts)_
 
-## `aio PLUGINNAME`
+## `aio commerce`
 
-Your description here
+<!-- YOUR DESCRIPTION HERE -->
 
-```
 USAGE
-  $ aio PLUGINNAME
+  $ aio commerce
 
 DESCRIPTION
   Your description here
 ```
 
-## `aio PLUGINNAME hello [NAME]`
+## `aio commerce hello [NAME]`
 
 A hello world sample command.
 
 ```
 USAGE
-  $ aio PLUGINNAME hello [NAME] [-f <value>]
+  $ aio commerce hello [NAME] [-f <value>]
 
 ARGUMENTS
   NAME  name to print
@@ -107,13 +72,21 @@ DESCRIPTION
   A hello world sample command.
 
 EXAMPLES
-  $ aio PLUGINNAME:hello myself -f myflag
+  $ aio commerce:hello myself -f myflag
 ```
 <!-- commandsstop -->
 
 ## Contributing
 
 Contributions are welcomed! Read the [Contributing Guide](CONTRIBUTING.md) for more information.
+
+## Local Development
+
+```sh
+git clone git@github.com:adobe-commerce/aio-cli-plugin-commerce.git
+cd aio-cli-plugin-commerce
+aio plugins:link commerce
+```
 
 ## Licensing
 

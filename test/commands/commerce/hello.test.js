@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { HelloCommand } from '../../../src/commands/PLUGINNAME/hello'
+import { HelloCommand } from '../../../src/commands/commerce/hello'
 import { jest } from '@jest/globals'
 
 describe('command tests', () => {
