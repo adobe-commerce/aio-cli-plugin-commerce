@@ -1,0 +1,58 @@
+{
+  "name": "@adobe/aio-cli-plugin-PLUGINNAME",
+  "version": "0.0.0",
+  "dependencies": {
+    "@adobe/aio-lib-core-config": "^5",
+    "@adobe/aio-lib-core-logging": "^3",
+    "@oclif/core": "^4",
+    "@oclif/plugin-help": "^6"
+  },
+  "devDependencies": {
+    "@adobe/eslint-config-aio-lib-config": "^4",
+    "@jest/globals": "^29",
+    "eslint": "^8",
+    "execa": "^8",
+    "jest": "^29",
+    "oclif": "^4",
+    "stdout-stderr": "^0.1.9"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin/run.js",
+    "oclif.manifest.json",
+    "src"
+  ],
+  "keywords": [
+    "oclif-plugin"
+  ],
+  "license": "Apache-2.0",
+  "oclif": {
+    "commands": "./src/commands",
+    "bin": "aio",
+    "topicSeparator": " ",
+    "repositoryPrefix": "<%- repo %>/blob/<%- version %>/<%- commandPath %>",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "main": "src/commands/PLUGINNAME/index.js",
+  "scripts": {
+    "lint": "eslint src test e2e",
+    "posttest": "npm run lint",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testRegex '.+\\.test\\.js' --ci",
+    "prepack": "oclif manifest && oclif readme",
+    "postpack": "rm -f oclif.manifest.json",
+    "version": "oclif readme && git add README.md",
+    "e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --collectCoverage=false --testRegex 'e2e/e2e.js'"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./jest.setup.js"
+    ]
+  }
+}
