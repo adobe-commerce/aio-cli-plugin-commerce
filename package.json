@@ -2,10 +2,14 @@
   "name": "@adobe/aio-cli-plugin-commerce",
   "version": "0.0.0",
   "dependencies": {
+    "@adobe/aio-cli-lib-console": "^5.0.1",
     "@adobe/aio-lib-core-config": "^5",
     "@adobe/aio-lib-core-logging": "^3",
+    "@adobe/aio-lib-env": "^3.0.1",
+    "@adobe/aio-lib-ims": "^7.0.2",
     "@oclif/core": "^4",
-    "@oclif/plugin-help": "^6"
+    "@oclif/plugin-help": "^6",
+    "octokit": "^4.0.2"
   },
   "devDependencies": {
     "@adobe/eslint-config-aio-lib-config": "^4",
