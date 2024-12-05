@@ -38,7 +38,7 @@ export class HelloCommand extends Command {
     await runCommand(`gh api -X PUT repos/sirugh/my-temp-repo/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`);
 
     // 3. install code sync
-    this.log('Install the AEM Code Sync bot to your org and repo.')
+    this.log('Install the AEM Code Sync bot to your org and repo.');
     // TODO: uncomment when ready (so it doesn't open every time im testing)
     // openBrowser('https://github.com/apps/aem-code-sync/installations/select_target');
 

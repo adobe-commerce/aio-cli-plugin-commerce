@@ -60,6 +60,28 @@ async function getFilePathsFromAem () {
 }
 
 /**
+ *
+ * @param text
+ * @param ext
+ * @param contentFilePath
+ * @param pathname
+ */
+async function getBlob (text, pathname) {
+  const [, ext] = pathname
+    .split('/')
+    .pop()
+    .split('.')
+  const type = ext === 'json' ? 'application/json' : 'text/html'
+  const content = text
+  if (ext !== 'json') {
+    // TODO: generate blob content properly.
+    // https://github.com/da-sites/nexter/blob/main/nx/utils/daFetch.js#L77
+    // https://github.com/da-sites/nexter/blob/d1c9efffc5af0092d91aa360e6113900bbb7854c/nx/blocks/importer/index.js#L44-L48
+    // content = getAemHtml();
+  }
+  return new Blob([content], { type })
+}
+/**
  * Given a url, fetch the content of the file (from a related url) and PUT to admin.da.live/source/${org}/${repo}
  * Programatically perform what is done here: https://da.live/apps/import
  * https://github.com/da-sites/nexter/blob/d1c9efffc5af0092d91aa360e6113900bbb7854c/nx/blocks/importer/importer.js
@@ -76,26 +98,16 @@ async function uploadFilesToDA (files) {
         .then(async (resp) => {
           if (!resp.ok) throw Error('Unable to fetch file')
           const text = await resp.text()
-          const { pathname } = new URL(file)
-          const [ext] = pathname
-            .split('/')
-            .pop()
-            .split('.')
-          const type = ext === 'json' ? 'application/json' : 'text/html'
-          // TODO: generate blob content properly.
-          // https://github.com/da-sites/nexter/blob/d1c9efffc5af0092d91aa360e6113900bbb7854c/nx/blocks/importer/index.js#L44-L48
-          // https://github.com/da-sites/nexter/blob/main/nx/utils/daFetch.js#L77
-          const blob = new Blob([text], { type })
+          const { pathname: daPath } = new URL(contentFilePath)
+          const blob = getBlob(text, daPath)
           const formData = new FormData()
           formData.append('data', blob)
-          const opts = {
-            method: 'PUT',
-            body: formData
-          }
-          const { pathname: daPath } = new URL(contentFilePath)
           const fileDaUrl = `${daUrl}${daPath}`
           console.log(`uploading to ${fileDaUrl}`)
-          fetch(fileDaUrl, opts).then(() => resolve()).catch((error) => reject(error))
+          fetch(fileDaUrl, {
+            method: 'PUT',
+            body: formData
+          }).then(() => resolve()).catch((error) => reject(error))
         })
         .catch((error) => {
           console.error('Error fetching', file, error)
