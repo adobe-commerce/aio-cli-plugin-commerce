@@ -73,6 +73,8 @@ folders:
     // 7. open preview page
     aioLogger.log(`Content Preview: https://main--${repo}--${org}.aem.page/`)
     openBrowser(`https://main--${repo}--${org}.aem.page/`)
+
+    aioLogger.log('To run locally, try "aio commerce:dev"')
   }
 }
 
