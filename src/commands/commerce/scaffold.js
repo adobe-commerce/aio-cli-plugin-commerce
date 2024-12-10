@@ -17,7 +17,7 @@ import { uploadStarterContent } from '../../utils/content.js'
 import { org, repo } from '../../utils/constants.js'
 import { preview } from '../../utils/preview.js'
 
-const aioLogger = Logger('commerce:scaffold', { provider: 'debug' })
+const aioLogger = Logger('commerce:scaffold.js')
 
 export class ScaffoldCommand extends Command {
   async run () {
@@ -33,7 +33,7 @@ folders:
 `
 
     // 1. create repo from template (gh repo create)
-    console.log(`creating repo at https://github.com/${org}/${repo}`)
+    aioLogger.log(`Creating repo at https://github.com/${org}/${repo} ...`)
     // TODO: after the ?sheet=prod line is removed from the boilerplate, we can switch back
     // await runCommand(`gh repo create ${org}/${repo} --template hlxsites/aem-boilerplate-commerce --public`)
     await runCommand(`gh repo create ${org}/${repo} --template sirugh/my-temp-repo --public`)
@@ -42,14 +42,14 @@ folders:
     let repoReady = false
     let attempts = 0
     while (!repoReady && attempts++ <= 10) {
-      console.log('writing fstab, attempt #', attempts)
+      aioLogger.debug('writing fstab, attempt #', attempts)
       try {
         const { stdout: ENCODED_CONTENT } = await runCommand(`echo "${DA_FSTAB_CONTENT.trim()}" | base64 -w0`)
         const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
         await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 
         repoReady = true
-        console.log('repo ready!')
+        aioLogger.log('Repo ready!')
       } catch (error) {
         await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
       }
@@ -67,9 +67,11 @@ folders:
     await preview(filePaths)
 
     // 6. open content space
+    aioLogger.log(`Edit your content: https://da.live/#/${org}/${repo}`)
     openBrowser(`https://da.live/#/${org}/${repo}`)
 
     // 7. open preview page
+    aioLogger.log(`Content Preview: https://main--${repo}--${org}.aem.page/`)
     openBrowser(`https://main--${repo}--${org}.aem.page/`)
   }
 }

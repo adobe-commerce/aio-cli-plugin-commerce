@@ -2,14 +2,18 @@ import { org, repo } from './constants.js'
 import { getAemHtml } from './importer.js'
 import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
-
+import Logger from '@adobe/aio-lib-core-logging'
+const aioLogger = Logger('commerce:scaffold:content.js')
 /**
  *
  * @param url
  */
 export async function uploadStarterContent () {
+  aioLogger.log('Cloning content from boilerplate')
   const filePaths = await getFilePathsFromAem()
+  aioLogger.log('Uploading content to document authoring space.')
   await uploadFilesToDA(filePaths)
+  aioLogger.log(`Uploaded ${filePaths.length} content files.`)
   return filePaths
 }
 
@@ -28,9 +32,9 @@ async function getFilePathsFromAem () {
   const maxTry = 3
   let tryCount = 1
   const bulkStatusUrl = await getBulkStatusUrl()
-  console.log(`Getting paths from ${bulkStatusUrl}`)
+  aioLogger.debug(`Getting paths from ${bulkStatusUrl}`)
   while (tryCount <= maxTry) {
-    console.log(`Attempt ${tryCount}...`)
+    aioLogger.debug(`Attempt ${tryCount}...`)
     try {
       const response = await fetch(bulkStatusUrl)
       if (response.ok) {
@@ -93,7 +97,7 @@ async function uploadFilesToDA (files) {
 
   const promises = files.map((file) => {
     const contentFilePath = getContentFilePath(file)
-    console.log(`fetching ${contentFilePath}`)
+    aioLogger.debug(`fetching ${contentFilePath}`)
     return new Promise((resolve, reject) => {
       fetch(contentFilePath)
         .then(async (resp) => {
@@ -105,7 +109,7 @@ async function uploadFilesToDA (files) {
           formData.append('data', blob)
           const daPath = pathname.endsWith('.md') ? pathname.replace(/\.md$/, '.html') : pathname
           const fileDaUrl = `${daUrl}${daPath}`
-          console.log(`UPLOADING TO ${fileDaUrl}`)
+          aioLogger.debug(`UPLOADING TO ${fileDaUrl}`)
           fetchWithRetry(fileDaUrl, {
             method: 'PUT',
             body: formData

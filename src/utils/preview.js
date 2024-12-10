@@ -1,35 +1,39 @@
 import { org, repo } from './constants.js'
+import Logger from '@adobe/aio-lib-core-logging'
+const aioLogger = Logger('commerce:scaffold:preview.js')
 /**
- * TODO; https://github.com/adobe/da-live/blob/main/blocks/start/start.js#L77-L115
- * runCommand('curl POST https://admin.hlx.page/preview/${org}/${repo}/main/${aem-parts}<fileurl>')
+ *
  * @param Array files
  * @param files
  */
 export async function preview (files) {
   const results = []
-
   await Promise.all(
     files.map(async (file) => {
-      console.log('url', file)
+      aioLogger.debug('url', file)
       let { pathname } = new URL(file)
       if (pathname.endsWith('/')) {
         pathname = pathname.replace(/\/$/, '/index')
       }
       const url = new URL(`https://admin.hlx.page/preview/${org}/${repo}/main${pathname}`)
-      console.log(`Previewing at ${url}`)
+      aioLogger.debug(`Previewing at ${url}`)
 
+      let result
       try {
         const res = await fetch(url, { method: 'POST' })
         if (res.status !== 200) {
-          results.push({ file, status: 'failed', message: `Failed to preview ${file}` })
+          result = { file, status: 'failed', message: `Failed to preview ${file}` }
         } else {
-          results.push({ file, status: 'success' })
+          result = { file, status: 'success' }
         }
       } catch (error) {
-        results.push({ file, status: 'error', message: error.message })
+        result = { file, status: 'error', message: error.message }
       }
+      aioLogger.debug('preview result:', result)
+      results.push(result)
     })
   )
-
+  const successes = results.filter(({ status }) => status === 'success').length
+  aioLogger.log(`Previewed ${successes} files.`)
   return results
 }
