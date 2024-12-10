@@ -1,4 +1,5 @@
 import { org, repo } from './constants.js'
+import { getAemHtml } from './importer.js'
 import { runCommand } from './runCommand.js'
 /**
  *
@@ -7,6 +8,7 @@ import { runCommand } from './runCommand.js'
 export async function uploadStarterContent () {
   const filePaths = await getFilePathsFromAem()
   await uploadFilesToDA(filePaths)
+  return filePaths
 }
 
 /**
@@ -33,7 +35,7 @@ async function getFilePathsFromAem () {
         const data = await response.json()
         if (data.state === 'stopped') {
           return data.data.resources
-            .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json'))
+            .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json') && !resource.path.startsWith('/sitemap-content.xml'))
             // TODO: change to `main` or `aemshop.net` once GA
             .map(resource => `https://develop--aem-boilerplate-commerce--hlxsites.aem.live/${resource.path.replace(/^\/+/, '')}`)
         } else {
@@ -72,12 +74,9 @@ async function getBlob (text, pathname) {
     .pop()
     .split('.')
   const type = ext === 'json' ? 'application/json' : 'text/html'
-  const content = text
+  let content = text
   if (ext !== 'json') {
-    // TODO: generate blob content properly.
-    // https://github.com/da-sites/nexter/blob/main/nx/utils/daFetch.js#L77
-    // https://github.com/da-sites/nexter/blob/d1c9efffc5af0092d91aa360e6113900bbb7854c/nx/blocks/importer/index.js#L44-L48
-    // content = getAemHtml();
+    content = await getAemHtml(text)
   }
   return new Blob([content], { type })
 }
@@ -98,12 +97,13 @@ async function uploadFilesToDA (files) {
         .then(async (resp) => {
           if (!resp.ok) throw Error('Unable to fetch file')
           const text = await resp.text()
-          const { pathname: daPath } = new URL(contentFilePath)
-          const blob = getBlob(text, daPath)
+          const { pathname } = new URL(contentFilePath)
+          const blob = await getBlob(text, pathname)
           const formData = new FormData()
           formData.append('data', blob)
+          const daPath = pathname.endsWith('.md') ? pathname.replace(/\.md$/, '.html') : pathname
           const fileDaUrl = `${daUrl}${daPath}`
-          console.log(`uploading to ${fileDaUrl}`)
+          console.log(`UPLOADING TO ${fileDaUrl}`)
           fetch(fileDaUrl, {
             method: 'PUT',
             body: formData

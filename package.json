@@ -9,7 +9,7 @@
     "@adobe/aio-lib-ims": "^7.0.2",
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
-    "octokit": "^4.0.2"
+    "jsdom": "^25.0.1"
   },
   "devDependencies": {
     "@adobe/eslint-config-aio-lib-config": "^4",
