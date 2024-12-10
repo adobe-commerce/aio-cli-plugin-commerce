@@ -1,6 +1,8 @@
 import { org, repo } from './constants.js'
 import { getAemHtml } from './importer.js'
 import { runCommand } from './runCommand.js'
+import { fetchWithRetry } from './fetchWithRetry.js'
+
 /**
  *
  * @param url
@@ -104,7 +106,7 @@ async function uploadFilesToDA (files) {
           const daPath = pathname.endsWith('.md') ? pathname.replace(/\.md$/, '.html') : pathname
           const fileDaUrl = `${daUrl}${daPath}`
           console.log(`UPLOADING TO ${fileDaUrl}`)
-          fetch(fileDaUrl, {
+          fetchWithRetry(fileDaUrl, {
             method: 'PUT',
             body: formData
           }).then(() => resolve()).catch((error) => reject(error))
