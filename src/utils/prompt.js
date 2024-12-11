@@ -17,3 +17,19 @@ export async function promptConfirm (message) {
 
   return confirm.res
 }
+
+/**
+ *
+ * @param message
+ */
+export async function promptInput (message) {
+  const selected = await inquirer.prompt([
+    {
+      name: 'item',
+      message,
+      type: 'input'
+    }
+  ])
+
+  return selected.item
+}

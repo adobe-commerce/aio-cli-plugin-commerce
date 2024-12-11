@@ -15,7 +15,7 @@ import { openBrowser } from '../../utils/openBrowser.js'
 import { runCommand } from '../../utils/runCommand.js'
 import { uploadStarterContent } from '../../utils/content.js'
 import { preview } from '../../utils/preview.js'
-import { promptConfirm } from '../../utils/prompt.js'
+import { promptConfirm, promptInput } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 
 const aioLogger = Logger('commerce:scaffold.js')
@@ -23,10 +23,20 @@ const aioLogger = Logger('commerce:scaffold.js')
 export class ScaffoldCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(ScaffoldCommand)
-    aioLogger.debug('scaffold flags=%o', flags)
-    const { org, repo } = flags
+    // aioLogger.debug('scaffold flags=%o', flags)
+    let { org, repo } = flags
+    if (!org) {
+      org = await promptInput('Enter the name of your Github Org')
+    }
+    if (!repo) {
+      repo = await promptInput('Enter the name of your the repo you wish to create')
+    }
+    if (!org || !repo) {
+      throw new Error('github org and repo must be provided')
+    }
     config.set('github.org', org)
     config.set('github.repo', repo)
+
     const DA_FSTAB_CONTENT = `mountpoints:
   /:
     url: https://content.da.live/${org}/${repo}/
@@ -87,8 +97,8 @@ folders:
 }
 
 ScaffoldCommand.flags = {
-  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"', required: true }),
-  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"', required: true })
+  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
+  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
 }
 
 ScaffoldCommand.args = {
