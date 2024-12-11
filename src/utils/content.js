@@ -22,7 +22,9 @@ export async function uploadStarterContent () {
  * https://www.aem.live/docs/admin.html#tag/status/operation/bulkStatus
  */
 async function getBulkStatusUrl () {
-  const { stdout: response } = await runCommand('curl --data \'{ "paths": ["/*"] }\' --header "Content-Type: application/json" \'https://admin.hlx.page/status/hlxsites/aem-boilerplate-commerce/main/*\'')
+  const templateOrg = config.get('template.org')
+  const templateRepo = config.get('template.repo')
+  const { stdout: response } = await runCommand(`curl --data '{ "paths": ["/*"] }' --header "Content-Type: application/json" 'https://admin.hlx.page/status/${templateOrg}/${templateRepo}/main/*'`)
   return JSON.parse(response).links.self + '/details'
 }
 
@@ -30,6 +32,8 @@ async function getBulkStatusUrl () {
  *
  */
 async function getFilePathsFromAem () {
+  const templateOrg = config.get('template.org')
+  const templateRepo = config.get('template.repo')
   const maxTry = 3
   let tryCount = 1
   const bulkStatusUrl = await getBulkStatusUrl()
@@ -43,7 +47,7 @@ async function getFilePathsFromAem () {
         if (data.state === 'stopped') {
           return data.data.resources
             .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json') && !resource.path.startsWith('/sitemap-content.xml'))
-            .map(resource => `https://main--aem-boilerplate-commerce--hlxsites.aem.live/${resource.path.replace(/^\/+/, '')}`)
+            .map(resource => `https://main--${templateRepo}--${templateOrg}.aem.live/${resource.path.replace(/^\/+/, '')}`)
         } else {
           tryCount++
           await new Promise(resolve => setTimeout(resolve, 5000))

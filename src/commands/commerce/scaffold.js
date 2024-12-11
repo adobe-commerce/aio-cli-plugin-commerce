@@ -15,21 +15,24 @@ import { openBrowser } from '../../utils/openBrowser.js'
 import { runCommand } from '../../utils/runCommand.js'
 import { uploadStarterContent } from '../../utils/content.js'
 import { preview } from '../../utils/preview.js'
-import { promptConfirm, promptInput } from '../../utils/prompt.js'
+import { promptConfirm, promptInput, promptSelect } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 
 const aioLogger = Logger('commerce:scaffold.js')
 
 export class ScaffoldCommand extends Command {
   async run () {
+    console.log('Welcome to the Adobe Commerce Storefront Scaffolder\n' +
+                '---------------------------------------------------\n' +
+      'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
     const { args, flags } = await this.parse(ScaffoldCommand)
     // aioLogger.debug('scaffold flags=%o', flags)
     let { org, repo } = flags
     if (!org) {
-      org = await promptInput('Enter the name of your Github Org')
+      org = await promptInput('Enter the name of your Github Org:')
     }
     if (!repo) {
-      repo = await promptInput('Enter the name of your the repo you wish to create')
+      repo = await promptInput('Enter the name of the repo you wish to create:')
     }
     if (!org || !repo) {
       throw new Error('github org and repo must be provided')
@@ -37,19 +40,16 @@ export class ScaffoldCommand extends Command {
     config.set('github.org', org)
     config.set('github.repo', repo)
 
-    const DA_FSTAB_CONTENT = `mountpoints:
-  /:
-    url: https://content.da.live/${org}/${repo}/
-    type: markup
-
-folders:
-  /products/: /products/default
-`
+    // TODO: add more templates, like SalesDemo (citisignal), Luma Bridge, etc.
+    // const template = await promptSelect('Which template would you like to use?', ['hlxsites/aem-boilerplate-commerce'])
+    const template = 'hlxsites/aem-boilerplate-commerce'
+    config.set('template.org', template.split('/')[0])
+    config.set('template.repo', template.split('/')[1])
 
     // 1. create repo from template (gh repo create)
     aioLogger.log(`Creating repo at https://github.com/${org}/${repo} ...`)
     // TODO: after the ?sheet=prod line is removed from the boilerplate, we can switch back
-    // await runCommand(`gh repo create ${org}/${repo} --template hlxsites/aem-boilerplate-commerce --public`)
+    // await runCommand(`gh repo create ${org}/${repo} --template ${template} --public`)
     await runCommand(`gh repo create ${org}/${repo} --template sirugh/my-temp-repo --public`)
 
     // 2. modify fstab.yaml to point to Dark Alley
@@ -58,7 +58,15 @@ folders:
     while (!repoReady && attempts++ <= 10) {
       aioLogger.debug('writing fstab, attempt #', attempts)
       try {
-        const ENCODED_CONTENT = Buffer.from(DA_FSTAB_CONTENT, 'utf8').toString('base64')
+        const ENCODED_CONTENT = Buffer.from(`mountpoints:
+  /:
+    url: https://content.da.live/${org}/${repo}/
+    type: markup
+
+folders:
+  /products/: /products/default
+`, 'utf8').toString('base64')
+
         const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
         await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 

@@ -33,3 +33,21 @@ export async function promptInput (message) {
 
   return selected.item
 }
+
+/**
+ *
+ * @param message
+ * @param choices
+ */
+export async function promptSelect (message, choices) {
+  const selected = await inquirer.prompt([
+    {
+      name: 'item',
+      message,
+      type: 'list',
+      choices
+    }
+  ])
+
+  return selected.item
+}
