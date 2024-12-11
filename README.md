@@ -4,9 +4,14 @@
 
 <!-- toc -->
 * [aio-cli-plugin-boilerplate](#aio-cli-plugin-boilerplate)
+* [Prerequisites](#prerequisites)
 * [Usage](#usage)
 * [Commands](#commands)
 <!-- tocstop -->
+
+# Prerequisites
+
+!! You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
 
 # Usage
 
