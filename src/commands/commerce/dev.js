@@ -20,7 +20,6 @@ export class DevCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(DevCommand)
 
-    // 8. local dev
     await runCommand(`gh repo clone ${org}/${repo}`)
     aioLogger.log(`Cloned https://github.com/${org}/${repo} to ${path.resolve(repo)}`)
     await runCommand(`cd ${repo}; npm i;`)
