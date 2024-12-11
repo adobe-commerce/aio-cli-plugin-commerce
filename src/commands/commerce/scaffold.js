@@ -14,21 +14,19 @@ import Logger from '@adobe/aio-lib-core-logging'
 import { openBrowser } from '../../utils/openBrowser.js'
 import { runCommand } from '../../utils/runCommand.js'
 import { uploadStarterContent } from '../../utils/content.js'
-import { org, repo } from '../../utils/constants.js'
 import { preview } from '../../utils/preview.js'
 import { promptConfirm } from '../../utils/prompt.js'
+import config from '@adobe/aio-lib-core-config'
 
 const aioLogger = Logger('commerce:scaffold.js')
 
 export class ScaffoldCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(ScaffoldCommand)
-    // aioLogger.debug('scaffold. flags=%o', flags)
-    // TODO: use flags (or args) for org/repo...
-    if (org === 'sirugh') {
-      aioLogger.error('Before you continue, you must modify org and repo in constants.js!')
-      return
-    }
+    aioLogger.debug('scaffold flags=%o', flags)
+    const { org, repo } = flags
+    config.set('github.org', org)
+    config.set('github.repo', repo)
     const DA_FSTAB_CONTENT = `mountpoints:
   /:
     url: https://content.da.live/${org}/${repo}/
@@ -89,8 +87,8 @@ folders:
 }
 
 ScaffoldCommand.flags = {
-  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
-  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
+  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"', required: true }),
+  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"', required: true })
 }
 
 ScaffoldCommand.args = {

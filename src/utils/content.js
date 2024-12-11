@@ -1,9 +1,10 @@
-import { org, repo } from './constants.js'
 import { getAemHtml } from './importer.js'
 import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
+import config from '@adobe/aio-lib-core-config'
 const aioLogger = Logger('commerce:scaffold:content.js')
+
 /**
  *
  * @param url
@@ -92,6 +93,9 @@ async function getBlob (text, pathname) {
  * @param files Array of string urls
  */
 async function uploadFilesToDA (files) {
+  const { github: { org, repo } } = config.get()
+  console.log(config.get())
+  if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
 
   const promises = files.map((file) => {

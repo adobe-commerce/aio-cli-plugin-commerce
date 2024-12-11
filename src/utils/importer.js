@@ -10,13 +10,15 @@ import {
   mdast2hastGridTablesHandler
 } from '../utils/mdast/dist/index.js'
 import { JSDOM } from 'jsdom'
-import { org, repo } from './constants.js'
+import config from '@adobe/aio-lib-core-config'
 
 /**
  *
  * @param text
  */
 export async function getAemHtml (text) {
+  const { github: { org, repo } } = config.get()
+  if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const dom = mdToDocDom(text)
   const aemHtml = docDomToAemHtml(dom)
   // TODO - do we need fragment finding?

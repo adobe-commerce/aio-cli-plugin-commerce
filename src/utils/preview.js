@@ -1,4 +1,4 @@
-import { org, repo } from './constants.js'
+import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:scaffold:preview.js')
 /**
@@ -6,6 +6,8 @@ const aioLogger = Logger('commerce:scaffold:preview.js')
  * @param files
  */
 export async function preview (files) {
+  const { github: { org, repo } } = config.get()
+  if (!org || !repo) throw new Error('Missing Github Org and Repo')
   aioLogger.log('Previewing files, this may take some time...')
   const results = []
   const rateLimit = 10 // 10 requests per second
