@@ -94,7 +94,6 @@ async function getBlob (text, pathname) {
  */
 async function uploadFilesToDA (files) {
   const { github: { org, repo } } = config.get()
-  console.log(config.get())
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
 
