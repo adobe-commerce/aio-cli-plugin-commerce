@@ -21,6 +21,11 @@ export async function preview (files) {
     if (pathname.endsWith('/')) {
       pathname = pathname.replace(/\/$/, '/index')
     }
+    if (pathname.endsWith('.png')) {
+      // TODO: fix this, if necessary
+      aioLogger.debug('cannot preview png files')
+      continue
+    }
     const url = new URL(`https://admin.hlx.page/preview/${org}/${repo}/main${pathname}`)
     aioLogger.debug(`Previewing at ${url}`)
 
@@ -29,13 +34,14 @@ export async function preview (files) {
       const res = await fetch(url, { method: 'POST' })
       if (res.status !== 200) {
         result = { source: files[i], status: 'failed', message: `Failed to preview ${files[i]}` }
+        aioLogger.debug(res)
       } else {
         result = { source: files[i], status: 'success' }
       }
     } catch (error) {
       result = { source: files[i], status: 'error', message: error.message }
+      aioLogger.debug(error)
     }
-    aioLogger.debug('preview result:', result)
     results.push(result)
 
     if (i < files.length - 1) {

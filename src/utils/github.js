@@ -14,19 +14,19 @@ export async function modifyFstab () {
     aioLogger.debug('writing fstab.yaml, attempt #', attempts)
     try {
       const ENCODED_CONTENT = Buffer.from(`mountpoints:
-/:
-  url: https://content.da.live/${org}/${repo}/
-  type: markup
+  /:
+    url: https://content.da.live/${org}/${repo}/
+    type: markup
 
 folders:
-/products/: /products/default
+  /products/: /products/default
 `, 'utf8').toString('base64')
 
       const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
       await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 
       repoReady = true
-      aioLogger.log('Repo ready!')
+      aioLogger.debug('fstab mountpoint updated')
     } catch (error) {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
@@ -67,7 +67,7 @@ export async function modifySidekick () {
       await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/tools/sidekick/config.json -f message="update sidekick config" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 
       repoReady = true
-      aioLogger.log('Repo ready!')
+      aioLogger.debug('sidekick config modified with content source')
     } catch (error) {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
