@@ -23,6 +23,11 @@ export class ScaffoldCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(ScaffoldCommand)
     // aioLogger.debug('scaffold. flags=%o', flags)
+    // TODO: use flags (or args) for org/repo...
+    if (org === 'sirugh') {
+      aioLogger.error('Before you continue, you must modify org and repo in constants.js!')
+      return
+    }
     const DA_FSTAB_CONTENT = `mountpoints:
   /:
     url: https://content.da.live/${org}/${repo}/
@@ -44,7 +49,7 @@ folders:
     while (!repoReady && attempts++ <= 10) {
       aioLogger.debug('writing fstab, attempt #', attempts)
       try {
-        const { stdout: ENCODED_CONTENT } = await runCommand(`echo "${DA_FSTAB_CONTENT.trim()}" | base64 -w0`)
+        const ENCODED_CONTENT = Buffer.from(DA_FSTAB_CONTENT, 'utf8').toString('base64')
         const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
         await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 

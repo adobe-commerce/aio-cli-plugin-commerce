@@ -1,5 +1,7 @@
 import { promisify } from 'util'
 import { exec } from 'child_process'
+import Logger from '@adobe/aio-lib-core-logging'
+const aioLogger = Logger('commerce:scaffold:openBrowser.js')
 
 const execPromise = promisify(exec)
 /**
@@ -25,7 +27,7 @@ async function openBrowser (url) {
       command = `xdg-open "${url}"`
       break
     default:
-      console.error('Unsupported platform:', process.platform)
+      aioLogger.error('Unsupported platform:', process.platform)
       return
   }
 
@@ -33,7 +35,7 @@ async function openBrowser (url) {
     await execPromise(command)
   } catch (error) {
     if (error) {
-      console.error('Failed to open browser:', error)
+      aioLogger.error('Failed to open browser:', error)
     }
   }
 }

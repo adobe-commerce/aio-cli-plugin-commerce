@@ -42,23 +42,22 @@ async function getFilePathsFromAem () {
         if (data.state === 'stopped') {
           return data.data.resources
             .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json') && !resource.path.startsWith('/sitemap-content.xml'))
-            // TODO: change to `main` or `aemshop.net` once GA
-            .map(resource => `https://develop--aem-boilerplate-commerce--hlxsites.aem.live/${resource.path.replace(/^\/+/, '')}`)
+            .map(resource => `https://main--aem-boilerplate-commerce--hlxsites.aem.live/${resource.path.replace(/^\/+/, '')}`)
         } else {
           tryCount++
           await new Promise(resolve => setTimeout(resolve, 5000))
         }
       } else {
-        console.error('Failed to fetch data:', response)
+        aioLogger.error('Failed to fetch data:', response)
         break
       }
     } catch (error) {
-      console.error(error)
+      aioLogger.error(error)
       tryCount++
       if (tryCount < maxTry) {
         await new Promise(resolve => setTimeout(resolve, 5000))
       } else {
-        console.error('Max tries exceeded')
+        aioLogger.error('Max tries exceeded')
         break
       }
     }
@@ -97,7 +96,7 @@ async function uploadFilesToDA (files) {
 
   const promises = files.map((file) => {
     const contentFilePath = getContentFilePath(file)
-    aioLogger.debug(`fetching ${contentFilePath}`)
+    aioLogger.debug(`FETCHING ${contentFilePath}`)
     return new Promise((resolve, reject) => {
       fetch(contentFilePath)
         .then(async (resp) => {
@@ -116,7 +115,7 @@ async function uploadFilesToDA (files) {
           }).then(() => resolve()).catch((error) => reject(error))
         })
         .catch((error) => {
-          console.error('Error fetching', file, error)
+          aioLogger.error('Error fetching', file, error)
           resolve(null) // return null instead of rejecting
         })
     })

@@ -39,7 +39,7 @@ DevCommand.args = {
   // name: Args.string({ name: 'name', description: 'name to print', required: false })
 }
 
-DevCommand.description = 'one command to clone and run the local development server.'
+DevCommand.description = 'one command to clone, install, and run the local development server.'
 DevCommand.examples = [
   '$ aio commerce:dev'
 ]

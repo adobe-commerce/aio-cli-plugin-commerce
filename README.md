@@ -45,34 +45,42 @@ _See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.6
 
 ## `aio commerce`
 
-<!-- YOUR DESCRIPTION HERE -->
-
+```
 USAGE
   $ aio commerce
 
 DESCRIPTION
-  Your description here
+  Scaffold your own Adobe Commerce on EDS storefront
 ```
 
-## `aio commerce hello [NAME]`
-
-A hello world sample command.
+## `aio commerce scaffold`
 
 ```
 USAGE
-  $ aio commerce hello [NAME] [-f <value>]
-
-ARGUMENTS
-  NAME  name to print
+  $ aio commerce scaffold [-o <value>] [-r <value>]
 
 FLAGS
-  -f, --someflag=<value>  this is some flag
+  -o, --org=<value>   your github org, ie "hlxsites"
+  -r, --repo=<value>  your github repo, ie "aem-boilerplate-commerce"
 
 DESCRIPTION
-  A hello world sample command.
+  Scaffold your own Adobe Commerce on EDS storefront
 
 EXAMPLES
-  $ aio commerce:hello myself -f myflag
+  $ aio commerce:scaffold --org sirugh --repo my-storefront
+```
+
+## `aio commerce dev`
+
+```
+USAGE
+  $ aio commerce dev
+
+DESCRIPTION
+  one command to clone, install, and run the local development server.
+
+EXAMPLES
+  $ aio commerce:dev
 ```
 <!-- commandsstop -->
 
@@ -86,6 +94,16 @@ Contributions are welcomed! Read the [Contributing Guide](CONTRIBUTING.md) for m
 git clone git@github.com:adobe-commerce/aio-cli-plugin-commerce.git
 cd aio-cli-plugin-commerce
 aio plugins:link commerce
+```
+
+## Logging
+
+Uses [winston](https://github.com/winstonjs/winston) internally.
+
+Use `AIO_LOG_LEVEL=debug|verbose|info|warn|error <command>` to see full logs.
+
+```sh
+AIO_LOG_LEVEL=debug aio commerce:scaffold
 ```
 
 ## Licensing

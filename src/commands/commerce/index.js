@@ -18,4 +18,4 @@ export class IndexCommand extends Command {
   }
 }
 
-IndexCommand.description = 'Your description here'
+IndexCommand.description = 'Spin up an Adobe Commerce Storefront on EDS using this CLI tool'
