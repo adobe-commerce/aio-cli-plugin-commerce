@@ -17,6 +17,7 @@ import { uploadStarterContent } from '../../utils/content.js'
 import { preview } from '../../utils/preview.js'
 import { promptConfirm, promptInput, promptSelect } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
+import { modifyFstab, modifySidekick } from '../../utils/github.js'
 
 const aioLogger = Logger('commerce:scaffold.js')
 
@@ -52,31 +53,9 @@ export class ScaffoldCommand extends Command {
     // await runCommand(`gh repo create ${org}/${repo} --template ${template} --public`)
     await runCommand(`gh repo create ${org}/${repo} --template sirugh/my-temp-repo --public`)
 
-    // 2. modify fstab.yaml to point to Dark Alley
-    let repoReady = false
-    let attempts = 0
-    while (!repoReady && attempts++ <= 10) {
-      aioLogger.debug('writing fstab, attempt #', attempts)
-      try {
-        const ENCODED_CONTENT = Buffer.from(`mountpoints:
-  /:
-    url: https://content.da.live/${org}/${repo}/
-    type: markup
-
-folders:
-  /products/: /products/default
-`, 'utf8').toString('base64')
-
-        const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
-        await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
-
-        repoReady = true
-        aioLogger.log('Repo ready!')
-      } catch (error) {
-        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
-      }
-    }
-    if (!repoReady) throw new Error('Unable to create repo for some reason!')
+    // 2. modify fstab.yaml and sidekick config in github.
+    await modifyFstab()
+    await modifySidekick()
 
     // 3. install code sync
     // this.log('Install the AEM Code Sync bot to your org and repo.')

@@ -13,6 +13,11 @@
 
 !! You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
 
+```
+brew install gh
+gh auth login
+```
+
 # Usage
 
 ```sh-session
@@ -98,6 +103,7 @@ Contributions are welcomed! Read the [Contributing Guide](CONTRIBUTING.md) for m
 ```sh
 git clone git@github.com:adobe-commerce/aio-cli-plugin-commerce.git
 cd aio-cli-plugin-commerce
+npm install
 aio plugins:link commerce
 ```
 
