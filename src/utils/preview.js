@@ -52,8 +52,10 @@ export async function preview (files) {
   const successes = results.filter(({ status }) => status === 'success')
   const failures = results.filter(({ status }) => status === 'failed' || status === 'error')
 
+  if (failures.length) {
+    aioLogger.error(`Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    aioLogger.debug(failures)
+  }
   aioLogger.log(`Previewed ${successes.length} files.`)
-  failures.length ?? aioLogger.error(`Had issues with ${failures.length} files.`)
-  failures.length ?? aioLogger.debug(failures)
   return results
 }

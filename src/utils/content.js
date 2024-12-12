@@ -50,14 +50,12 @@ async function getFilePathsFromAem () {
             .map(resource => {
               if (templateRepo === 'citisignal-one') {
                 // Citisignal template has not published all files, thus we have to use preview urls for content source
-                return `https://main--${templateRepo}--${templateOrg}.aem.page/${resource.path.replace(/^\/+/, '')}`)
-              }
-              else {
+                return `https://main--${templateRepo}--${templateOrg}.aem.page/${resource.path.replace(/^\/+/, '')}`
+              } else {
                 // should be able to use published for all others
-                return `https://main--${templateRepo}--${templateOrg}.aem.live/${resource.path.replace(/^\/+/, '')}`)
+                return `https://main--${templateRepo}--${templateOrg}.aem.live/${resource.path.replace(/^\/+/, '')}`
               }
-            }
-
+            })
         } else {
           tryCount++
           await new Promise(resolve => setTimeout(resolve, 5000))
