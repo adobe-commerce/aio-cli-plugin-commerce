@@ -42,16 +42,18 @@ export class ScaffoldCommand extends Command {
     config.set('github.repo', repo)
 
     // TODO: add more templates, like SalesDemo (citisignal), Luma Bridge, etc.
-    // const template = await promptSelect('Which template would you like to use?', ['hlxsites/aem-boilerplate-commerce'])
-    const template = 'hlxsites/aem-boilerplate-commerce'
+    const template = await promptSelect('Which template would you like to use?', ['hlxsites/aem-boilerplate-commerce', 'AdobeDevXSC/citisignal-one'])
     config.set('template.org', template.split('/')[0])
     config.set('template.repo', template.split('/')[1])
 
     // 1. create repo from template (gh repo create)
     aioLogger.log(`Creating repo at https://github.com/${org}/${repo} ...`)
-    // TODO: after the ?sheet=prod line is removed from the boilerplate, we can switch back
-    // await runCommand(`gh repo create ${org}/${repo} --template ${template} --public`)
-    await runCommand(`gh repo create ${org}/${repo} --template sirugh/my-temp-repo --public`)
+    if (template === 'hlxsites/aem-boilerplate-commerce') {
+      // TODO: after the ?sheet=prod line is removed from the boilerplate, we can remove this condition and use of my-temp-repo as template
+      await runCommand(`gh repo create ${org}/${repo} --template sirugh/my-temp-repo --public`)
+    } else {
+      await runCommand(`gh repo create ${org}/${repo} --template ${template} --public`)
+    }
 
     // 2. modify fstab.yaml and sidekick config in github.
     await modifyFstab()
