@@ -4,6 +4,15 @@ import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:github.js')
 
 /**
+ * Creates github repo from template
+ */
+export async function createRepo () {
+  const { org: githubOrg, repo: githubRepo } = config.get('github')
+  const { org: templateOrg, repo: templateRepo } = config.get('template')
+  aioLogger.log(`Creating repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
+  await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
+}
+/**
  * fstab must be connected to DA content source
  */
 export async function modifyFstab () {
