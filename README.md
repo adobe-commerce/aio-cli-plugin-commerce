@@ -63,11 +63,11 @@ DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
 ```
 
-## `aio commerce scaffold`
+## `aio commerce init`
 
 ```
 USAGE
-  $ aio commerce scaffold [-o <value>] [-r <value>]
+  $ aio commerce init [-o <value>] [-r <value>]
 
 FLAGS
   -o, --org=<value>   your github org, ie "hlxsites"
@@ -77,7 +77,7 @@ DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
 
 EXAMPLES
-  $ aio commerce:scaffold --org sirugh --repo my-storefront
+  $ aio commerce:init --org sirugh --repo my-storefront
 ```
 
 ## `aio commerce dev`
@@ -114,7 +114,7 @@ Uses [winston](https://github.com/winstonjs/winston) internally.
 Use `AIO_LOG_LEVEL=debug|verbose|info|warn|error <command>` to see full logs.
 
 ```sh
-AIO_LOG_LEVEL=debug aio commerce:scaffold
+AIO_LOG_LEVEL=debug aio commerce:init
 ```
 
 ## Licensing

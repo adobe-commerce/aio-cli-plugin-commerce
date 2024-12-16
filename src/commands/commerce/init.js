@@ -13,17 +13,17 @@ import { Args, Command, Flags } from '@oclif/core'
 import Logger from '@adobe/aio-lib-core-logging'
 import { openBrowser } from '../../utils/openBrowser.js'
 import { uploadStarterContent } from '../../utils/content.js'
-import { previewContent } from '../../utils/preview.js'
+import { previewContent, publishContent } from '../../utils/preview.js'
 import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
 
-const aioLogger = Logger('commerce:scaffold.js')
+const aioLogger = Logger('commerce:init.js')
 
-export class ScaffoldCommand extends Command {
+export class InitCommand extends Command {
   async run () {
-    const { args, flags } = await this.parse(ScaffoldCommand)
+    const { args, flags } = await this.parse(InitCommand)
     await initialization(args, flags)
     const { org: githubOrg, repo: githubRepo } = config.get('github')
 
@@ -40,6 +40,7 @@ export class ScaffoldCommand extends Command {
 
     const filePaths = await uploadStarterContent()
     await previewContent(filePaths)
+    await publishContent()
 
     aioLogger.log(`✅ Edit your content: https://da.live/#/${githubOrg}/${githubRepo}`)
     openBrowser(`https://da.live/#/${githubOrg}/${githubRepo}`)
@@ -53,15 +54,15 @@ export class ScaffoldCommand extends Command {
   }
 }
 
-ScaffoldCommand.flags = {
+InitCommand.flags = {
   org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
   repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
 }
 
-ScaffoldCommand.args = {
+InitCommand.args = {
 }
 
-ScaffoldCommand.description = 'Scaffold your own Adobe Commerce storefront'
-ScaffoldCommand.examples = [
-  '$ aio commerce:scaffold --org sirugh --repo my-storefront'
+InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
+InitCommand.examples = [
+  '$ aio commerce:init --org sirugh --repo my-storefront'
 ]
