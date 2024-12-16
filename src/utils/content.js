@@ -10,11 +10,11 @@ const aioLogger = Logger('commerce:scaffold:content.js')
  * @param url
  */
 export async function uploadStarterContent () {
-  aioLogger.log('Cloning content from boilerplate')
+  aioLogger.log('⏳ Cloning content from boilerplate')
   const filePaths = await getFilePathsFromAem()
-  aioLogger.log('Uploading content to document authoring space.')
+  aioLogger.log('⏳ Uploading content to document authoring space.')
   await uploadFilesToDA(filePaths)
-  aioLogger.log(`Uploaded ${filePaths.length} content files.`)
+  aioLogger.log(`✅ Uploaded ${filePaths.length} content files.`)
   return filePaths
 }
 

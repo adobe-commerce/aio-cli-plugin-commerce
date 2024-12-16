@@ -9,8 +9,8 @@ const aioLogger = Logger('commerce:github.js')
 export async function createRepo () {
   const { org: githubOrg, repo: githubRepo } = config.get('github')
   const { org: templateOrg, repo: templateRepo } = config.get('template')
-  aioLogger.log(`Creating repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
   await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
+  aioLogger.log(`✅ Created repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
 }
 /**
  * fstab must be connected to DA content source

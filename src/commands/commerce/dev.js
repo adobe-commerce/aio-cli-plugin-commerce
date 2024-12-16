@@ -23,7 +23,7 @@ export class DevCommand extends Command {
     const org = config.get('github.org')
     const repo = config.get('github.repo')
     await runCommand(`gh repo clone ${org}/${repo}`)
-    aioLogger.log(`Cloned https://github.com/${org}/${repo} to ${path.resolve(repo)}`)
+    aioLogger.log(`✅ Cloned https://github.com/${org}/${repo} to ${path.resolve(repo)}`)
     await runCommand(`cd ${repo}; npm i;`)
     runCommand(`cd ${repo}; npm run start;`)
     runCommand(`cd ${repo}; code .;`)

@@ -34,17 +34,17 @@ export class ScaffoldCommand extends Command {
     openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
     const res = await promptConfirm('Did you install the AEM Code Sync bot?')
     if (!res) {
-      aioLogger.error('You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
+      aioLogger.error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
       return
     }
 
     const filePaths = await uploadStarterContent()
     await previewContent(filePaths)
 
-    aioLogger.log(`Edit your content: https://da.live/#/${githubOrg}/${githubRepo}`)
+    aioLogger.log(`✅ Edit your content: https://da.live/#/${githubOrg}/${githubRepo}`)
     openBrowser(`https://da.live/#/${githubOrg}/${githubRepo}`)
 
-    aioLogger.log(`Content Preview: https://main--${githubRepo}--${githubOrg}.aem.page/`)
+    aioLogger.log(`✅ Content Preview: https://main--${githubRepo}--${githubOrg}.aem.page/`)
     openBrowser(`https://main--${githubRepo}--${githubOrg}.aem.page/`)
 
     aioLogger.log('To run locally, try "aio commerce:dev"')
