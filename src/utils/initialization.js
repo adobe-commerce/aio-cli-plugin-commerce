@@ -13,8 +13,8 @@ import config from '@adobe/aio-lib-core-config'
  * @param flags - flags from the command
  */
 export async function initialization (args, flags) {
-  console.log('Welcome to the Adobe Commerce Storefront Scaffolder\n' +
-    '---------------------------------------------------\n' +
+  console.log('🛒 Welcome to the Adobe Commerce Storefront Scaffolder 🛒\n' +
+    '--------------------------------------------\n' +
 'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
   // aioLogger.debug('scaffold flags=%o', flags)
   let { org, repo } = flags

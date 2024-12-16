@@ -46,7 +46,7 @@ folders:
 /**
  * Sidekick requires specific config settings in github repo to have "edit" link back to DA
  */
-export async function modifySidekick () {
+export async function modifySidekickConfig () {
   const { org, repo } = config.get('github')
   let repoReady = false
   let attempts = 0

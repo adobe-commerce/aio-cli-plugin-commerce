@@ -5,7 +5,7 @@ const aioLogger = Logger('commerce:scaffold:preview.js')
  *
  * @param files
  */
-export async function preview (files) {
+export async function previewContent (files) {
   const { github: { org, repo } } = config.get()
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   aioLogger.log('Previewing files, this may take some time...')

@@ -13,10 +13,10 @@ import { Args, Command, Flags } from '@oclif/core'
 import Logger from '@adobe/aio-lib-core-logging'
 import { openBrowser } from '../../utils/openBrowser.js'
 import { uploadStarterContent } from '../../utils/content.js'
-import { preview } from '../../utils/preview.js'
+import { previewContent } from '../../utils/preview.js'
 import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
-import { createRepo, modifyFstab, modifySidekick } from '../../utils/github.js'
+import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
 
 const aioLogger = Logger('commerce:scaffold.js')
@@ -27,34 +27,29 @@ export class ScaffoldCommand extends Command {
     await initialization(args, flags)
     const { org: githubOrg, repo: githubRepo } = config.get('github')
 
-    // 1. create repo from template (gh repo create)
     await createRepo()
     await modifyFstab()
-    await modifySidekick()
+    await modifySidekickConfig()
 
-    // 3. install code sync
-    // this.log('Install the AEM Code Sync bot to your org and repo.')
     openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
     const res = await promptConfirm('Did you install the AEM Code Sync bot?')
     if (!res) {
       aioLogger.error('You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
       return
     }
-    // 4. upload starter content to Dark Alley
+
     const filePaths = await uploadStarterContent()
+    await previewContent(filePaths)
 
-    // 5. preview content using hlx API
-    await preview(filePaths)
-
-    // 6. open content space
     aioLogger.log(`Edit your content: https://da.live/#/${githubOrg}/${githubRepo}`)
     openBrowser(`https://da.live/#/${githubOrg}/${githubRepo}`)
 
-    // 7. open preview page
     aioLogger.log(`Content Preview: https://main--${githubRepo}--${githubOrg}.aem.page/`)
     openBrowser(`https://main--${githubRepo}--${githubOrg}.aem.page/`)
 
     aioLogger.log('To run locally, try "aio commerce:dev"')
+    console.log('💸 Thanks for using the CLI tool 💸\n' +
+      'For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/\n')
   }
 }
 
