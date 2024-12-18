@@ -1,4 +1,4 @@
-import { getAemHtml } from './importer.js'
+import { getAemHtml, modifyConfig } from './importer.js'
 import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
@@ -6,6 +6,9 @@ import config from '@adobe/aio-lib-core-config'
 const aioLogger = Logger('commerce:scaffold:content.js')
 
 /**
+ * Gets source url file paths from the Helix Admin API for the template org and
+ * repo. Then each source file is transformed into expected upload file type and
+ * uploaded to content repository destination.
  *
  * @param url
  */
@@ -38,6 +41,7 @@ async function getFilePathsFromAem () {
   let tryCount = 1
   const bulkStatusUrl = await getBulkStatusUrl()
   aioLogger.debug(`Getting paths from ${bulkStatusUrl}`)
+  // Since bulkStatus is async, it may not be complete when we fetch, so we need to retry until state is "stopped"
   while (tryCount <= maxTry) {
     aioLogger.debug(`Attempt ${tryCount}...`)
     try {
@@ -95,6 +99,8 @@ async function getBlob (text, pathname) {
   let content = text
   if (ext !== 'json') {
     content = await getAemHtml(text)
+  } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
+    content = modifyConfig(text)
   }
   return new Blob([content], { type })
 }

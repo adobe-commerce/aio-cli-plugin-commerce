@@ -23,7 +23,7 @@ export async function previewContent (files) {
       pathname = pathname.replace(/\/$/, '/index')
     }
     if (pathname.endsWith('.png')) {
-      // TODO: fix this, if necessary
+      // TODO: fix this, https://jira.corp.adobe.com/browse/USF-1845
       aioLogger.debug('cannot preview png files')
       continue
     }
@@ -55,7 +55,7 @@ export async function previewContent (files) {
 
   if (failures.length) {
     aioLogger.error(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
-    aioLogger.debug(failures)
+    aioLogger.error(failures)
   }
   aioLogger.log(`✅ Previewed ${successes.length} files.`)
   return results

@@ -216,3 +216,25 @@ function mdToDocDom (md) {
 
   return document
 }
+
+/**
+ *
+ * @param configText
+ * @returns modified config, with values desired by user
+ */
+export function modifyConfig (configText) {
+  const chosenApiUrl = config.get('commerce.datasource.core')
+  const chosenCatalogServiceApiUrl = config.get('commerce.datasource.catalog')
+  const configJson = JSON.parse(configText)
+
+  configJson.data = configJson.data.map((item) => {
+    if (chosenCatalogServiceApiUrl && item.key === 'commerce-endpoint') {
+      item.value = chosenCatalogServiceApiUrl
+    } else if (chosenApiUrl && item.key === 'commerce-core-endpoint') {
+      item.value = chosenApiUrl
+    }
+    return item
+  })
+
+  return JSON.stringify(configJson)
+}

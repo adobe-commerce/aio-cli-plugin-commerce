@@ -30,8 +30,29 @@ export async function initialization (args, flags) {
   config.set('github.org', org)
   config.set('github.repo', repo)
 
-  // TODO: add more templates like Luma Bridge, etc.
   const template = await promptSelect('Which template would you like to use?', ['hlxsites/aem-boilerplate-commerce', 'AdobeDevXSC/citisignal-one'])
   config.set('template.org', template.split('/')[0])
   config.set('template.repo', template.split('/')[1])
+
+  const commerceDataSourceOptions = ['Provide a backend URL', 'Pick an available instance', 'Use Adobe\'s demo instance']
+  const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
+
+  let coreUrl, catalogUrl
+  if (commerceDataSource === 'Provide a backend URL') {
+    coreUrl = await promptInput('Enter your Commerce backend URL:')
+    catalogUrl = await promptInput('Enter your Commerce Catalog Service URL:')
+    // TODO: validate inputs and ensure proper formed url (https://..../) and that they are graphql! (maybe a quick curl?)
+  } else if (commerceDataSource === 'Pick an available instance') {
+    // let { coreUrl, catalogUrl } = await getAndSelectInstances() // TODO: implement
+    coreUrl = 'https://na1-ccsaas-service-qa.commerce-core-saas.com/9JjnV3amskX6mEeyYADfiP/graphql/'
+    catalogUrl = 'https://na1-ccsaas-service-qa.commerce-core-saas.com/9JjnV3amskX6mEeyYADfiP/graphql/'
+  } else {
+    // if using demo instance, just leave empty to skip setting later(see @importer.js modifyConfig function)
+    coreUrl = ''
+    catalogUrl = ''
+  }
+
+  config.set('commerce.datasource.core', coreUrl)
+  config.set('commerce.datasource.catalog', catalogUrl)
+  // TODO: should we also make some queries here to set other data used in EDS config, see https://main--aem-boilerplate-commerce--hlxsites.aem.live/configs.json
 }
