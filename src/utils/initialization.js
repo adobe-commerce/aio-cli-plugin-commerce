@@ -1,6 +1,7 @@
-import { promptInput, promptSelect } from './prompt.js'
+import { promptConfirm, promptInput, promptSelect } from './prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
+import { getAndSelectInstances } from './accs.js'
 const aioLogger = Logger('commerce:initialization.js')
 /**
  * The initialization function serves as a place for all code in which we obtain
@@ -18,7 +19,7 @@ export async function initialization (args, flags) {
   const oldConfig = config.get('commerce')
 
   if (oldConfig) {
-    const skip = await promptInput(`Existing config found!\n${JSON.stringify(oldConfig, null, 2)}\nDo you want to use it?`)
+    const skip = await promptConfirm(`Existing config found!\n${JSON.stringify(oldConfig, null, 2)}\nDo you want to use it?`)
     if (skip) return
   }
 
@@ -48,13 +49,13 @@ export async function initialization (args, flags) {
 
   let coreUrl, catalogUrl
   if (commerceDataSource === 'Provide a backend URL') {
+    // TODO: validate inputs and ensure proper formed url (https://..../) and that they are graphql! (maybe a quick curl?)
     coreUrl = await promptInput('Enter your Commerce backend URL:')
     catalogUrl = await promptInput('Enter your Commerce Catalog Service URL:')
-    // TODO: validate inputs and ensure proper formed url (https://..../) and that they are graphql! (maybe a quick curl?)
   } else if (commerceDataSource === 'Pick an available instance') {
-    // let { coreUrl, catalogUrl } = await getAndSelectInstances() // TODO: implement
-    coreUrl = 'https://edge-stage-graph.adobe.io/api/2364b3f0-c3df-47ff-bb75-65f2d55973f2/graphql'
-    catalogUrl = 'https://edge-stage-graph.adobe.io/api/2364b3f0-c3df-47ff-bb75-65f2d55973f2/graphql'
+    const url = await getAndSelectInstances()
+    coreUrl = url
+    catalogUrl = url
   } else {
     // if using demo instance, just leave empty to skip setting later(see @importer.js modifyConfig function)
     coreUrl = ''

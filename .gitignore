@@ -12,3 +12,4 @@ coverage/
 junit.xml
 package-lock.json
 .env
+.aio
