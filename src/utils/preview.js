@@ -7,7 +7,7 @@ const aioLogger = Logger('commerce:scaffold:preview.js')
  * @param files
  */
 export async function previewContent (files) {
-  const { github: { org, repo } } = config.get()
+  const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   aioLogger.log('⏳ Previewing files, this may take some time...')
   const results = []
@@ -72,7 +72,7 @@ const filesToPublish = [
  * For DA Live Preview, we must publish some files. This must be done AFTER preview.
  */
 export async function publishContent () {
-  const { github: { org, repo } } = config.get()
+  const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   aioLogger.log('⏳ Publishing some necessary files...')
   const results = []

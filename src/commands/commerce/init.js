@@ -25,7 +25,7 @@ export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
     await initialization(args, flags)
-    const { org: githubOrg, repo: githubRepo } = config.get('github')
+    const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
 
     await createRepo()
     await modifyFstab()

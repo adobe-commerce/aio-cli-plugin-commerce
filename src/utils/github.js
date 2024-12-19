@@ -7,8 +7,8 @@ const aioLogger = Logger('commerce:github.js')
  * Creates github repo from template
  */
 export async function createRepo () {
-  const { org: githubOrg, repo: githubRepo } = config.get('github')
-  const { org: templateOrg, repo: templateRepo } = config.get('template')
+  const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
+  const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
   await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
   aioLogger.log(`✅ Created repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
 }
@@ -16,7 +16,7 @@ export async function createRepo () {
  * fstab must be connected to DA content source
  */
 export async function modifyFstab () {
-  const { org, repo } = config.get('github')
+  const { org, repo } = config.get('commerce.github')
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {
@@ -47,7 +47,7 @@ folders:
  * Sidekick requires specific config settings in github repo to have "edit" link back to DA
  */
 export async function modifySidekickConfig () {
-  const { org, repo } = config.get('github')
+  const { org, repo } = config.get('commerce.github')
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {

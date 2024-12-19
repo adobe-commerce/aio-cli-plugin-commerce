@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Command, Help } from '@oclif/core'
 import { initialization } from '../../utils/initialization.js'
 import config from '@adobe/aio-lib-core-config'
-import { modifyConfig } from '../../utils/importer.js'
+import { modifyConfig } from '../../utils/configs.js'
 export class TestCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(TestCommand)

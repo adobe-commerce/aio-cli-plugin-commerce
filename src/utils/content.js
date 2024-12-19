@@ -1,4 +1,5 @@
-import { getAemHtml, modifyConfig } from './importer.js'
+import { getAemHtml } from './importer.js'
+import { modifyConfig } from './configs.js'
 import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
@@ -25,8 +26,8 @@ export async function uploadStarterContent () {
  * https://www.aem.live/docs/admin.html#tag/status/operation/bulkStatus
  */
 async function getBulkStatusUrl () {
-  const templateOrg = config.get('template.org')
-  const templateRepo = config.get('template.repo')
+  const templateOrg = config.get('commerce.template.org')
+  const templateRepo = config.get('commerce.template.repo')
   const { stdout: response } = await runCommand(`curl --data '{ "paths": ["/*"] }' --header "Content-Type: application/json" 'https://admin.hlx.page/status/${templateOrg}/${templateRepo}/main/*'`)
   return JSON.parse(response).links.self + '/details'
 }
@@ -35,8 +36,8 @@ async function getBulkStatusUrl () {
  *
  */
 async function getFilePathsFromAem () {
-  const templateOrg = config.get('template.org')
-  const templateRepo = config.get('template.repo')
+  const templateOrg = config.get('commerce.template.org')
+  const templateRepo = config.get('commerce.template.repo')
   const maxTry = 3
   let tryCount = 1
   const bulkStatusUrl = await getBulkStatusUrl()
@@ -84,6 +85,8 @@ async function getFilePathsFromAem () {
 }
 
 /**
+ * Given text content and a file path/extension, convert the object to the necessary
+ * format expected by the content space.
  *
  * @param text
  * @param ext

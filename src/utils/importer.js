@@ -17,7 +17,7 @@ import config from '@adobe/aio-lib-core-config'
  * @param text
  */
 export async function getAemHtml (text) {
-  const { github: { org, repo } } = config.get()
+  const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const dom = mdToDocDom(text)
   const aemHtml = docDomToAemHtml(dom)
@@ -215,26 +215,4 @@ function mdToDocDom (md) {
   removeImageSizeHash(document)
 
   return document
-}
-
-/**
- *
- * @param configText
- * @returns modified config, with values desired by user
- */
-export function modifyConfig (configText) {
-  const chosenApiUrl = config.get('commerce.datasource.core')
-  const chosenCatalogServiceApiUrl = config.get('commerce.datasource.catalog')
-  const configJson = JSON.parse(configText)
-
-  configJson.data = configJson.data.map((item) => {
-    if (chosenCatalogServiceApiUrl && item.key === 'commerce-endpoint') {
-      item.value = chosenCatalogServiceApiUrl
-    } else if (chosenApiUrl && item.key === 'commerce-core-endpoint') {
-      item.value = chosenApiUrl
-    }
-    return item
-  })
-
-  return JSON.stringify(configJson)
 }
