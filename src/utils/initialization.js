@@ -80,8 +80,8 @@ export async function initialization (args, flags) {
 
 /**
  *
- * @param url a url like adobe.com, www.adobe.com, http://adobe.com, etc.
- * @returns a validated and formatted URL or null if the input is invalid.
+ * @param {string} url  a url like adobe.com, www.adobe.com, http://adobe.com, etc.
+ * @returns {string|null} a validated and formatted URL or null if the input is invalid.
  */
 function validateAndFormatURL (url) {
   // Regular expression to check if the string is a valid URL
