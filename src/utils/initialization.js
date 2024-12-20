@@ -56,7 +56,6 @@ export async function initialization (args, flags) {
   const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
   let coreUrl, catalogUrl
   if (commerceDataSource === STR_BYO) {
-    // TODO: validate inputs and ensure proper formed url (https://..../) and that they are graphql! (maybe a quick curl?)
     coreUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://mystore.com/graphql):').then(validateAndFormatURL)
     catalogUrl = await promptInput('Enter your Commerce Catalog Service API URL (ex. https://catalog-service.adobe.io/graphql):').then(validateAndFormatURL)
     if (!coreUrl || !catalogUrl) {
@@ -73,8 +72,10 @@ export async function initialization (args, flags) {
   }
   config.set('commerce.datasource.core', coreUrl)
   config.set('commerce.datasource.catalog', catalogUrl)
-  // TODO: should we also make some queries here to set other data used in EDS config, see https://main--aem-boilerplate-commerce--hlxsites.aem.live/configs.json
 
+  if (commerceDataSource === STR_BYO || commerceDataSource === STR_PICK) {
+    // TODO: if user selected BYO or to pick, they should also provide other configurations https://jira.corp.adobe.com/browse/USF-1882
+  }
   aioLogger.debug('inputs', config.get('commerce'))
 }
 

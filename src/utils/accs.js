@@ -4,7 +4,7 @@ import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:accs.js')
 const CCM_BASE_URL = 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
 
-// TODO: how to obtain from aio auth login or ims lib?
+// TODO: Use logic from mesh to get the list of ims orgs and select one. For now, we use a hardcoded value.
 const IMS_ORG = '239B1986676205D50A494138@AdobeOrg'
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [
