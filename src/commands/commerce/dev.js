@@ -20,15 +20,15 @@ const aioLogger = Logger('commerce:dev.js')
 export class DevCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(DevCommand)
-    const org = config.get('github.org')
-    const repo = config.get('github.repo')
+    const org = config.get('commerce.github.org')
+    const repo = config.get('commerce.github.repo')
     await runCommand(`gh repo clone ${org}/${repo}`)
-    aioLogger.log(`✅ Cloned https://github.com/${org}/${repo} to ${path.resolve(repo)}`)
+    console.log(`✅ Cloned https://github.com/${org}/${repo} to ${path.resolve(repo)}`)
     await runCommand(`cd ${repo}; npm i;`)
     runCommand(`cd ${repo}; npm run start;`)
     runCommand(`cd ${repo}; code .;`)
-    aioLogger.log('Your site is installed, and running locally at http://localhost:3000/')
-    aioLogger.log(`'npm run start' in ${path.resolve(repo)} to run again later.`)
+    console.log('Your site is installed, and running locally at http://localhost:3000/')
+    console.log(`'npm run start' in ${path.resolve(repo)} to run again later.`)
   }
 }
 

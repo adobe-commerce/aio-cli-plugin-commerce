@@ -2,7 +2,7 @@ import { exec } from 'child_process'
 import { promisify } from 'util'
 import Logger from '@adobe/aio-lib-core-logging'
 const execPromise = promisify(exec)
-const aioLogger = Logger('commerce:scaffold:runCommand.js')
+const aioLogger = Logger('commerce:runCommand.js')
 /**
  *
  * @param command

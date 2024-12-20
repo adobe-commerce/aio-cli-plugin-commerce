@@ -1,7 +1,7 @@
 import { promisify } from 'util'
 import { exec } from 'child_process'
 import Logger from '@adobe/aio-lib-core-logging'
-const aioLogger = Logger('commerce:scaffold:openBrowser.js')
+const aioLogger = Logger('commerce:openBrowser.js')
 
 const execPromise = promisify(exec)
 /**

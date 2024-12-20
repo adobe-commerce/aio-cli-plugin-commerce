@@ -17,7 +17,7 @@ import config from '@adobe/aio-lib-core-config'
  * @param text
  */
 export async function getAemHtml (text) {
-  const { github: { org, repo } } = config.get()
+  const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const dom = mdToDocDom(text)
   const aemHtml = docDomToAemHtml(dom)

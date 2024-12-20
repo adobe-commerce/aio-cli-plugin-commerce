@@ -1,20 +1,24 @@
 import { getAemHtml } from './importer.js'
+import { modifyConfig } from './configs.js'
 import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import config from '@adobe/aio-lib-core-config'
-const aioLogger = Logger('commerce:scaffold:content.js')
+const aioLogger = Logger('commerce:content.js')
 
 /**
+ * Gets source url file paths from the Helix Admin API for the template org and
+ * repo. Then each source file is transformed into expected upload file type and
+ * uploaded to content repository destination.
  *
  * @param url
  */
 export async function uploadStarterContent () {
-  aioLogger.log('⏳ Cloning content from boilerplate')
+  console.log('⏳ Cloning content from boilerplate')
   const filePaths = await getFilePathsFromAem()
-  aioLogger.log('⏳ Uploading content to document authoring space.')
+  console.log('⏳ Uploading content to document authoring space.')
   await uploadFilesToDA(filePaths)
-  aioLogger.log(`✅ Uploaded ${filePaths.length} content files.`)
+  console.log(`✅ Uploaded ${filePaths.length} content files.`)
   return filePaths
 }
 
@@ -22,8 +26,8 @@ export async function uploadStarterContent () {
  * https://www.aem.live/docs/admin.html#tag/status/operation/bulkStatus
  */
 async function getBulkStatusUrl () {
-  const templateOrg = config.get('template.org')
-  const templateRepo = config.get('template.repo')
+  const templateOrg = config.get('commerce.template.org')
+  const templateRepo = config.get('commerce.template.repo')
   const { stdout: response } = await runCommand(`curl --data '{ "paths": ["/*"] }' --header "Content-Type: application/json" 'https://admin.hlx.page/status/${templateOrg}/${templateRepo}/main/*'`)
   return JSON.parse(response).links.self + '/details'
 }
@@ -32,12 +36,13 @@ async function getBulkStatusUrl () {
  *
  */
 async function getFilePathsFromAem () {
-  const templateOrg = config.get('template.org')
-  const templateRepo = config.get('template.repo')
+  const templateOrg = config.get('commerce.template.org')
+  const templateRepo = config.get('commerce.template.repo')
   const maxTry = 3
   let tryCount = 1
   const bulkStatusUrl = await getBulkStatusUrl()
   aioLogger.debug(`Getting paths from ${bulkStatusUrl}`)
+  // Since bulkStatus is async, it may not be complete when we fetch, so we need to retry until state is "stopped"
   while (tryCount <= maxTry) {
     aioLogger.debug(`Attempt ${tryCount}...`)
     try {
@@ -80,6 +85,8 @@ async function getFilePathsFromAem () {
 }
 
 /**
+ * Given text content and a file path/extension, convert the object to the necessary
+ * format expected by the content space.
  *
  * @param text
  * @param ext
@@ -95,6 +102,8 @@ async function getBlob (text, pathname) {
   let content = text
   if (ext !== 'json') {
     content = await getAemHtml(text)
+  } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
+    content = modifyConfig(text)
   }
   return new Blob([content], { type })
 }
