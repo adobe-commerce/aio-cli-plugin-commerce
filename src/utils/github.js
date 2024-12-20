@@ -10,7 +10,7 @@ export async function createRepo () {
   const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
   const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
   await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
-  aioLogger.log(`✅ Created repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
+  console.log(`✅ Created repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
 }
 /**
  * fstab must be connected to DA content source

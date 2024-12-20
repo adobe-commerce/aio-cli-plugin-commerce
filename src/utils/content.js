@@ -4,7 +4,7 @@ import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import config from '@adobe/aio-lib-core-config'
-const aioLogger = Logger('commerce:scaffold:content.js')
+const aioLogger = Logger('commerce:content.js')
 
 /**
  * Gets source url file paths from the Helix Admin API for the template org and
@@ -14,11 +14,11 @@ const aioLogger = Logger('commerce:scaffold:content.js')
  * @param url
  */
 export async function uploadStarterContent () {
-  aioLogger.log('⏳ Cloning content from boilerplate')
+  console.log('⏳ Cloning content from boilerplate')
   const filePaths = await getFilePathsFromAem()
-  aioLogger.log('⏳ Uploading content to document authoring space.')
+  console.log('⏳ Uploading content to document authoring space.')
   await uploadFilesToDA(filePaths)
-  aioLogger.log(`✅ Uploaded ${filePaths.length} content files.`)
+  console.log(`✅ Uploaded ${filePaths.length} content files.`)
   return filePaths
 }
 

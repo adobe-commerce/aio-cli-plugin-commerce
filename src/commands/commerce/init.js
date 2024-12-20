@@ -34,23 +34,21 @@ export class InitCommand extends Command {
     openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
     const res = await promptConfirm('Did you install the AEM Code Sync bot?')
     if (!res) {
-      aioLogger.error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
-      return
+      throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
     }
 
     const filePaths = await uploadStarterContent()
     await previewContent(filePaths)
     await publishContent()
 
-    aioLogger.log(`✅ Edit your content: https://da.live/#/${githubOrg}/${githubRepo}`)
-    openBrowser(`https://da.live/#/${githubOrg}/${githubRepo}`)
-
-    aioLogger.log(`✅ Content Preview: https://main--${githubRepo}--${githubOrg}.aem.page/`)
-    openBrowser(`https://main--${githubRepo}--${githubOrg}.aem.page/`)
-
-    aioLogger.log('To run locally, try "aio commerce:dev"')
-    console.log('💸 Thanks for using the CLI tool 💸\n' +
-      'For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/\n')
+    const reset = '\x1b[0m'
+    const boldWhite = '\x1b[1m\x1b[37m'
+    console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
+    console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
+    console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
+    console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
+    console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
+    console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
   }
 }
 

@@ -1,6 +1,6 @@
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
-const aioLogger = Logger('commerce:scaffold:preview.js')
+const aioLogger = Logger('commerce:preview.js')
 
 /**
  *
@@ -9,7 +9,7 @@ const aioLogger = Logger('commerce:scaffold:preview.js')
 export async function previewContent (files) {
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
-  aioLogger.log('⏳ Previewing files, this may take some time...')
+  console.log('⏳ Previewing files, this may take some time...')
   const results = []
   const rateLimit = 10 // 10 requests per second
   const interval = 1000 / rateLimit // interval in milliseconds
@@ -54,10 +54,10 @@ export async function previewContent (files) {
   const failures = results.filter(({ status }) => status === 'failed' || status === 'error')
 
   if (failures.length) {
-    aioLogger.error(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    console.error(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     aioLogger.error(failures)
   }
-  aioLogger.log(`✅ Previewed ${successes.length} files.`)
+  console.log(`✅ Previewed ${successes.length} files.`)
   return results
 }
 
@@ -74,7 +74,7 @@ const filesToPublish = [
 export async function publishContent () {
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
-  aioLogger.log('⏳ Publishing some necessary files...')
+  console.log('⏳ Publishing some necessary files...')
   const results = []
   const rateLimit = 10 // 10 requests per second
   const interval = 1000 / rateLimit // interval in milliseconds
@@ -113,6 +113,6 @@ export async function publishContent () {
     aioLogger.error(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     aioLogger.debug(failures)
   }
-  aioLogger.log(`✅ Published ${successes.length} files.`)
+  console.log(`✅ Published ${successes.length} files.`)
   return results
 }
