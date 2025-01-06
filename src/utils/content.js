@@ -114,7 +114,7 @@ async function getBlob (text, pathname) {
  * @param files Array of string urls
  */
 async function uploadFilesToDA (files) {
-  const { github: { org, repo } } = config.get()
+  const { commerce: { github: { org, repo } } } = config.get()
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
 
