@@ -85,7 +85,7 @@ async function getFilePathsFromAem () {
 }
 
 /**
- * Given text content and a file path/extension, convert the object to the necessary
+ * Given text and a file path/extension, convert the object to the necessary
  * format expected by the content space.
  *
  * @param text
@@ -125,9 +125,15 @@ async function uploadFilesToDA (files) {
       fetch(contentFilePath)
         .then(async (resp) => {
           if (!resp.ok) throw Error('Unable to fetch file')
-          const text = await resp.text()
           const { pathname } = new URL(contentFilePath)
-          const blob = await getBlob(text, pathname)
+          let blob
+          if (contentFilePath.endsWith('.png') || contentFilePath.endsWith('.jpg')) {
+            // TODO: Handle other image types
+            blob = await resp.blob()
+          } else {
+            blob = await getBlob(await resp.text(), pathname)
+          }
+          aioLogger.debug(`Got blob from ${contentFilePath}`, blob)
           const formData = new FormData()
           formData.append('data', blob)
           const daPath = pathname.endsWith('.md') ? pathname.replace(/\.md$/, '.html') : pathname

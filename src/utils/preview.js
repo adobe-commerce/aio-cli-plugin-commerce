@@ -17,24 +17,21 @@ export async function previewContent (files) {
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
   for (let i = 0; i < files.length; i++) {
-    aioLogger.debug('url', files[i])
+    aioLogger.debug('ORIGIN:', files[i])
     let { pathname } = new URL(files[i])
     if (pathname.endsWith('/')) {
       pathname = pathname.replace(/\/$/, '/index')
     }
-    if (pathname.endsWith('.png')) {
-      // TODO: fix this, https://jira.corp.adobe.com/browse/USF-1845
-      aioLogger.debug('cannot preview png files')
-      continue
-    }
+    aioLogger.debug('DESTINATION:', `https://da.live/#/${org}/${repo}${pathname.replace(/\.[^.]+$/, '')}`)
     const url = new URL(`https://admin.hlx.page/preview/${org}/${repo}/main${pathname}`)
-    aioLogger.debug(`Previewing at ${url}`)
+    aioLogger.debug(`Previewing: ${url}`)
 
     let result
+    // TODO: refactor this retry/delay logic to be better!
     try {
       const res = await fetch(url, { method: 'POST' })
       if (res.status !== 200) {
-        result = { source: files[i], status: 'failed', message: `Failed to preview ${files[i]}` }
+        result = { source: files[i], status: 'failed', message: `Failed to preview https://da.live/#/${org}/${repo}${pathname.replace(/\.[^.]+$/, '')}` }
         aioLogger.debug(res)
       } else {
         result = { source: files[i], status: 'success' }
@@ -64,6 +61,7 @@ export async function previewContent (files) {
 const filesToPublish = [
   '/configs.json',
   '/placeholders.json',
+  // TODO: nav, footer, and mini-cart are only necessary for base boilerplate, not citisignal. Add logic to conditionally determine whether we need to publish these at all. We may need to find if there are any citisignal files which need publishing too.
   '/nav',
   '/footer',
   '/mini-cart'
