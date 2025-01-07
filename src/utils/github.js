@@ -110,7 +110,9 @@ export async function modifySidekickConfig() {
     if (!repoReady) throw new Error("Unable to modify fstab for some reason!");
 }
 
-export async function bootstrapLocalMeshWorkspace(runAIOCommand) {
+const API_MESH_PROJECT_NAME = "api-mesh";
+
+async function createMeshLocalWorkspace(runAIOCommand) {
     const { core, catalog } = config.get("commerce.datasource");
 
     if (!core && !catalog) {
@@ -119,7 +121,6 @@ export async function bootstrapLocalMeshWorkspace(runAIOCommand) {
         );
     }
 
-    const API_MESH_PROJECT_NAME = "api-mesh";
     // Create a local mesh workspace
     await runAIOCommand("api-mesh:init", [API_MESH_PROJECT_NAME]);
 
@@ -130,4 +131,16 @@ export async function bootstrapLocalMeshWorkspace(runAIOCommand) {
         envFilePath,
         `COMMERCE_ENDPOINT=${core}\nCATALOG_ENDPOINT=${catalog}`
     );
+}
+
+async function uploadMeshWorkspace() {
+    // Upload the local mesh workspace
+    await runCommand(`git add ${API_MESH_PROJECT_NAME}`);
+    await runCommand(`git commit -m "Added API Mesh workspace"`);
+    await runCommand(`git push`);
+}
+
+export async function createAndUploadMeshWorkspace(runAIOCommand) {
+    await createMeshLocalWorkspace(runAIOCommand);
+    await uploadMeshWorkspace();
 }
