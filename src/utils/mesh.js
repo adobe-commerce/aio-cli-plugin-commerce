@@ -2,6 +2,8 @@ import { promises as fsPromise } from "fs";
 import path from "path";
 import config from "@adobe/aio-lib-core-config";
 
+import { promptConfirm } from "./prompt.js";
+
 const meshConfigFilePath = path.join("./", "mesh_config.json");
 
 async function createTempMeshConfigFile(core, githubOrg, githubRepo) {
@@ -61,7 +63,19 @@ async function deleteTempMeshConfigFile() {
     await fsPromise.unlink(meshConfigFilePath);
 }
 
+async function confirmAPIMeshCreation() {
+    return await promptConfirm(
+        "Do you want to create an API Mesh for your Commerce instance?"
+    );
+}
+
 export async function createMesh(runAIOCommand) {
+    const shouldCreateMesh = await confirmAPIMeshCreation();
+
+    if (!shouldCreateMesh) {
+        return;
+    }
+
     console.log("Creating API Mesh...");
 
     const { core, catalog } = config.get("commerce.datasource");
