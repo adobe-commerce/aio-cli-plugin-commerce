@@ -16,8 +16,9 @@ import { uploadStarterContent } from '../../utils/content.js'
 import { previewContent, publishContent } from '../../utils/preview.js'
 import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
-import { createRepo, modifyFstab, modifySidekickConfig, createAndUploadMeshWorkspace } from '../../utils/github.js'
+import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
+import { createMesh } from '../../utils/mesh.js'
 
 const aioLogger = Logger('commerce:init.js')
 
@@ -28,13 +29,13 @@ export class InitCommand extends Command {
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
 
     const runAIOCommand = async (command, args) => {
-        await this.config.runCommand(command, args);
+        return await this.config.runCommand(command, args);
     };
 
+    await createMesh(runAIOCommand);
     await createRepo()
     await modifyFstab()
     await modifySidekickConfig()
-    await createAndUploadMeshWorkspace(runAIOCommand);
 
     openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
     const res = await promptConfirm('Did you install the AEM Code Sync bot?')

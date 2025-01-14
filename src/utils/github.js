@@ -1,5 +1,3 @@
-import { promises as fsPromise } from "fs";
-import path from "path";
 import config from "@adobe/aio-lib-core-config";
 import Logger from "@adobe/aio-lib-core-logging";
 
@@ -108,39 +106,4 @@ export async function modifySidekickConfig() {
         }
     }
     if (!repoReady) throw new Error("Unable to modify fstab for some reason!");
-}
-
-const API_MESH_PROJECT_NAME = "api-mesh";
-
-async function createMeshLocalWorkspace(runAIOCommand) {
-    const { core, catalog } = config.get("commerce.datasource");
-
-    if (!core && !catalog) {
-        throw new Error(
-            "❌ Please provide one of core or catalog datasource URLs."
-        );
-    }
-
-    // Create a local mesh workspace
-    await runAIOCommand("api-mesh:init", [API_MESH_PROJECT_NAME]);
-
-    // Edit .env file to include the core and catalog URLs
-    const envFilePath = path.join(API_MESH_PROJECT_NAME, ".env");
-
-    await fsPromise.writeFile(
-        envFilePath,
-        `COMMERCE_ENDPOINT=${core}\nCATALOG_ENDPOINT=${catalog}`
-    );
-}
-
-async function uploadMeshWorkspace() {
-    // Upload the local mesh workspace
-    await runCommand(`git add ${API_MESH_PROJECT_NAME}`);
-    await runCommand(`git commit -m "Added API Mesh workspace"`);
-    await runCommand(`git push`);
-}
-
-export async function createAndUploadMeshWorkspace(runAIOCommand) {
-    await createMeshLocalWorkspace(runAIOCommand);
-    await uploadMeshWorkspace();
 }
