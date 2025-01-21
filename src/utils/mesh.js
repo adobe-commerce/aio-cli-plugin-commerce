@@ -18,7 +18,8 @@ function getCSaaSMeshConfig(core, githubOrg, githubRepo) {
                 "methods": ["GET", "POST"],
                 "origin": [
                     "http://localhost:3000",
-                    "https://main--${githubRepo}--${githubOrg}.aem.page"
+                    "https://main--${githubRepo}--${githubOrg}.aem.page",
+                    "https://main--${githubRepo}--${githubOrg}.aem.live"
                 ]
             },
             "headers": {
@@ -69,7 +70,8 @@ function getPSaaSMeshConfig(core, catalog, githubOrg, githubRepo) {
                 "methods": ["GET", "POST"],
                 "origin": [
                     "http://localhost:3000",
-                    "https://main--${githubRepo}--${githubOrg}.aem.page"
+                    "https://main--${githubRepo}--${githubOrg}.aem.page",
+                    "https://main--${githubRepo}--${githubOrg}.aem.live"
                 ]
             },
             "headers": {
@@ -190,15 +192,14 @@ export async function createMesh(runAIOCommand) {
     const { org: githubOrg, repo: githubRepo } = config.get("commerce.github");
 
     if (!core) {
-        throw new Error(
-            "❌ Please provide core commerce datasource URLs."
-        );
+        throw new Error("❌ Please provide core commerce datasource URLs.");
     }
 
     await createTempMeshConfigFile(core, catalog, githubOrg, githubRepo);
 
     const { meshUrl } = await runAIOCommand("api-mesh:create", [
         meshConfigFilePath,
+        "-c",
     ]);
     config.set("commerce.datasource.meshUrl", meshUrl);
 
