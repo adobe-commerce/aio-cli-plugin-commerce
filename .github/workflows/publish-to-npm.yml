@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - develop
-      - epic/**
+    #   - epic/**
 jobs:
   publish:
     if: github.event.pull_request.merged == true
@@ -24,7 +24,7 @@ jobs:
 
       - name: Get version from package.json
         id: get_version
-        run: | 
+        run: |
           version=$(jq -r '.version' package.json)
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "Read version $version from package.json"
@@ -34,10 +34,10 @@ jobs:
         run: |
           target_branch="${GITHUB_REF#refs/heads/}"
           version_tag=""
-          
+
           if [ "$target_branch" == "main" ]; then
             version_tag="latest"
-          
+
           elif [ "$target_branch" == "develop" ]; then
             if [[ "${{ steps.get_version.outputs.version }}" =~ beta ]]; then
               version_tag="beta"
@@ -45,20 +45,20 @@ jobs:
               echo "Will not publish. Version on branch \"$target_branch\" is not beta.";
               exit 0;
             fi
-          
-          elif [[ $target_branch == epic/* ]]; then
-            if [[ "${{ steps.get_version.outputs.version }}" =~ alpha ]]; then
-              version_tag="alpha"
-            else 
-              echo "Will not publish. Version on branch \"$target_branch\" is not alpha.";
-              exit 0;
-            fi
-          
+
+        #   elif [[ $target_branch == epic/* ]]; then
+        #     if [[ "${{ steps.get_version.outputs.version }}" =~ alpha ]]; then
+        #       version_tag="alpha"
+        #     else
+        #       echo "Will not publish. Version on branch \"$target_branch\" is not alpha.";
+        #       exit 0;
+        #     fi
+
           else
             echo "Will not publish. Branch \"$target_branch\" is not designated for publish.";
             exit 0;
           fi
-          
+
           echo "version_tag=$version_tag" >> $GITHUB_OUTPUT;
           echo "Will publish version ${{ steps.get_version.outputs.version }} as $version_tag"
 
