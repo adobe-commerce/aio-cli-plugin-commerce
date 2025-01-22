@@ -15,6 +15,7 @@ export function modifyConfig (configSource) {
     configJson = JSON.parse(configSource)
   }
 
+  // TODO: USF-1882: Query backend (commerce-endpoint + commerce-core-endpoint) for the values needed here.
   configJson.data = configJson.data.map((item) => {
     switch (item.key) {
       case 'commerce-endpoint':

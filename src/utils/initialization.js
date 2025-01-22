@@ -68,11 +68,9 @@ export async function initialization (args, flags) {
     const envId = await promptInput('Enter your Adobe Environment Id:')
     config.set('commerce.apiKey', apiKey)
     config.set('commerce.environmentId', envId)
-    // TODO: ask for other minimally required details like api key and environment id
   } else if (commerceDataSource === STR_PICK) {
     const url = await getAndSelectInstances()
     saasUrl = url
-    // TODO: ask for other minimally required details like website-code and store-view-code. Can we just use base/default?
   } else {
     // If using demo instance, we don't need to set any urls - they should just
     // copy from the config.
