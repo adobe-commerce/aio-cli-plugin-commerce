@@ -42,7 +42,3 @@ export function modifyConfig (configSource) {
   aioLogger.debug('modified config:', JSON.stringify(configJson, null, 2))
   return JSON.stringify(configJson)
 }
-
-// TODO: USF-1882:
-// Obtain config values from a storeConfig and dataServicesStorefrontInstanceContext query if using PaaS.
-// Obtain config values from storeConfig query if SaaS, and request input from user for any config values not retrieved.
