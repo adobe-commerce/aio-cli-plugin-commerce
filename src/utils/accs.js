@@ -1,24 +1,26 @@
 import ims from '@adobe/aio-lib-ims'
 import { promptSelect } from './prompt.js'
+import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:accs.js')
 const CCM_BASE_URL = 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
 
-// TODO: Use logic from mesh to get the list of ims orgs and select one. For now, we use a hardcoded value.
-const IMS_ORG = '239B1986676205D50A494138@AdobeOrg'
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [
-  'ACCS Test Mesh: https://edge-stage-graph.adobe.io/api/2364b3f0-c3df-47ff-bb75-65f2d55973f2/graphql'
+  'Test OneGraph Endpoint: https://core-commerce-saas-storefront-router-service-qa.ethos501-stage-va6.ethos.adobe.net/9JjnV3amskX6mEeyYADfiP/graphql'
 ]
 const urlPattern = /https:\/\/[^\s]+/g
 /**
  *
  */
 export async function getAndSelectInstances () {
+  const { code: IMS_ORG, name } = config.get('console.org')
+  aioLogger.debug(`Looking up available tenants in the "${name}" IMS Organization`)
+
   // get ims token
   await ims.context.setCurrent('cli')
   const token = await ims.getToken('cli')
-
+  aioLogger.debug(`Fetch: ${CCM_BASE_URL}/api/v1/tenants/owner/${IMS_ORG}`)
   const resp = await fetch(`${CCM_BASE_URL}/api/v1/tenants/owner/${IMS_ORG}`, {
     headers: {
       Authorization: `Bearer ${token}`
@@ -33,8 +35,8 @@ export async function getAndSelectInstances () {
   const urlMatch = choice.match(urlPattern)
 
   if (urlMatch) {
-    aioLogger.debug('selected', urlMatch)
-    return urlMatch
+    aioLogger.debug('selected', urlMatch[0])
+    return urlMatch[0]
   } else {
     throw Error('Something went wrong selecting an ACCS instance.')
   }

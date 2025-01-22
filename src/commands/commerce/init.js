@@ -9,8 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Args, Command, Flags } from '@oclif/core'
-import Logger from '@adobe/aio-lib-core-logging'
+import { Command, Flags } from '@oclif/core'
 import { openBrowser } from '../../utils/openBrowser.js'
 import { uploadStarterContent } from '../../utils/content.js'
 import { previewContent, publishContent } from '../../utils/preview.js'
@@ -20,8 +19,6 @@ import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/githu
 import { initialization } from '../../utils/initialization.js'
 import { createMesh } from '../../utils/mesh.js'
 
-const aioLogger = Logger('commerce:init.js')
-
 export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
@@ -29,10 +26,10 @@ export class InitCommand extends Command {
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
 
     const runAIOCommand = async (command, args) => {
-        return await this.config.runCommand(command, args);
-    };
+      return await this.config.runCommand(command, args)
+    }
 
-    await createMesh(runAIOCommand);
+    await createMesh(runAIOCommand)
     await createRepo()
     await modifyFstab()
     await modifySidekickConfig()
@@ -47,14 +44,20 @@ export class InitCommand extends Command {
     await previewContent(filePaths)
     await publishContent()
 
+    const meshUrl = config.get('commerce.datasource.meshUrl')
     const reset = '\x1b[0m'
     const boldWhite = '\x1b[1m\x1b[37m'
     console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
     console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
     console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
+    console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
     console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
+    meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
+
+    // cleanup
+    config.delete('commerce')
   }
 }
 
