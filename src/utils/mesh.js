@@ -72,7 +72,7 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
  * @param githubOrg
  * @param githubRepo
  */
-function getPSaaSMeshConfig (core, catalog, githubOrg, githubRepo) {
+function getPaaSMeshConfig (core, catalog, githubOrg, githubRepo) {
   return `
     {
         "meshConfig": {
@@ -186,7 +186,7 @@ async function createTempMeshConfigFile (
   // If user chose SaaS (initialization.js) they will only have commerce.datasource.saas
   if (core && catalog) {
     aioLogger.debug('creating Mesh for PaaS/CatalogServices')
-    meshConfigFile = getPSaaSMeshConfig(
+    meshConfigFile = getPaaSMeshConfig(
       core,
       catalog,
       githubOrg,
