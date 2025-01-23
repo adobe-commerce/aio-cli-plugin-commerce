@@ -9,7 +9,6 @@ const execPromise = promisify(exec)
  * @param url - the url to open
  */
 async function openBrowser (url) {
-  // TODO: enforce https protocol
   if (!url.startsWith('https://')) {
     throw Error('url must start with https://')
   }

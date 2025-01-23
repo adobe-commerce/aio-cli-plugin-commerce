@@ -3,7 +3,7 @@ import { promptSelect } from './prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:accs.js')
-// TODO: Update to publicly available URL
+// TODO: Update to publicly available URL (Vijay says by next week 1/27)
 const CCM_BASE_URL = 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
 
 // A list of some default tenant (can remove later)
