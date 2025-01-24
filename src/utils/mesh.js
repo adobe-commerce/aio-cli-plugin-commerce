@@ -209,9 +209,25 @@ async function deleteTempMeshConfigFile () {
 
 /**
  *
+ */
+async function confirmAPIMeshCreation () {
+  return await promptConfirm(
+    'Do you want to create an API Mesh for your Commerce instance?'
+  )
+}
+
+/**
+ *
  * @param runAIOCommand
  */
 export async function createMesh (runAIOCommand) {
+  const shouldCreateMesh = await confirmAPIMeshCreation()
+
+  if (!shouldCreateMesh) {
+    console.log('Not creating API Mesh - will use default environment')
+    return
+  }
+
   const { saas, paas, catalog } = config.get('commerce.datasource')
   const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
 
