@@ -34,6 +34,7 @@ export class InitCommand extends Command {
     await modifyFstab()
     await modifySidekickConfig()
 
+    // TODO: For summit, we can just pre-add the code sync bot to ALL repos for the single user. So comment out for summit, then uncomment afterwards.
     openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
     const res = await promptConfirm('Did you install the AEM Code Sync bot?')
     if (!res) {
