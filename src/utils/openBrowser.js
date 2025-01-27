@@ -34,7 +34,8 @@ async function openBrowser (url) {
     await execPromise(command)
   } catch (error) {
     if (error) {
-      aioLogger.error('Failed to open browser:', error)
+      aioLogger.warn('Failed to open browser, make sure you install the code-sync bot at https://github.com/apps/aem-code-sync/installations/select_target')
+      aioLogger.debug(error)
     }
   }
 }
