@@ -1,13 +1,13 @@
-import { promises as fsPromise } from "fs";
-import path from "path";
-import config from "@adobe/aio-lib-core-config";
-import Logger from "@adobe/aio-lib-core-logging";
+import { promises as fsPromise } from 'fs'
+import path from 'path'
+import config from '@adobe/aio-lib-core-config'
+import Logger from '@adobe/aio-lib-core-logging'
 
-import { runCommand } from "./runCommand.js";
-import { promptConfirm } from "./prompt.js";
+import { runCommand } from './runCommand.js'
+import { promptConfirm } from './prompt.js'
 
-const aioLogger = Logger("commerce:mesh.js");
-const meshConfigFilePath = path.join("./", "mesh_config.json");
+const aioLogger = Logger('commerce:mesh.js')
+const meshConfigFilePath = path.join('./', 'mesh_config.json')
 
 /**
  *
@@ -15,8 +15,8 @@ const meshConfigFilePath = path.join("./", "mesh_config.json");
  * @param githubOrg
  * @param githubRepo
  */
-function getCSaaSMeshConfig(core, githubOrg, githubRepo) {
-    return `
+function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
+  return `
     {
         "meshConfig": {
             "responseConfig": {
@@ -64,7 +64,7 @@ function getCSaaSMeshConfig(core, githubOrg, githubRepo) {
             ]
         }
     }
-    `;
+    `
 }
 
 /**
@@ -74,8 +74,8 @@ function getCSaaSMeshConfig(core, githubOrg, githubRepo) {
  * @param githubOrg
  * @param githubRepo
  */
-function getPaaSMeshConfig(core, catalog, githubOrg, githubRepo) {
-    return `
+function getPaaSMeshConfig (core, catalog, githubOrg, githubRepo) {
+  return `
     {
         "meshConfig": {
             "responseConfig": {
@@ -165,7 +165,7 @@ function getPaaSMeshConfig(core, catalog, githubOrg, githubRepo) {
             ]
         }
         }
-    `;
+    `
 }
 
 /**
@@ -176,99 +176,104 @@ function getPaaSMeshConfig(core, catalog, githubOrg, githubRepo) {
  * @param githubOrg
  * @param githubRepo
  */
-async function createTempMeshConfigFile(
-    saas,
-    core,
-    catalog,
-    githubOrg,
-    githubRepo
+async function createTempMeshConfigFile (
+  saas,
+  core,
+  catalog,
+  githubOrg,
+  githubRepo
 ) {
-    let meshConfigFile;
+  let meshConfigFile
 
-    // If user chose SaaS (initialization.js) they will only have commerce.datasource.saas
-    if (core && catalog) {
-        aioLogger.debug("creating Mesh for PaaS/CatalogServices");
-        meshConfigFile = getPaaSMeshConfig(
-            core,
-            catalog,
-            githubOrg,
-            githubRepo
-        );
-    } else {
-        aioLogger.debug("creating Mesh for SaaS");
-        meshConfigFile = getCSaaSMeshConfig(saas, githubOrg, githubRepo);
-    }
+  // If user chose SaaS (initialization.js) they will only have commerce.datasource.saas
+  if (core && catalog) {
+    aioLogger.debug('creating Mesh for PaaS/CatalogServices')
+    meshConfigFile = getPaaSMeshConfig(
+      core,
+      catalog,
+      githubOrg,
+      githubRepo
+    )
+  } else {
+    aioLogger.debug('creating Mesh for SaaS')
+    meshConfigFile = getCSaaSMeshConfig(saas, githubOrg, githubRepo)
+  }
 
-    await fsPromise.writeFile(meshConfigFilePath, meshConfigFile);
+  await fsPromise.writeFile(meshConfigFilePath, meshConfigFile)
 }
 
 /**
  *
  */
-async function deleteTempMeshConfigFile() {
-    await fsPromise.unlink(meshConfigFilePath);
+async function deleteTempMeshConfigFile () {
+  await fsPromise.unlink(meshConfigFilePath)
 }
 
 /**
  *
  */
-async function confirmAPIMeshCreation() {
-    return await promptConfirm(
-        "Do you want to create an API Mesh for your Commerce instance?"
-    );
+async function confirmAPIMeshCreation () {
+  return await promptConfirm(
+    'Do you want to create an API Mesh for your Commerce instance?'
+  )
 }
 
-async function checkAndInstallMeshPlugin(installedPlugins) {
-    aioLogger.debug("Checking for API Mesh plugin...\n\n", installedPlugins);
+/**
+ *
+ * @param installedPlugins
+ */
+async function checkAndInstallMeshPlugin (installedPlugins) {
+  aioLogger.debug('Checking for API Mesh plugin...\n\n', installedPlugins)
 
-    const meshPlugin = installedPlugins.get("@adobe/aio-cli-plugin-api-mesh");
+  const meshPlugin = installedPlugins.get('@adobe/aio-cli-plugin-api-mesh')
 
-    if (!meshPlugin) {
-        console.log("Installing API Mesh plugin...");
+  if (!meshPlugin) {
+    console.log('Installing API Mesh plugin...')
 
-        await runCommand(
-            "aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.0.1-beta.1" // will remove the beta version tag once the latest version is published with the necessary changes
-        );
-    }
+    await runCommand(
+      'aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.0.1-beta.1' // will remove the beta version tag once the latest version is published with the necessary changes
+    )
+  }
 }
 
 /**
  *
  * @param runAIOCommand
+ * @param installedPlugins
  */
-export async function createMesh(runAIOCommand, installedPlugins) {
-    const shouldCreateMesh = await confirmAPIMeshCreation();
+export async function createMesh (runAIOCommand, installedPlugins) {
+  const shouldCreateMesh = await confirmAPIMeshCreation()
 
-    if (!shouldCreateMesh) {
-        aioLogger.debug("Not creating API Mesh - will use default environment");
-        return;
-    }
+  if (!shouldCreateMesh) {
+    aioLogger.debug('Not creating API Mesh - will use default environment')
+    return
+  }
 
-    await checkAndInstallMeshPlugin(installedPlugins);
+  await checkAndInstallMeshPlugin(installedPlugins)
 
-    const { saas, paas, catalog } = config.get("commerce.datasource");
-    const { org: githubOrg, repo: githubRepo } = config.get("commerce.github");
+  const { saas, paas, catalog } = config.get('commerce.datasource')
+  const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
 
-    if (paas || saas) {
-        console.log("Creating API Mesh...");
-        await createTempMeshConfigFile(
-            saas,
-            paas,
-            catalog,
-            githubOrg,
-            githubRepo
-        );
+  if (paas || saas) {
+    console.log('Creating API Mesh...')
+    await createTempMeshConfigFile(
+      saas,
+      paas,
+      catalog,
+      githubOrg,
+      githubRepo
+    )
 
-        const { meshUrl } = await runAIOCommand("api-mesh:create", [
-            meshConfigFilePath,
-            "-c",
-        ]);
-        // TODO: status call, when true, continue else retry if error
-        config.set("commerce.datasource.meshUrl", meshUrl);
+    const { meshUrl } = await runAIOCommand('api-mesh:create', [
+      meshConfigFilePath,
+      '-c'
+    ])
+    // TODO: status call, when true, continue else retry if error
+    config.set('commerce.datasource.meshUrl', meshUrl)
 
-        await deleteTempMeshConfigFile();
-    } else {
-        // this means the user chose to use demo env, so no need to create mesh
-        console.log("Not creating API Mesh - will use default environment");
-    }
+    await deleteTempMeshConfigFile()
+  } else {
+    // this means the user chose to use demo env, so no need to create mesh
+    console.log('Not creating API Mesh - will use default environment')
+  }
 }
