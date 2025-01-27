@@ -1,4 +1,4 @@
-import { promptConfirm, promptInput, promptSelect } from './prompt.js'
+import { promptInput, promptSelect } from './prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 import { getAndSelectInstances } from './accs.js'
@@ -16,14 +16,6 @@ const aioLogger = Logger('commerce:initialization.js')
  * @param flags - flags from the command
  */
 export async function initialization (args, flags) {
-  const oldConfig = config.get('commerce')
-
-  if (oldConfig) {
-    console.log(JSON.stringify(oldConfig, null, 2))
-    const skip = await promptConfirm('^^ Existing config found! Do you want to use it?')
-    if (skip) return
-  }
-
   console.log('🛒 Welcome to the Adobe Commerce Storefront Scaffolder 🛒\n' +
     '--------------------------------------------\n' +
 'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
@@ -43,39 +35,50 @@ export async function initialization (args, flags) {
   config.set('commerce.github.repo', repo)
 
   // TEMPLATE SELECTION
-  const template = await promptSelect('Which template would you like to use?', ['hlxsites/aem-boilerplate-commerce', 'AdobeDevXSC/citisignal-one'])
+  const template = await promptSelect('Which template would you like to use?', [
+    'hlxsites/adobe-demo-store',
+    'hlxsites/aem-boilerplate-commerce',
+    'AdobeDevXSC/citisignal-one'
+  ])
   config.set('commerce.template.org', template.split('/')[0])
   config.set('commerce.template.repo', template.split('/')[1])
 
   // DATASOURCE SELECTION
-  const STR_DEMO = 'Use Adobe\'s demo instance'
-  const STR_BYO = 'Provide your backend API URL'
-  const STR_PICK = 'Pick an available instance'
+  const STR_DEMO = 'Use Adobe\'s demo instance (Default Endpoints)'
+  const STR_BYO = 'Provide your backend API URL (Mesh -> Your_Endpoints)'
+  const STR_PICK = 'Pick an available instance (Mesh -> SaaS)'
 
-  const commerceDataSourceOptions = [STR_DEMO, STR_PICK, STR_BYO]
+  const commerceDataSourceOptions = [
+    STR_DEMO,
+    STR_PICK,
+    STR_BYO
+  ]
   const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
-  let coreUrl, catalogUrl
+
+  let paasUrl = ''
+  let catalogUrl = ''
+  let saasUrl = ''
+
   if (commerceDataSource === STR_BYO) {
-    coreUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://mystore.com/graphql):').then(validateAndFormatURL)
+    paasUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://mystore.com/graphql):').then(validateAndFormatURL)
     catalogUrl = await promptInput('Enter your Commerce Catalog Service API URL (ex. https://catalog-service.adobe.io/graphql):').then(validateAndFormatURL)
-    if (!coreUrl || !catalogUrl) {
+    if (!paasUrl || !catalogUrl) {
       throw Error('❌ Please provide a valid URL for Commerce GraphQL API and Catalog Service.')
     }
+    const apiKey = await promptInput('Enter your Adobe Catalog Service API Key:')
+    const envId = await promptInput('Enter your Adobe Environment Id:')
+    config.set('commerce.apiKey', apiKey)
+    config.set('commerce.environmentId', envId)
   } else if (commerceDataSource === STR_PICK) {
     const url = await getAndSelectInstances()
-    coreUrl = url
-    catalogUrl = url
+    saasUrl = url
   } else {
-    // if using demo instance, just leave empty to skip setting later(see @config.js modifyConfig function)
-    coreUrl = ''
-    catalogUrl = ''
+    // If using demo instance, we don't need to set any urls - they should just
+    // copy from the config.
   }
-  config.set('commerce.datasource.core', coreUrl)
+  config.set('commerce.datasource.paas', paasUrl)
   config.set('commerce.datasource.catalog', catalogUrl)
-
-  if (commerceDataSource === STR_BYO || commerceDataSource === STR_PICK) {
-    // TODO: if user selected BYO or to pick, they should also provide other configurations https://jira.corp.adobe.com/browse/USF-1882
-  }
+  config.set('commerce.datasource.saas', saasUrl)
   aioLogger.debug('inputs', config.get('commerce'))
 }
 

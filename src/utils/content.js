@@ -107,6 +107,7 @@ async function getBlob (text, pathname) {
   }
   return new Blob([content], { type })
 }
+
 /**
  * Given a url, fetch the content of the file (from a related url) and PUT to admin.da.live/source/${org}/${repo}
  * Programatically perform what is done here: https://da.live/apps/import
@@ -114,11 +115,11 @@ async function getBlob (text, pathname) {
  * @param files Array of string urls
  */
 async function uploadFilesToDA (files) {
-  const { commerce: { github: { org, repo } } } = config.get()
+  const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
 
-  const promises = files.map((file) => {
+  const promises = files.sort().map((file) => {
     const contentFilePath = getContentFilePath(file)
     aioLogger.debug(`FETCHING ${contentFilePath}`)
     return new Promise((resolve, reject) => {
