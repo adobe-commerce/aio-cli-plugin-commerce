@@ -24,7 +24,7 @@ export class InitCommand extends Command {
     const { args, flags } = await this.parse(InitCommand)
     await initialization(args, flags)
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
-    const installedPlugins = this.config.plugins;
+    const installedPlugins = this.config.plugins
 
     const runAIOCommand = async (command, args) => {
       return await this.config.runCommand(command, args)
