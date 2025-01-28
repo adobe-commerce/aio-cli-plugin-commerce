@@ -21,7 +21,7 @@ gh auth login
 # Usage
 
 ```sh-session
-$ aio plugins:install @adobe/aio-cli-plugin-commerce
+$ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce
 $ # OR
 $ aio discover -i
 $ aio commerce --help

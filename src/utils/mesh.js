@@ -334,6 +334,15 @@ export async function createMesh (runAIOCommand, installedPlugins) {
   const { org: githubOrg, repo: githubRepo } = github
 
   if (paas || saas) {
+    const shouldCreateMesh = await confirmAPIMeshCreation()
+
+    if (!shouldCreateMesh) {
+      aioLogger.debug('Not creating API Mesh - will use default environment')
+      return
+    }
+
+    await checkAndInstallMeshPlugin(installedPlugins)
+
     console.log('Creating API Mesh...')
     await createTempMeshConfigFile(
       saas,
