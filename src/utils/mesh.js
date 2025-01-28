@@ -333,7 +333,7 @@ export async function createMesh (runAIOCommand, installedPlugins) {
   const { saas, paas, catalog } = datasource
   const { org: githubOrg, repo: githubRepo } = github
 
-  if (paas || saas) {
+  if ((paas && catalog) || saas) {
     const shouldCreateMesh = await confirmAPIMeshCreation()
 
     if (!shouldCreateMesh) {
