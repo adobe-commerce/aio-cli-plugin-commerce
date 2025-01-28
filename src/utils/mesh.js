@@ -23,50 +23,50 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
     {
         "meshConfig": {
             "responseConfig": {
-            "CORS": {
-                "credentials": true,
-                "exposedHeaders": ["Content-Range", "X-Content-Range"],
-                "maxAge": 60480,
-                "methods": ["GET", "POST"],
-                "origin": [
-                "http://localhost:3000",
-                "https://main--${githubRepo}--${githubOrg}.aem.page",
-                "https://main--${githubRepo}--${githubOrg}.aem.live"
-                ]
-            },
-            "headers": {
-                "mode": "no-cors",
-                "x-include-metadata": "true",
-                "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
-            },
-            "includeHTTPDetails": false
+                "CORS": {
+                    "credentials": true,
+                    "exposedHeaders": ["Content-Range", "X-Content-Range"],
+                    "maxAge": 60480,
+                    "methods": ["GET", "POST"],
+                    "origin": [
+                    "http://localhost:3000",
+                    "https://main--${githubRepo}--${githubOrg}.aem.page",
+                    "https://main--${githubRepo}--${githubOrg}.aem.live"
+                    ]
+                },
+                "headers": {
+                    "mode": "no-cors",
+                    "x-include-metadata": "true",
+                    "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
+                },
+                "includeHTTPDetails": false
             },
             "sources": [
-            {
-                "name": "CommerceSaaSGraphQl",
-                "handler": {
-                "graphql": {
-                    "endpoint": "${core}",
-                    "useGETForQueries": true,
-                    "operationHeaders": {
-                        "Content-Type": "application/json",
-                        "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
-                        "Magento-Website-Code": "{context.headers['magento-website-code']}",
-                        "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
-                        "Magento-Store-Code": "{context.headers['magento-store-code']}",
-                        "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
-                        "x-api-key": "{context.headers['x-api-key']}",
-                        "Authorization": "context.headers['Authorization']"
+                {
+                    "name": "CommerceSaaSGraphQl",
+                    "handler": {
+                        "graphql": {
+                            "endpoint": "${core}",
+                            "useGETForQueries": true,
+                            "operationHeaders": {
+                                "Content-Type": "application/json",
+                                "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
+                                "Magento-Website-Code": "{context.headers['magento-website-code']}",
+                                "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
+                                "Magento-Store-Code": "{context.headers['magento-store-code']}",
+                                "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
+                                "x-api-key": "{context.headers['x-api-key']}",
+                                "Authorization": "context.headers['Authorization']"
+                            }
+                        }
+                    },
+                    "responseConfig": {
+                        "headers": ["X-Magento-Cache-Id"]
                     }
                 }
-                },
-                "responseConfig": {
-                "headers": ["X-Magento-Cache-Id"]
-                }
-            }
             ]
         }
-        }
+    }
     `
 }
 
@@ -91,62 +91,59 @@ function getPaaSMeshConfig (
     {
         "meshConfig": {
             "responseConfig": {
-            "CORS": {
-                "credentials": true,
-                "exposedHeaders": ["Content-Range', 'X-Content-Range"],
-                "maxAge": 60480,
-                "methods": ["GET', 'POST"],
-                "origin": [
-                "http://localhost:3000",
-                "https://main--${githubRepo}--${githubOrg}.aem.page",
-                "https://main--${githubRepo}--${githubOrg}.aem.live"
-                ]
+                "CORS": {
+                    "credentials": true,
+                    "exposedHeaders": ["Content-Range", "X-Content-Range"],
+                    "maxAge": 60480,
+                    "methods": ["GET", "POST"],
+                    "origin": [
+                        "http://localhost:3000",
+                        "https://main--${githubRepo}--${githubOrg}.aem.page",
+                        "https://main--${githubRepo}--${githubOrg}.aem.live"
+                    ]
+                },
+                "headers": {
+                    "mode": "no-cors",
+                    "x-include-metadata": "true",
+                    "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
+                },
+                "includeHTTPDetails": false
             },
-            "headers": {
-                "mode": "no-cors",
-                "x-include-metadata": "true",
-                "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
-            },
-            "includeHTTPDetails": false
-            },
-            "sources": [
-            {
+            "sources": [{
                 "name": "CommerceGraphQl",
                 "handler": {
-                "graphql": {
-                    "endpoint": "${core}",
-                    "useGETForQueries": true,
-                    "operationHeaders": {
-                    "Content-Type": "application/json",
-                    "Store": "{context.headers[\"store\"]}",
-                    "Authorization": "context.headers[\"Authorization\"]"
+                    "graphql": {
+                        "endpoint": "${core}",
+                        "useGETForQueries": true,
+                        "operationHeaders": {
+                            "Content-Type": "application/json",
+                            "Store": "{context.headers[\"store\"]}",
+                            "Authorization": "context.headers[\"Authorization\"]"
+                        }
                     }
-                }
                 },
-                "transforms": [
-                {
+                "transforms": [{
                     "filterSchema": {
-                    "mode": "bare",
-                    "filters": [
-                        "Query.!category",
-                        "Query.!customerOrders",
-                        "Query.!products",
-                        "Query.!categories",
-                        "Query.!urlResolver",
-                        "Query.!wishlist",
-                        "Query.!categoryList",
-                        "Mutation.!setPaymentMethodAndPlaceOrder",
-                        "Mutation.!addBundleProductsToCart",
-                        "Mutation.!addConfigurableProductsToCart",
-                        "Mutation.!addDownloadableProductsToCart",
-                        "Mutation.!addSimpleProductsToCart",
-                        "Mutation.!addVirtualProductsToCart",
-                        "Mutation.!createCustomer",
-                        "Mutation.!updateCustomer"
-                    ]
+                        "mode": "bare",
+                        "filters": [
+                            "Query.!category",
+                            "Query.!customerOrders",
+                            "Query.!products",
+                            "Query.!categories",
+                            "Query.!urlResolver",
+                            "Query.!wishlist",
+                            "Query.!categoryList",
+                            "Mutation.!setPaymentMethodAndPlaceOrder",
+                            "Mutation.!addBundleProductsToCart",
+                            "Mutation.!addConfigurableProductsToCart",
+                            "Mutation.!addDownloadableProductsToCart",
+                            "Mutation.!addSimpleProductsToCart",
+                            "Mutation.!addVirtualProductsToCart",
+                            "Mutation.!createCustomer",
+                            "Mutation.!updateCustomer"
+                        ]
                     }
-                }
-                ],
+                }],
                 "responseConfig": {
                 "headers": ["X-Magento-Cache-Id"]
                 }
@@ -154,29 +151,28 @@ function getPaaSMeshConfig (
             {
                 "name": "CatalogServiceGraphql",
                 "handler": {
-                "graphql": {
-                    "endpoint": "${catalog}",
-                    "useGETForQueries": true,
-                    "schemaHeaders": {
-                        "Content-Type": "application/json",
-                        "x-api-key": "${apiKey}",
-                    },
-                    "operationHeaders": {
-                        "Content-Type": "application/json",
-                        "Magento-Environment-Id": "${environmentId}",
-                        "Magento-Website-Code": "{context.headers['magento-website-code']}",
-                        "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
-                        "Magento-Store-Code": "{context.headers['magento-store-code']}",
-                        "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
-                        "x-api-key": "${apiKey}",
-                        "Authorization": "context.headers['Authorization']"
+                    "graphql": {
+                        "endpoint": "${catalog}",
+                        "useGETForQueries": true,
+                        "schemaHeaders": {
+                            "Content-Type": "application/json",
+                            "x-api-key": "${apiKey}",
+                        },
+                        "operationHeaders": {
+                            "Content-Type": "application/json",
+                            "Magento-Environment-Id": "${environmentId}",
+                            "Magento-Website-Code": "{context.headers['magento-website-code']}",
+                            "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
+                            "Magento-Store-Code": "{context.headers['magento-store-code']}",
+                            "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
+                            "x-api-key": "{context.headers['x-api-key']}",
+                            "Authorization": "context.headers['Authorization']"
+                        }
                     }
                 }
-                }
-            }
-            ]
+            }]
         }
-        }
+    }
     `
 }
 
@@ -333,7 +329,7 @@ export async function createMesh (runAIOCommand, installedPlugins) {
   const { saas, paas, catalog } = datasource
   const { org: githubOrg, repo: githubRepo } = github
 
-  if ((paas && catalog) || saas) {
+  if (paas || saas) {
     const shouldCreateMesh = await confirmAPIMeshCreation()
 
     if (!shouldCreateMesh) {
