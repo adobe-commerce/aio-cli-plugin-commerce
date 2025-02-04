@@ -17,7 +17,7 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh } from '../../utils/mesh.js'
+import { createMesh, checkAndRetryMeshUpdate, getMeshDetailsPage } from '../../utils/mesh.js'
 
 export class InitCommand extends Command {
   async run () {
@@ -31,6 +31,8 @@ export class InitCommand extends Command {
     }
 
     await createMesh(runAIOCommand, installedPlugins)
+    const $createMeshPromise = checkAndRetryMeshUpdate(runAIOCommand)
+
     await createRepo()
     await modifyFstab()
     await modifySidekickConfig()
@@ -46,7 +48,9 @@ export class InitCommand extends Command {
     await previewContent(filePaths)
     await publishContent()
 
+    const meshDetailsPageURL = getMeshDetailsPage()
     const meshUrl = config.get('commerce.datasource.meshUrl')
+
     const reset = '\x1b[0m'
     const boldWhite = '\x1b[1m\x1b[37m'
     console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
@@ -55,8 +59,12 @@ export class InitCommand extends Command {
     console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
     console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
     meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
+    meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
+
+    // wait for pending promises
+    await $createMeshPromise
 
     // cleanup
     config.delete('commerce')

@@ -117,8 +117,8 @@ function getPaaSMeshConfig (
                         "useGETForQueries": true,
                         "operationHeaders": {
                             "Content-Type": "application/json",
-                            "Store": "{context.headers[\"store\"]}",
-                            "Authorization": "context.headers[\"Authorization\"]"
+                            "Store": "{context.headers['store']}",
+                            "Authorization": "context.headers['Authorization']"
                         }
                     }
                 },
@@ -156,7 +156,7 @@ function getPaaSMeshConfig (
                         "useGETForQueries": true,
                         "schemaHeaders": {
                             "Content-Type": "application/json",
-                            "x-api-key": "${apiKey}",
+                            "x-api-key": "${apiKey}"
                         },
                         "operationHeaders": {
                             "Content-Type": "application/json",
@@ -259,35 +259,50 @@ async function getMeshStatus (runAIOCommand) {
  *
  * @param {*} runAIOCommand
  */
-async function checkAndRetryMeshUpdate (runAIOCommand) {
-  let meshStatus = await getMeshStatus(runAIOCommand)
-  let count = 0
-
-  /**
-   *
-   * Wait 1 minute and if meshStatus is not success, run an update.
-   * Repeat this process for MESH_RETRIES times and then throw an error if meshStatus is still not success
-   *
-   */
-  while (meshStatus !== 'success' && count < MESH_RETRIES) {
-    aioLogger.debug(
-            `Mesh creation failed. Retrying... Attempt ${
-                count + 1
-            }/${MESH_RETRIES}`
-    )
-    console.log('Retrying API Mesh creation...')
-    await updateMesh(runAIOCommand)
+export async function checkAndRetryMeshUpdate (runAIOCommand) {
+  try {
     await new Promise((resolve) =>
       setTimeout(resolve, MESH_RETRY_INTERVAL)
     )
 
-    meshStatus = await getMeshStatus(runAIOCommand)
+    let meshStatus = await getMeshStatus(runAIOCommand)
+    let count = 0
 
-    count++
-  }
+    /**
+     *
+     * Wait 1 minute and if meshStatus is not success, run an update.
+     * Repeat this process for MESH_RETRIES times and then throw an error if meshStatus is still not success
+     *
+     */
+    while (meshStatus !== 'success' && count < MESH_RETRIES) {
+      aioLogger.debug(
+                `Mesh creation failed. Retrying... Attempt ${
+                    count + 1
+                }/${MESH_RETRIES}`
+      )
+      console.log('Retrying API Mesh creation...')
+      await updateMesh(runAIOCommand)
+      await new Promise((resolve) =>
+        setTimeout(resolve, MESH_RETRY_INTERVAL)
+      )
 
-  if (meshStatus !== 'success') {
-    throw new Error('API Mesh creation failed')
+      meshStatus = await getMeshStatus(runAIOCommand)
+
+      count++
+    }
+
+    if (meshStatus !== 'success') {
+      throw new Error('API Mesh creation failed')
+    }
+  } catch (error) {
+    aioLogger.error(error)
+    console.error(
+      'API Mesh creation failed, please retry by running \naio api-mesh update mesh_config.json'
+    )
+
+    throw new Error(
+      'API Mesh creation failed, please retry by running aio api-mesh update mesh_config.json'
+    )
   }
 }
 
@@ -315,56 +330,85 @@ async function checkAndInstallMeshPlugin (installedPlugins) {
  * @param installedPlugins
  */
 export async function createMesh (runAIOCommand, installedPlugins) {
-  const shouldCreateMesh = await confirmAPIMeshCreation()
-
-  if (!shouldCreateMesh) {
-    aioLogger.debug('Not creating API Mesh - will use default environment')
-    return
-  }
-
-  await checkAndInstallMeshPlugin(installedPlugins)
-
-  const { apiKey, environmentId, datasource, github } =
-        config.get('commerce')
-  const { saas, paas, catalog } = datasource
-  const { org: githubOrg, repo: githubRepo } = github
-
-  if (paas || saas) {
+  try {
     const shouldCreateMesh = await confirmAPIMeshCreation()
 
     if (!shouldCreateMesh) {
-      aioLogger.debug('Not creating API Mesh - will use default environment')
+      aioLogger.debug(
+        'Not creating API Mesh - will use default environment'
+      )
       return
     }
 
     await checkAndInstallMeshPlugin(installedPlugins)
 
-    console.log('Creating API Mesh...')
-    await createTempMeshConfigFile(
-      saas,
-      paas,
-      catalog,
-      githubOrg,
-      githubRepo,
-      apiKey,
-      environmentId
+    const { apiKey, environmentId, datasource, github } =
+            config.get('commerce')
+    const { saas, paas, catalog } = datasource
+    const { org: githubOrg, repo: githubRepo } = github
+
+    if (paas || saas) {
+      if (!shouldCreateMesh) {
+        aioLogger.debug(
+          'Not creating API Mesh - will use default environment'
+        )
+        return
+      }
+
+      await checkAndInstallMeshPlugin(installedPlugins)
+
+      console.log('Creating API Mesh...')
+      await createTempMeshConfigFile(
+        saas,
+        paas,
+        catalog,
+        githubOrg,
+        githubRepo,
+        apiKey,
+        environmentId
+      )
+
+      const { meshUrl } = await runAIOCommand('api-mesh:create', [
+        meshConfigFilePath,
+        '-c'
+      ])
+
+      config.set('commerce.datasource.meshUrl', meshUrl)
+    } else {
+      // this means the user chose to use demo env, so no need to create mesh
+      console.log('Not creating API Mesh - will use default environment')
+    }
+  } catch (error) {
+    aioLogger.error(error)
+    console.log(
+      'API Mesh creation failed, please retry by running \naio api-mesh update mesh_config.json'
     )
 
-    const { meshUrl } = await runAIOCommand('api-mesh:create', [
-      meshConfigFilePath,
-      '-c'
-    ])
-
-    await new Promise((resolve) =>
-      setTimeout(resolve, MESH_RETRY_INTERVAL)
+    throw new Error(
+      'API Mesh creation failed, please retry by running aio api-mesh update mesh_config.json'
     )
-    await checkAndRetryMeshUpdate(runAIOCommand)
+  }
+}
 
-    config.set('commerce.datasource.meshUrl', meshUrl)
+/**
+ *
+ */
+export function getMeshDetailsPage () {
+  try {
+    const devConsoleEnv = config.get('cli.env')
+    const { org, project, workspace } = config.get('console')
+    const orgID = org.id
+    const projectID = project.id
+    const workspaceID = workspace.id
 
-    await deleteTempMeshConfigFile()
-  } else {
-    // this means the user chose to use demo env, so no need to create mesh
-    console.log('Not creating API Mesh - will use default environment')
+    if (devConsoleEnv === 'stage') {
+      return `https://developer-stage.adobe.com/console/projects/${orgID}/${projectID}/workspaces/${workspaceID}/details`
+    } else {
+      return `https://developer.adobe.com/console/projects/${orgID}/${projectID}/workspaces/${workspaceID}/details`
+    }
+  } catch (err) {
+    aioLogger.error(err)
+
+    return null
   }
 }
