@@ -217,8 +217,11 @@ async function createTempMeshConfigFile (
 }
 
 /**
- *
+ * !@deprecated - this function is not used because we felt it beneficial to
+ * retain the local mesh config file that was used, incase the user wants to
+ * modify and/or use it later.
  */
+// eslint-disable-next-line no-unused-vars
 async function deleteTempMeshConfigFile () {
   await fsPromise.unlink(meshConfigFilePath)
 }
@@ -226,7 +229,7 @@ async function deleteTempMeshConfigFile () {
 /**
  *
  */
-async function confirmAPIMeshCreation () {
+export async function confirmAPIMeshCreation () {
   return await promptConfirm(
     'Do you want to create an API Mesh for your Commerce instance?'
   )
@@ -276,9 +279,9 @@ export async function checkAndRetryMeshUpdate (runAIOCommand) {
      */
     while (meshStatus !== 'success' && count < MESH_RETRIES) {
       aioLogger.debug(
-                `Mesh creation failed. Retrying... Attempt ${
-                    count + 1
-                }/${MESH_RETRIES}`
+        `Mesh creation failed. Retrying... Attempt ${
+            count + 1
+        }/${MESH_RETRIES}`
       )
       console.log('Retrying API Mesh creation...')
       await updateMesh(runAIOCommand)
@@ -287,7 +290,6 @@ export async function checkAndRetryMeshUpdate (runAIOCommand) {
       )
 
       meshStatus = await getMeshStatus(runAIOCommand)
-
       count++
     }
 
@@ -297,11 +299,11 @@ export async function checkAndRetryMeshUpdate (runAIOCommand) {
   } catch (error) {
     aioLogger.error(error)
     console.error(
-      'API Mesh creation failed, please retry by running \naio api-mesh update mesh_config.json'
+      'API Mesh creation failed, please retry by running \n"aio api-mesh update mesh_config.json"'
     )
 
     throw new Error(
-      'API Mesh creation failed, please retry by running aio api-mesh update mesh_config.json'
+      'API Mesh creation failed, please retry by running "aio api-mesh update mesh_config.json"'
     )
   }
 }
@@ -331,15 +333,6 @@ async function checkAndInstallMeshPlugin (installedPlugins) {
  */
 export async function createMesh (runAIOCommand, installedPlugins) {
   try {
-    const shouldCreateMesh = await confirmAPIMeshCreation()
-
-    if (!shouldCreateMesh) {
-      aioLogger.debug(
-        'Not creating API Mesh - will use default environment'
-      )
-      return
-    }
-
     await checkAndInstallMeshPlugin(installedPlugins)
 
     const { apiKey, environmentId, datasource, github } =
@@ -347,37 +340,24 @@ export async function createMesh (runAIOCommand, installedPlugins) {
     const { saas, paas, catalog } = datasource
     const { org: githubOrg, repo: githubRepo } = github
 
-    if (paas || saas) {
-      if (!shouldCreateMesh) {
-        aioLogger.debug(
-          'Not creating API Mesh - will use default environment'
-        )
-        return
-      }
+    console.log('Creating API Mesh...')
 
-      await checkAndInstallMeshPlugin(installedPlugins)
+    await createTempMeshConfigFile(
+      saas,
+      paas,
+      catalog,
+      githubOrg,
+      githubRepo,
+      apiKey,
+      environmentId
+    )
 
-      console.log('Creating API Mesh...')
-      await createTempMeshConfigFile(
-        saas,
-        paas,
-        catalog,
-        githubOrg,
-        githubRepo,
-        apiKey,
-        environmentId
-      )
+    const { meshUrl } = await runAIOCommand('api-mesh:create', [
+      meshConfigFilePath,
+      '-c'
+    ])
 
-      const { meshUrl } = await runAIOCommand('api-mesh:create', [
-        meshConfigFilePath,
-        '-c'
-      ])
-
-      config.set('commerce.datasource.meshUrl', meshUrl)
-    } else {
-      // this means the user chose to use demo env, so no need to create mesh
-      console.log('Not creating API Mesh - will use default environment')
-    }
+    config.set('commerce.datasource.meshUrl', meshUrl)
   } catch (error) {
     aioLogger.error(error)
     console.log(

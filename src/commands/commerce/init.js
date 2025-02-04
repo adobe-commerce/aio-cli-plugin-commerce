@@ -17,21 +17,41 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh, checkAndRetryMeshUpdate, getMeshDetailsPage } from '../../utils/mesh.js'
+import { createMesh, checkAndRetryMeshUpdate, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+
+const reset = '\x1b[0m'
+const boldWhite = '\x1b[1m\x1b[37m'
 
 export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
     await initialization(args, flags)
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
-    const installedPlugins = this.config.plugins
 
-    const runAIOCommand = async (command, args) => {
-      return await this.config.runCommand(command, args)
+    const { saas, paas } = config.get('commerce.datasource')
+    let $verifyMeshPromise
+    if (saas || paas) {
+      const shouldCreateMesh = await confirmAPIMeshCreation()
+      if (shouldCreateMesh) {
+        const installedPlugins = this.config.plugins
+
+        const runAIOCommand = async (command, args) => {
+          return await this.config.runCommand(command, args)
+        }
+
+        await createMesh(runAIOCommand, installedPlugins)
+        $verifyMeshPromise = checkAndRetryMeshUpdate(runAIOCommand)
+      } else {
+        // this means the user chose a non-demo endpoint and still opted out of
+        // API Mesh creation. Use their endpoints in configs.js
+        console.log(
+          'Not creating API Mesh - will use provided endpoints.'
+        )
+      }
+    } else {
+      // this means the user chose to use demo env, so no need to create mesh
+      console.log('Not creating API Mesh - will use demo environment.')
     }
-
-    await createMesh(runAIOCommand, installedPlugins)
-    const $createMeshPromise = checkAndRetryMeshUpdate(runAIOCommand)
 
     await createRepo()
     await modifyFstab()
@@ -51,8 +71,6 @@ export class InitCommand extends Command {
     const meshDetailsPageURL = getMeshDetailsPage()
     const meshUrl = config.get('commerce.datasource.meshUrl')
 
-    const reset = '\x1b[0m'
-    const boldWhite = '\x1b[1m\x1b[37m'
     console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
     console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
     console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
@@ -63,8 +81,11 @@ export class InitCommand extends Command {
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
 
-    // wait for pending promises
-    await $createMeshPromise
+    // if we created a mesh, wait for verification to complete before exiting
+    // TODO: Replace with detached childProcess.
+    if ($verifyMeshPromise) {
+      await $verifyMeshPromise
+    }
 
     // cleanup
     config.delete('commerce')
