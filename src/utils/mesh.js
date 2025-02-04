@@ -160,7 +160,7 @@ function getPaaSMeshConfig (
                         },
                         "operationHeaders": {
                             "Content-Type": "application/json",
-                            "Magento-Environment-Id": "${environmentId}",
+                            "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
                             "Magento-Website-Code": "{context.headers['magento-website-code']}",
                             "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
                             "Magento-Store-Code": "{context.headers['magento-store-code']}",
