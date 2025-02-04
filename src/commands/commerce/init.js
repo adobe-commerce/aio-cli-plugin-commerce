@@ -17,7 +17,11 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh, checkAndRetryMeshUpdate, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+import { createMesh, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+import { spawn } from 'child_process'
+import { openSync } from 'fs'
+import Logger from '@adobe/aio-lib-core-logging'
+const aioLogger = Logger('commerce:init.js')
 
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
@@ -81,10 +85,26 @@ export class InitCommand extends Command {
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
 
-    // if we created a mesh, wait for verification to complete before exiting
-    // TODO: Replace with detached childProcess.
     if (shouldCreateMesh) {
-      await checkAndRetryMeshUpdate(runAIOCommand)
+      // Spawn detached child process to verify mesh in the background, without disrupting user's CLI session.
+      try {
+        const out = openSync('./mesh-verify.log', 'w')
+        const err = openSync('./mesh-verify.log', 'a')
+
+        const childProcess = spawn(
+          'aio',
+          ['commerce:mesh-verify'],
+          {
+            detached: true,
+            stdio: ['ignore', out, err]
+          }
+        )
+        // Detach from the parent process
+        childProcess.unref()
+      } catch (error) {
+        aioLogger.debug(error)
+        console.log('❌ Unable to verify mesh provisioning. Please try again with "aio commerce:mesh-verify"')
+      }
     }
 
     // cleanup

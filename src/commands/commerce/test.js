@@ -10,15 +10,31 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Command, Help } from '@oclif/core'
-import { checkAndRetryMeshUpdate } from '../../utils/mesh.js'
+import { spawn } from 'child_process'
+import { openSync } from 'fs'
+
 
 export class TestCommand extends Command {
   async run () {
-    const runAIOCommand = async (command, args) => {
-      return await this.config.runCommand(command, args)
-    }
-    await checkAndRetryMeshUpdate(runAIOCommand)
+    const { args } = this.parse(TestCommand)
+
+    // Spawn a detached child process to run the background task
+    try {
+      const out = openSync('./mesh-verify.log', 'w')
+      const err = openSync('./mesh-verify.log', 'a')
+      const childProcess = spawn(
+        'aio',
+        ['commerce:mesh-verify'],
+        {
+          detached: true,
+          stdio: ['ignore', out, err]
+        }
+      )
+      // Detach from the parent process
+      childProcess.unref()
+    } catch (error) {}
   }
 }
 
-TestCommand.description = 'Spin up an Adobe Commerce Storefront on EDS using this CLI tool'
+TestCommand.description =
+    "Spin up an Adobe Commerce Storefront on EDS using this CLI tool";
