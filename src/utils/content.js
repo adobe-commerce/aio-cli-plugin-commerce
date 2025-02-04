@@ -18,7 +18,9 @@ export async function uploadStarterContent () {
   const filePaths = await getFilePathsFromAem()
   console.log('⏳ Uploading content to document authoring space.')
   await uploadFilesToDA(filePaths)
-  console.log(`✅ Uploaded ${filePaths.length} content files.`)
+
+  // TODO: Trim out failed uploads. Context: If files fail to upload, then we
+  // don't want to preview them later (this return array is iterated over for previews)
   return filePaths
 }
 
@@ -146,13 +148,14 @@ async function uploadFilesToDA (files) {
           }).then(() => resolve()).catch((error) => reject(error))
         })
         .catch((error) => {
-          aioLogger.error('Error fetching', file, error)
+          aioLogger.debug('Error fetching', file, error)
           resolve(null) // return null instead of rejecting
         })
     })
   })
 
-  await Promise.all(promises)
+  const results = await Promise.all(promises)
+  console.log(`✅ Uploaded ${results.filter(res => res !== null).length} content files.`)
 }
 
 /**
