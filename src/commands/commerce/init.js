@@ -27,20 +27,17 @@ export class InitCommand extends Command {
     const { args, flags } = await this.parse(InitCommand)
     await initialization(args, flags)
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
-
     const { saas, paas } = config.get('commerce.datasource')
-    let $verifyMeshPromise
+
+    const runAIOCommand = async (command, args) => {
+      return await this.config.runCommand(command, args)
+    }
+    let shouldCreateMesh
     if (saas || paas) {
-      const shouldCreateMesh = await confirmAPIMeshCreation()
+      shouldCreateMesh = await confirmAPIMeshCreation()
       if (shouldCreateMesh) {
         const installedPlugins = this.config.plugins
-
-        const runAIOCommand = async (command, args) => {
-          return await this.config.runCommand(command, args)
-        }
-
         await createMesh(runAIOCommand, installedPlugins)
-        $verifyMeshPromise = checkAndRetryMeshUpdate(runAIOCommand)
       } else {
         // this means the user chose a non-demo endpoint and still opted out of
         // API Mesh creation. Use their endpoints in configs.js
@@ -83,8 +80,8 @@ export class InitCommand extends Command {
 
     // if we created a mesh, wait for verification to complete before exiting
     // TODO: Replace with detached childProcess.
-    if ($verifyMeshPromise) {
-      await $verifyMeshPromise
+    if (shouldCreateMesh) {
+      await checkAndRetryMeshUpdate(runAIOCommand)
     }
 
     // cleanup
