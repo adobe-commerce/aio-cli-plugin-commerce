@@ -264,10 +264,6 @@ async function getMeshStatus (runAIOCommand) {
  */
 export async function checkAndRetryMeshUpdate (runAIOCommand) {
   try {
-    await new Promise((resolve) =>
-      setTimeout(resolve, MESH_RETRY_INTERVAL)
-    )
-
     let meshStatus = await getMeshStatus(runAIOCommand)
     let count = 0
 
