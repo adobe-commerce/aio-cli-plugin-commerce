@@ -65,7 +65,10 @@ export class InitCommand extends Command {
     await previewContent(filePaths)
     await publishContent()
 
-    const meshDetailsPageURL = getMeshDetailsPage()
+    // TODO: this fails with
+    // 2025-02-04T17:42:36.664Z [commerce:mesh.js] error: TypeError: Cannot read properties of undefined (reading 'id')
+    // at getMeshDetailsPage (aio-cli-plugin-commerce/src/utils/mesh.js:378:35)
+    // const meshDetailsPageURL = getMeshDetailsPage()
     const meshUrl = config.get('commerce.datasource.meshUrl')
 
     console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
@@ -74,7 +77,7 @@ export class InitCommand extends Command {
     console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
     console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
     meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
-    meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
+    // meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
 
