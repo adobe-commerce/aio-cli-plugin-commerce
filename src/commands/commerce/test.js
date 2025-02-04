@@ -10,11 +10,14 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Command, Help } from '@oclif/core'
-import { getAndSelectInstances } from '../../utils/accs.js'
+import { checkAndRetryMeshUpdate } from '../../utils/mesh.js'
 
 export class TestCommand extends Command {
   async run () {
-    await getAndSelectInstances()
+    const runAIOCommand = async (command, args) => {
+      return await this.config.runCommand(command, args)
+    }
+    await checkAndRetryMeshUpdate(runAIOCommand)
   }
 }
 

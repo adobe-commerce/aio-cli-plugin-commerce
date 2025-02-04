@@ -17,20 +17,39 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh } from '../../utils/mesh.js'
+import { createMesh, checkAndRetryMeshUpdate, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+
+const reset = '\x1b[0m'
+const boldWhite = '\x1b[1m\x1b[37m'
 
 export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
     await initialization(args, flags)
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
-    const installedPlugins = this.config.plugins;
+    const { saas, paas } = config.get('commerce.datasource')
 
     const runAIOCommand = async (command, args) => {
       return await this.config.runCommand(command, args)
     }
+    let shouldCreateMesh
+    if (saas || paas) {
+      shouldCreateMesh = await confirmAPIMeshCreation()
+      if (shouldCreateMesh) {
+        const installedPlugins = this.config.plugins
+        await createMesh(runAIOCommand, installedPlugins)
+      } else {
+        // this means the user chose a non-demo endpoint and still opted out of
+        // API Mesh creation. Use their endpoints in configs.js
+        console.log(
+          'Not creating API Mesh - will use provided endpoints.'
+        )
+      }
+    } else {
+      // this means the user chose to use demo env, so no need to create mesh
+      console.log('Not creating API Mesh - will use demo environment.')
+    }
 
-    await createMesh(runAIOCommand, installedPlugins)
     await createRepo()
     await modifyFstab()
     await modifySidekickConfig()
@@ -46,17 +65,27 @@ export class InitCommand extends Command {
     await previewContent(filePaths)
     await publishContent()
 
+    // TODO: this fails with
+    // 2025-02-04T17:42:36.664Z [commerce:mesh.js] error: TypeError: Cannot read properties of undefined (reading 'id')
+    // at getMeshDetailsPage (aio-cli-plugin-commerce/src/utils/mesh.js:378:35)
+    // const meshDetailsPageURL = getMeshDetailsPage()
     const meshUrl = config.get('commerce.datasource.meshUrl')
-    const reset = '\x1b[0m'
-    const boldWhite = '\x1b[1m\x1b[37m'
+
     console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
     console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
     console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
     console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
     console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
     meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
+    // meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
+
+    // if we created a mesh, wait for verification to complete before exiting
+    // TODO: Replace with detached childProcess.
+    if (shouldCreateMesh) {
+      await checkAndRetryMeshUpdate(runAIOCommand)
+    }
 
     // cleanup
     config.delete('commerce')

@@ -9,6 +9,9 @@ import { promptConfirm } from './prompt.js'
 const aioLogger = Logger('commerce:mesh.js')
 const meshConfigFilePath = path.join('./', 'mesh_config.json')
 
+const MESH_RETRIES = 2
+const MESH_RETRY_INTERVAL = 60000
+
 /**
  *
  * @param core
@@ -20,47 +23,47 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
     {
         "meshConfig": {
             "responseConfig": {
-            "CORS": {
-                "credentials": true,
-                "exposedHeaders": ["Content-Range", "X-Content-Range"],
-                "maxAge": 60480,
-                "methods": ["GET", "POST"],
-                "origin": [
+                "CORS": {
+                    "credentials": true,
+                    "exposedHeaders": ["Content-Range", "X-Content-Range"],
+                    "maxAge": 60480,
+                    "methods": ["GET", "POST"],
+                    "origin": [
                     "http://localhost:3000",
                     "https://main--${githubRepo}--${githubOrg}.aem.page",
                     "https://main--${githubRepo}--${githubOrg}.aem.live"
-                ]
-            },
-            "headers": {
-                "mode": "no-cors",
-                "x-include-metadata": "true",
-                "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
-            },
-            "includeHTTPDetails": false
+                    ]
+                },
+                "headers": {
+                    "mode": "no-cors",
+                    "x-include-metadata": "true",
+                    "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
+                },
+                "includeHTTPDetails": false
             },
             "sources": [
-            {
-                "name": "CommerceSaaSGraphQl",
-                "handler": {
-                "graphql": {
-                    "endpoint": "${core}",
-                    "useGETForQueries": true,
-                    "operationHeaders": {
-                        "Content-Type": "application/json",
-                        "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
-                        "Magento-Website-Code": "{context.headers['magento-website-code']}",
-                        "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
-                        "Magento-Store-Code": "{context.headers['magento-store-code']}",
-                        "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
-                        "x-api-key": "{context.headers['x-api-key']}",
-                        "Authorization": "context.headers['Authorization']"
+                {
+                    "name": "CommerceSaaSGraphQl",
+                    "handler": {
+                        "graphql": {
+                            "endpoint": "${core}",
+                            "useGETForQueries": true,
+                            "operationHeaders": {
+                                "Content-Type": "application/json",
+                                "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
+                                "Magento-Website-Code": "{context.headers['magento-website-code']}",
+                                "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
+                                "Magento-Store-Code": "{context.headers['magento-store-code']}",
+                                "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
+                                "x-api-key": "{context.headers['x-api-key']}",
+                                "Authorization": "context.headers['Authorization']"
+                            }
+                        }
+                    },
+                    "responseConfig": {
+                        "headers": ["X-Magento-Cache-Id"]
                     }
                 }
-                },
-                "responseConfig": {
-                    "headers": ["X-Magento-Cache-Id"]
-                }
-            }
             ]
         }
     }
@@ -73,68 +76,74 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
  * @param catalog
  * @param githubOrg
  * @param githubRepo
+ * @param apiKey
+ * @param environmentId
  */
-function getPaaSMeshConfig (core, catalog, githubOrg, githubRepo) {
+function getPaaSMeshConfig (
+  core,
+  catalog,
+  githubOrg,
+  githubRepo,
+  apiKey,
+  environmentId
+) {
   return `
     {
         "meshConfig": {
             "responseConfig": {
-            "CORS": {
-                "credentials": true,
-                "exposedHeaders": ["Content-Range", "X-Content-Range"],
-                "maxAge": 60480,
-                "methods": ["GET", "POST"],
-                "origin": [
-                    "http://localhost:3000",
-                    "https://main--${githubRepo}--${githubOrg}.aem.page",
-                    "https://main--${githubRepo}--${githubOrg}.aem.live"
-                ]
+                "CORS": {
+                    "credentials": true,
+                    "exposedHeaders": ["Content-Range", "X-Content-Range"],
+                    "maxAge": 60480,
+                    "methods": ["GET", "POST"],
+                    "origin": [
+                        "http://localhost:3000",
+                        "https://main--${githubRepo}--${githubOrg}.aem.page",
+                        "https://main--${githubRepo}--${githubOrg}.aem.live"
+                    ]
+                },
+                "headers": {
+                    "mode": "no-cors",
+                    "x-include-metadata": "true",
+                    "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
+                },
+                "includeHTTPDetails": false
             },
-            "headers": {
-                "mode": "no-cors",
-                "x-include-metadata": "true",
-                "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
-            },
-            "includeHTTPDetails": false
-            },
-            "sources": [
-            {
+            "sources": [{
                 "name": "CommerceGraphQl",
                 "handler": {
-                "graphql": {
-                    "endpoint": "${core}",
-                    "useGETForQueries": true,
-                    "operationHeaders": {
-                    "Content-Type": "application/json",
-                    "Store": "{context.headers['store']}",
-                    "Authorization": "context.headers['Authorization']"
+                    "graphql": {
+                        "endpoint": "${core}",
+                        "useGETForQueries": true,
+                        "operationHeaders": {
+                            "Content-Type": "application/json",
+                            "Store": "{context.headers['store']}",
+                            "Authorization": "context.headers['Authorization']"
+                        }
                     }
-                }
                 },
-                "transforms": [
-                {
+                "transforms": [{
                     "filterSchema": {
-                    "mode": "bare",
-                    "filters": [
-                        "Query.!category",
-                        "Query.!customerOrders",
-                        "Query.!products",
-                        "Query.!categories",
-                        "Query.!urlResolver",
-                        "Query.!wishlist",
-                        "Query.!categoryList",
-                        "Mutation.!setPaymentMethodAndPlaceOrder",
-                        "Mutation.!addBundleProductsToCart",
-                        "Mutation.!addConfigurableProductsToCart",
-                        "Mutation.!addDownloadableProductsToCart",
-                        "Mutation.!addSimpleProductsToCart",
-                        "Mutation.!addVirtualProductsToCart",
-                        "Mutation.!createCustomer",
-                        "Mutation.!updateCustomer"
-                    ]
+                        "mode": "bare",
+                        "filters": [
+                            "Query.!category",
+                            "Query.!customerOrders",
+                            "Query.!products",
+                            "Query.!categories",
+                            "Query.!urlResolver",
+                            "Query.!wishlist",
+                            "Query.!categoryList",
+                            "Mutation.!setPaymentMethodAndPlaceOrder",
+                            "Mutation.!addBundleProductsToCart",
+                            "Mutation.!addConfigurableProductsToCart",
+                            "Mutation.!addDownloadableProductsToCart",
+                            "Mutation.!addSimpleProductsToCart",
+                            "Mutation.!addVirtualProductsToCart",
+                            "Mutation.!createCustomer",
+                            "Mutation.!updateCustomer"
+                        ]
                     }
-                }
-                ],
+                }],
                 "responseConfig": {
                 "headers": ["X-Magento-Cache-Id"]
                 }
@@ -142,29 +151,28 @@ function getPaaSMeshConfig (core, catalog, githubOrg, githubRepo) {
             {
                 "name": "CatalogServiceGraphql",
                 "handler": {
-                "graphql": {
-                    "endpoint": "${catalog}",
-                    "useGETForQueries": true,
-                    "schemaHeaders": {
-                      "Content-Type": "application/json",
-                      "x-api-key": "4dfa19c9fe6f4cccade55cc5b3da94f7"
-                    },
-                    "operationHeaders": {
-                      "Content-Type": "application/json",
-                      "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
-                      "Magento-Website-Code": "{context.headers['magento-website-code']}",
-                      "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
-                      "Magento-Store-Code": "{context.headers['magento-store-code']}",
-                      "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
-                      "x-api-key": "{context.headers['x-api-key']}",
-                      "Authorization": "context.headers['authorization']"
+                    "graphql": {
+                        "endpoint": "${catalog}",
+                        "useGETForQueries": true,
+                        "schemaHeaders": {
+                            "Content-Type": "application/json",
+                            "x-api-key": "${apiKey}"
+                        },
+                        "operationHeaders": {
+                            "Content-Type": "application/json",
+                            "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
+                            "Magento-Website-Code": "{context.headers['magento-website-code']}",
+                            "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
+                            "Magento-Store-Code": "{context.headers['magento-store-code']}",
+                            "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
+                            "x-api-key": "{context.headers['x-api-key']}",
+                            "Authorization": "context.headers['Authorization']"
+                        }
                     }
                 }
-                }
-            }
-            ]
+            }]
         }
-        }
+    }
     `
 }
 
@@ -175,13 +183,17 @@ function getPaaSMeshConfig (core, catalog, githubOrg, githubRepo) {
  * @param catalog
  * @param githubOrg
  * @param githubRepo
+ * @param apiKey
+ * @param environmentId
  */
 async function createTempMeshConfigFile (
   saas,
   core,
   catalog,
   githubOrg,
-  githubRepo
+  githubRepo,
+  apiKey,
+  environmentId
 ) {
   let meshConfigFile
 
@@ -192,7 +204,9 @@ async function createTempMeshConfigFile (
       core,
       catalog,
       githubOrg,
-      githubRepo
+      githubRepo,
+      apiKey,
+      environmentId
     )
   } else {
     aioLogger.debug('creating Mesh for SaaS')
@@ -203,8 +217,11 @@ async function createTempMeshConfigFile (
 }
 
 /**
- *
+ * !@deprecated - this function is not used because we felt it beneficial to
+ * retain the local mesh config file that was used, incase the user wants to
+ * modify and/or use it later.
  */
+// eslint-disable-next-line no-unused-vars
 async function deleteTempMeshConfigFile () {
   await fsPromise.unlink(meshConfigFilePath)
 }
@@ -212,10 +229,79 @@ async function deleteTempMeshConfigFile () {
 /**
  *
  */
-async function confirmAPIMeshCreation () {
+export async function confirmAPIMeshCreation () {
   return await promptConfirm(
     'Do you want to create an API Mesh for your Commerce instance?'
   )
+}
+
+/**
+ *
+ * @param runAIOCommand
+ */
+async function updateMesh (runAIOCommand) {
+  aioLogger.debug('Updating API Mesh...')
+  await runAIOCommand('api-mesh:update', [meshConfigFilePath, '-c'])
+  aioLogger.debug('API Mesh updated')
+}
+
+/**
+ *
+ * @param runAIOCommand
+ */
+async function getMeshStatus (runAIOCommand) {
+  aioLogger.debug('Checking API Mesh status...')
+  const { meshStatus } = await runAIOCommand('api-mesh:status', [])
+  aioLogger.debug('API Mesh status: ', meshStatus)
+
+  return meshStatus
+}
+
+/**
+ * Function to check the status of the mesh creation and retry if it fails
+ *
+ * @param {*} runAIOCommand
+ */
+export async function checkAndRetryMeshUpdate (runAIOCommand) {
+  try {
+    let meshStatus = await getMeshStatus(runAIOCommand)
+    let count = 0
+
+    /**
+     *
+     * Wait 1 minute and if meshStatus is not success, run an update.
+     * Repeat this process for MESH_RETRIES times and then throw an error if meshStatus is still not success
+     *
+     */
+    while (meshStatus !== 'success' && count < MESH_RETRIES) {
+      aioLogger.debug(
+        `Mesh creation failed. Retrying... Attempt ${
+            count + 1
+        }/${MESH_RETRIES}`
+      )
+      console.log('Retrying API Mesh creation...')
+      await updateMesh(runAIOCommand)
+      await new Promise((resolve) =>
+        setTimeout(resolve, MESH_RETRY_INTERVAL)
+      )
+
+      meshStatus = await getMeshStatus(runAIOCommand)
+      count++
+    }
+
+    if (meshStatus !== 'success') {
+      throw new Error('API Mesh creation failed')
+    }
+  } catch (error) {
+    aioLogger.error(error)
+    console.error(
+      'API Mesh creation failed, please retry by running \n"aio api-mesh update mesh_config.json"'
+    )
+
+    throw new Error(
+      'API Mesh creation failed, please retry by running "aio api-mesh update mesh_config.json"'
+    )
+  }
 }
 
 /**
@@ -231,7 +317,7 @@ async function checkAndInstallMeshPlugin (installedPlugins) {
     console.log('Installing API Mesh plugin...')
 
     await runCommand(
-      'aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.0.1-beta.1' // will remove the beta version tag once the latest version is published with the necessary changes
+      'aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.1.0-beta.3' // will remove the beta version tag once the latest version is published with the necessary changes
     )
   }
 }
@@ -242,38 +328,63 @@ async function checkAndInstallMeshPlugin (installedPlugins) {
  * @param installedPlugins
  */
 export async function createMesh (runAIOCommand, installedPlugins) {
-  const { saas, paas, catalog } = config.get('commerce.datasource')
-  const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
-
-  if (paas || saas) {
-    const shouldCreateMesh = await confirmAPIMeshCreation()
-
-    if (!shouldCreateMesh) {
-      aioLogger.debug('Not creating API Mesh - will use default environment')
-      return
-    }
-
+  try {
     await checkAndInstallMeshPlugin(installedPlugins)
 
+    const { apiKey, environmentId, datasource, github } =
+            config.get('commerce')
+    const { saas, paas, catalog } = datasource
+    const { org: githubOrg, repo: githubRepo } = github
+
     console.log('Creating API Mesh...')
+
     await createTempMeshConfigFile(
       saas,
       paas,
       catalog,
       githubOrg,
-      githubRepo
+      githubRepo,
+      apiKey,
+      environmentId
     )
 
     const { meshUrl } = await runAIOCommand('api-mesh:create', [
       meshConfigFilePath,
       '-c'
     ])
-    // TODO: status call, when true, continue else retry if error
-    config.set('commerce.datasource.meshUrl', meshUrl)
 
-    await deleteTempMeshConfigFile()
-  } else {
-    // this means the user chose to use demo env, so no need to create mesh
-    console.log('Not creating API Mesh - will use default environment')
+    config.set('commerce.datasource.meshUrl', meshUrl)
+  } catch (error) {
+    aioLogger.error(error)
+    console.log(
+      'API Mesh creation failed, please retry by running \naio api-mesh update mesh_config.json'
+    )
+
+    throw new Error(
+      'API Mesh creation failed, please retry by running aio api-mesh update mesh_config.json'
+    )
+  }
+}
+
+/**
+ *
+ */
+export function getMeshDetailsPage () {
+  try {
+    const devConsoleEnv = config.get('cli.env')
+    const { org, project, workspace } = config.get('console')
+    const orgID = org.id
+    const projectID = project.id
+    const workspaceID = workspace.id
+
+    if (devConsoleEnv === 'stage') {
+      return `https://developer-stage.adobe.com/console/projects/${orgID}/${projectID}/workspaces/${workspaceID}/details`
+    } else {
+      return `https://developer.adobe.com/console/projects/${orgID}/${projectID}/workspaces/${workspaceID}/details`
+    }
+  } catch (err) {
+    aioLogger.error(err)
+
+    return null
   }
 }

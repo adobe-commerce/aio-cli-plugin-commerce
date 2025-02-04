@@ -64,8 +64,8 @@ export async function previewContent (files) {
   const failures = results.filter(({ status }) => status === 'failed' || status === 'error')
 
   if (failures.length) {
-    console.error(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
-    aioLogger.error(failures)
+    console.log(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    aioLogger.debug(failures)
   }
   console.log(`✅ Previewed ${successes.length} files.`)
   return results
@@ -133,7 +133,7 @@ export async function publishContent () {
   const failures = results.filter(({ status }) => status === 'failed' || status === 'error')
 
   if (failures.length) {
-    aioLogger.error(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    console.log(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     aioLogger.debug(failures)
   }
   console.log(`✅ Published ${successes.length} files.`)

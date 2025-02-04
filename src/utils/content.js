@@ -18,7 +18,9 @@ export async function uploadStarterContent () {
   const filePaths = await getFilePathsFromAem()
   console.log('⏳ Uploading content to document authoring space.')
   await uploadFilesToDA(filePaths)
-  console.log(`✅ Uploaded ${filePaths.length} content files.`)
+
+  // TODO: Trim out failed uploads. Context: If files fail to upload, then we
+  // don't want to preview them later (this return array is iterated over for previews)
   return filePaths
 }
 
@@ -53,8 +55,8 @@ async function getFilePathsFromAem () {
           return data.data.resources
             .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json') && !resource.path.startsWith('/sitemap-content.xml'))
             .map(resource => {
-              if (templateRepo === 'citisignal-one') {
-                // Citisignal template has not published all files, thus we have to use preview urls for content source
+              if (templateRepo === 'citisignal-one' || templateRepo === 'adobe-demo-store') {
+                // These templates have not published all files, thus we have to use preview urls for content source
                 return `https://main--${templateRepo}--${templateOrg}.aem.page/${resource.path.replace(/^\/+/, '')}`
               } else {
                 // should be able to use published for all others
@@ -80,7 +82,7 @@ async function getFilePathsFromAem () {
       }
     }
   }
-
+  aioLogger.warn('No resources found -- nothing to push!')
   return []
 }
 
@@ -146,13 +148,14 @@ async function uploadFilesToDA (files) {
           }).then(() => resolve()).catch((error) => reject(error))
         })
         .catch((error) => {
-          aioLogger.error('Error fetching', file, error)
+          aioLogger.debug('Error fetching', file, error)
           resolve(null) // return null instead of rejecting
         })
     })
   })
 
-  await Promise.all(promises)
+  const results = await Promise.all(promises)
+  console.log(`✅ Uploaded ${results.filter(res => res !== null).length} content files.`)
 }
 
 /**
