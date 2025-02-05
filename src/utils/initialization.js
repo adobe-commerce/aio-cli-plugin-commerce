@@ -36,7 +36,7 @@ export async function initialization (args, flags) {
 
   // TEMPLATE SELECTION
   const template = await promptSelect('Which template would you like to use?', [
-    'adobe-commerce/adobe-demo-store',
+    // 'adobe-commerce/adobe-demo-store', // TODO: uncomment once demo store is a template repo.
     'hlxsites/aem-boilerplate-commerce',
     'AdobeDevXSC/citisignal-one'
   ])
