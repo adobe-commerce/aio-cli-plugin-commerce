@@ -38,7 +38,7 @@ export async function initialization (args, flags) {
   const template = await promptSelect('Which template would you like to use?', [
     // 'adobe-commerce/adobe-demo-store', // TODO: uncomment once demo store is a template repo.
     'hlxsites/aem-boilerplate-commerce',
-    'AdobeDevXSC/citisignal-one'
+    // 'aabsites/citisignal' // TODO: Cannot use citisignal until we resolve how to use templates that use config service as some core files are missing https://magento.slack.com/archives/C085R48U3R7/p1738785011567519
   ])
   config.set('commerce.template.org', template.split('/')[0])
   config.set('commerce.template.repo', template.split('/')[1])
