@@ -73,19 +73,8 @@ export class InitCommand extends Command {
     // 2025-02-04T17:42:36.664Z [commerce:mesh.js] error: TypeError: Cannot read properties of undefined (reading 'id')
     // at getMeshDetailsPage (aio-cli-plugin-commerce/src/utils/mesh.js:378:35)
     // const meshDetailsPageURL = getMeshDetailsPage()
-    const meshUrl = config.get('commerce.datasource.meshUrl')
-
-    console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
-    console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
-    console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
-    console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
-    console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
-    meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
-    // meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
-    console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
-    console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
-
     if (shouldCreateMesh) {
+      console.log('⏳ Verifying Mesh provisioning behind the scenes. Please check mesh-verify.log for details, or run "aio commerce:mesh-verify" if there are failures.')
       // Spawn detached child process to verify mesh in the background, without disrupting user's CLI session.
       try {
         const out = openSync('./mesh-verify.log', 'w')
@@ -106,6 +95,17 @@ export class InitCommand extends Command {
         console.log('❌ Unable to verify mesh provisioning. Please try again with "aio commerce:mesh-verify"')
       }
     }
+
+    const meshUrl = config.get('commerce.datasource.meshUrl')
+    console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
+    console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
+    console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
+    console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
+    console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
+    meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
+    // meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
+    console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
+    console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
 
     // cleanup
     config.delete('commerce')
