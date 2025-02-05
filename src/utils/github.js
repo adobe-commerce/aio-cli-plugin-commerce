@@ -31,6 +31,7 @@ folders:
   /products/: /products/default
 `, 'utf8').toString('base64')
 
+      // TODO: this will not work for templates using config-service since this, and other files, are deleted. Need to refactor this a bit to support
       const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
       await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 
