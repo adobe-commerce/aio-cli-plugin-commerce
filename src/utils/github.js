@@ -37,6 +37,7 @@ folders:
       repoReady = true
       aioLogger.debug('fstab mountpoint updated')
     } catch (error) {
+      aioLogger.debug(`fstab mountpoint update attempt ${attempts} failed:`, error)
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
   }
@@ -78,8 +79,9 @@ export async function modifySidekickConfig () {
       repoReady = true
       aioLogger.debug('sidekick config modified with content source')
     } catch (error) {
+      aioLogger.debug(`sidekick config update attempt ${attempts} failed:`, error)
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
   }
-  if (!repoReady) throw new Error('Unable to modify fstab for some reason!')
+  if (!repoReady) throw new Error('Unable to modify sidekick config for some reason!')
 }

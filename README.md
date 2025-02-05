@@ -13,9 +13,19 @@
 
 !! You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
 
-```
+```sh
 brew install gh
 gh auth login
+```
+
+You must also log in to the Adobe I/O CLI using your credentials:
+
+```sh
+aio config clear
+aio logout
+aio config set cli.env stage # or prod
+aio login # select the org
+aio console org select # select the org again so it is stored in config
 ```
 
 # Usage

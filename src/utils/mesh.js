@@ -9,8 +9,6 @@ import { promptConfirm } from './prompt.js'
 const aioLogger = Logger('commerce:mesh.js')
 const meshConfigFilePath = path.join('./', 'mesh_config.json')
 
-const MESH_RETRIES = 2
-const MESH_RETRY_INTERVAL = 60000
 
 /**
  *
@@ -262,7 +260,7 @@ async function getMeshStatus (runAIOCommand) {
  *
  * @param {*} runAIOCommand
  */
-export async function checkAndRetryMeshUpdate (runAIOCommand) {
+export async function checkAndRetryMeshUpdate (runAIOCommand, retries = 2, retryInterval = 60 * 1000) {
   try {
     let meshStatus = await getMeshStatus(runAIOCommand)
     let count = 0
@@ -273,16 +271,16 @@ export async function checkAndRetryMeshUpdate (runAIOCommand) {
      * Repeat this process for MESH_RETRIES times and then throw an error if meshStatus is still not success
      *
      */
-    while (meshStatus !== 'success' && count < MESH_RETRIES) {
+    while (meshStatus !== 'success' && count < retries) {
       aioLogger.debug(
         `Mesh creation failed. Retrying... Attempt ${
             count + 1
-        }/${MESH_RETRIES}`
+        }/${retries}`
       )
       console.log('Retrying API Mesh creation...')
       await updateMesh(runAIOCommand)
       await new Promise((resolve) =>
-        setTimeout(resolve, MESH_RETRY_INTERVAL)
+        setTimeout(resolve, retryInterval)
       )
 
       meshStatus = await getMeshStatus(runAIOCommand)
@@ -294,10 +292,6 @@ export async function checkAndRetryMeshUpdate (runAIOCommand) {
     }
   } catch (error) {
     aioLogger.error(error)
-    console.error(
-      'API Mesh creation failed, please retry by running \n"aio api-mesh update mesh_config.json"'
-    )
-
     throw new Error(
       'API Mesh creation failed, please retry by running "aio api-mesh update mesh_config.json"'
     )

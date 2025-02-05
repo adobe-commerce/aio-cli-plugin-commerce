@@ -26,7 +26,7 @@ export function modifyConfig (configSource) {
   configJson.data = configJson.data.map((item) => {
     switch (item.key) {
       case 'commerce-endpoint':
-        item.value = meshUrl || catalog || item.value
+        item.value = meshUrl || saas || catalog || item.value
         break
       case 'commerce-core-endpoint':
         item.value = meshUrl || saas || paas || item.value

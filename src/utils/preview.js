@@ -29,7 +29,7 @@ export async function previewContent (files) {
   }
 
   /**
-   * TODO refactor this and publish
+   * TODO Refactor previewContent and publishContent functions -- too much repeated code!
    * @param file
    */
   async function previewFile (file) {

@@ -89,6 +89,11 @@ export class InitCommand extends Command {
 
     // cleanup
     config.delete('commerce')
+    // reset github org and repo, for aio commerce:dev command
+    config.set('commerce.github', {
+      org: githubOrg,
+      repo: githubRepo
+    })
   }
 }
 

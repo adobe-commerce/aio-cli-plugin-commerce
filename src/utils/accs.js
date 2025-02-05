@@ -3,13 +3,17 @@ import { promptSelect } from './prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:accs.js')
-// TODO: Update to publicly available URL (Vijay says by next week 1/27)
-const CCM_BASE_URL = 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
+
+const isProdIms = config.get('cli.env') === 'prod'
+const CCM_BASE_URL = isProdIms
+  ? 'https://core-commerce-saas-cloud-manager-service.corp.ethos340-prod-va6.ethos.adobe.net'
+  : 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
 
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [
-  'Test OneGraph Endpoint: https://core-commerce-saas-storefront-router-service-qa.ethos501-stage-va6.ethos.adobe.net/9JjnV3amskX6mEeyYADfiP/graphql'
+  'Test OneGraph Endpoint: https://na1-ccsaas-service-qa.commerce-core-saas.com/9JjnV3amskX6mEeyYADfiP/graphql'
 ]
+
 const urlPattern = /https:\/\/[^\s]+/g
 /**
  *
@@ -28,10 +32,13 @@ export async function getAndSelectInstances () {
     }
   }).then(async resp => await resp.json())
 
-  // TODO: /graphql/ is appended to resp.tenants.instanceURL because the resp doesnt contain the graphql API unlike the UI which shows it.
+  const choices = DEFAULT_TENANTS.concat(
+    resp?.tenants?.map(tenant => `${tenant.name}: ${tenant.instanceURL}/graphql`) || []
+  )
+
   const choice = await promptSelect(
     'Select tenant',
-    resp.tenants.map(tenant => `${tenant.name}: ${tenant.instanceURL}/graphql/`).concat(DEFAULT_TENANTS)
+    choices
   )
   const urlMatch = choice.match(urlPattern)
 
