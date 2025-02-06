@@ -84,7 +84,7 @@ export class InitCommand extends Command {
           'aio',
           ['commerce:mesh-verify'],
           {
-            detached: true,
+            detached: false,
             stdio: ['ignore', out, err]
           }
         )
