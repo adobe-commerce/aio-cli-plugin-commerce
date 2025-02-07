@@ -42,6 +42,30 @@ export class InitCommand extends Command {
       if (shouldCreateMesh) {
         const installedPlugins = this.config.plugins
         await createMesh(runAIOCommand, installedPlugins)
+        console.log(
+          '⏳ Verifying Mesh provisioning behind the scenes. Please check mesh-verify.log for details, or run "aio commerce:mesh-verify" if there are failures.'
+        )
+        // Spawn detached child process to verify mesh in the background, without disrupting user's CLI session.
+        try {
+          const out = openSync('./mesh-verify.log', 'w')
+          const err = openSync('./mesh-verify.log', 'a')
+
+          const childProcess = spawn(
+            'aio',
+            ['commerce:mesh-verify'],
+            {
+              detached: false,
+              stdio: ['ignore', out, err]
+            }
+          )
+          // Detach from the parent process
+          childProcess.unref()
+        } catch (error) {
+          aioLogger.debug(error)
+          console.log(
+            '❌ Unable to verify mesh provisioning. Please try again with "aio commerce:mesh-verify"'
+          )
+        }
       } else {
         // this means the user chose a non-demo endpoint and still opted out of
         // API Mesh creation. Use their endpoints in configs.js
@@ -53,6 +77,9 @@ export class InitCommand extends Command {
       // this means the user chose to use demo env, so no need to create mesh
       console.log('Not creating API Mesh - will use demo environment.')
     }
+
+    const meshDetailsPageURL = getMeshDetailsPage()
+    const meshUrl = config.get('commerce.datasource.meshUrl')
 
     await createRepo()
     await modifyFstab()
@@ -69,41 +96,13 @@ export class InitCommand extends Command {
     await previewContent(filePaths)
     await publishContent()
 
-    // TODO: this fails with
-    // 2025-02-04T17:42:36.664Z [commerce:mesh.js] error: TypeError: Cannot read properties of undefined (reading 'id')
-    // at getMeshDetailsPage (aio-cli-plugin-commerce/src/utils/mesh.js:378:35)
-    // const meshDetailsPageURL = getMeshDetailsPage()
-    if (shouldCreateMesh) {
-      console.log('⏳ Verifying Mesh provisioning behind the scenes. Please check mesh-verify.log for details, or run "aio commerce:mesh-verify" if there are failures.')
-      // Spawn detached child process to verify mesh in the background, without disrupting user's CLI session.
-      try {
-        const out = openSync('./mesh-verify.log', 'w')
-        const err = openSync('./mesh-verify.log', 'a')
-
-        const childProcess = spawn(
-          'aio',
-          ['commerce:mesh-verify'],
-          {
-            detached: false,
-            stdio: ['ignore', out, err]
-          }
-        )
-        // Detach from the parent process
-        childProcess.unref()
-      } catch (error) {
-        aioLogger.debug(error)
-        console.log('❌ Unable to verify mesh provisioning. Please try again with "aio commerce:mesh-verify"')
-      }
-    }
-
-    const meshUrl = config.get('commerce.datasource.meshUrl')
     console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
     console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
     console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
     console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
     console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
     meshUrl && console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
-    // meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
+    meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
     console.log(`${boldWhite}Run locally:${reset} "aio commerce:dev"`)
     console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
 
@@ -118,14 +117,14 @@ export class InitCommand extends Command {
 }
 
 InitCommand.flags = {
-  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
-  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
-}
+    org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
+    repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
+  }
 
-InitCommand.args = {
-}
+  InitCommand.args = {
+  }
 
-InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
-InitCommand.examples = [
-  '$ aio commerce:init --org sirugh --repo my-storefront'
-]
+  InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
+  InitCommand.examples = [
+    '$ aio commerce:init --org sirugh --repo my-storefront'
+  ]
