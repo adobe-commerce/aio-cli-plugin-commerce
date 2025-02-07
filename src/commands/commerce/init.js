@@ -49,10 +49,14 @@ export class InitCommand extends Command {
         try {
           const out = openSync('./mesh-verify.log', 'w')
           const err = openSync('./mesh-verify.log', 'a')
+          const { org, project, workspace } = config.get('console')
+          const orgID = org.id
+          const projectID = project.id
+          const workspaceID = workspace.id
 
           const childProcess = spawn(
             'aio',
-            ['commerce:mesh-verify'],
+            ['commerce:mesh-verify', '--orgId', orgID, '--projectId', projectID, '--workspaceId', workspaceID],
             {
               detached: false,
               stdio: ['ignore', out, err]
@@ -117,14 +121,14 @@ export class InitCommand extends Command {
 }
 
 InitCommand.flags = {
-    org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
-    repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
-  }
+  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
+  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
+}
 
-  InitCommand.args = {
-  }
+InitCommand.args = {
+}
 
-  InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
-  InitCommand.examples = [
-    '$ aio commerce:init --org sirugh --repo my-storefront'
-  ]
+InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
+InitCommand.examples = [
+  '$ aio commerce:init --org sirugh --repo my-storefront'
+]
