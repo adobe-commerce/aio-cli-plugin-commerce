@@ -12,8 +12,8 @@ governing permissions and limitations under the License.
 import { Command } from '@oclif/core'
 import { checkAndRetryMeshUpdate } from '../../utils/mesh.js'
 
-const MESH_RETRIES = 3
-const MESH_RETRY_INTERVAL = 60000
+const MESH_RETRIES = 2
+const MESH_RETRY_INTERVAL = 90000 // 1.5 minutes
 
 export class MeshVerify extends Command {
   async run () {
