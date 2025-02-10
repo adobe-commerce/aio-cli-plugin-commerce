@@ -11,7 +11,7 @@ const CCM_BASE_URL = isProdIms
 
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [
-  'Test OneGraph Endpoint: https://na1-ccsaas-service-qa.commerce-core-saas.com/9JjnV3amskX6mEeyYADfiP/graphql'
+  'Test OneGraph Endpoint: https://na1-sandbox.api.commerce.adobe.com/F1psVHfVkXhcQxhqNbCora/graphql'
 ]
 
 const urlPattern = /https:\/\/[^\s]+/g
