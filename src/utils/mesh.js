@@ -9,7 +9,6 @@ import { promptConfirm } from './prompt.js'
 const aioLogger = Logger('commerce:mesh.js')
 const meshConfigFilePath = path.join('./', 'mesh_config.json')
 
-
 /**
  *
  * @param core
@@ -215,87 +214,12 @@ async function createTempMeshConfigFile (
 }
 
 /**
- * !@deprecated - this function is not used because we felt it beneficial to
- * retain the local mesh config file that was used, incase the user wants to
- * modify and/or use it later.
- */
-// eslint-disable-next-line no-unused-vars
-async function deleteTempMeshConfigFile () {
-  await fsPromise.unlink(meshConfigFilePath)
-}
-
-/**
  *
  */
 export async function confirmAPIMeshCreation () {
   return await promptConfirm(
     'Do you want to create an API Mesh for your Commerce instance?'
   )
-}
-
-/**
- *
- * @param runAIOCommand
- */
-async function updateMesh (runAIOCommand) {
-  aioLogger.debug('Updating API Mesh...')
-  await runAIOCommand('api-mesh:update', [meshConfigFilePath, '-c'])
-  aioLogger.debug('API Mesh updated')
-}
-
-/**
- *
- * @param runAIOCommand
- */
-async function getMeshStatus (runAIOCommand) {
-  aioLogger.debug('Checking API Mesh status...')
-  const { meshStatus } = await runAIOCommand('api-mesh:status', [])
-  aioLogger.debug('API Mesh status: ', meshStatus)
-
-  return meshStatus
-}
-
-/**
- * Function to check the status of the mesh creation and retry if it fails
- *
- * @param {*} runAIOCommand
- */
-export async function checkAndRetryMeshUpdate (runAIOCommand, retries = 2, retryInterval = 60 * 1000) {
-  try {
-    let meshStatus = await getMeshStatus(runAIOCommand)
-    let count = 0
-
-    /**
-     *
-     * Wait 1 minute and if meshStatus is not success, run an update.
-     * Repeat this process for MESH_RETRIES times and then throw an error if meshStatus is still not success
-     *
-     */
-    while (meshStatus !== 'success' && count < retries) {
-      aioLogger.debug(
-        `Mesh creation failed. Retrying... Attempt ${
-            count + 1
-        }/${retries}`
-      )
-      console.log('Retrying API Mesh creation...')
-      await updateMesh(runAIOCommand)
-      await new Promise((resolve) =>
-        setTimeout(resolve, retryInterval)
-      )
-
-      meshStatus = await getMeshStatus(runAIOCommand)
-      count++
-    }
-
-    if (meshStatus !== 'success') {
-      throw new Error('API Mesh creation failed')
-    }
-  } catch (error) {
-    aioLogger.error(error)
-    throw new Error(
-      'API Mesh creation failed, please retry by running "aio api-mesh update mesh_config.json"'
-    )
-  }
 }
 
 /**
@@ -377,7 +301,7 @@ export function getMeshDetailsPage () {
       return `https://developer.adobe.com/console/projects/${orgID}/${projectID}/workspaces/${workspaceID}/details`
     }
   } catch (err) {
-    aioLogger.error(err)
+    aioLogger.debug(err)
 
     return null
   }
