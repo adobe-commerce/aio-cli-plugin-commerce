@@ -28,6 +28,12 @@ aio login # select the org
 aio console org select # select the org again so it is stored in config
 ```
 
+You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning, at least at `4.1.0-beta.3`:
+
+```sh
+aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.1.0-beta.3
+```
+
 # Usage
 
 ```sh-session
