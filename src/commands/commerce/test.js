@@ -9,16 +9,12 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Command, Help } from '@oclif/core'
-import { checkAndRetryMeshUpdate } from '../../utils/mesh.js'
+import { Command } from '@oclif/core'
 
 export class TestCommand extends Command {
   async run () {
-    const runAIOCommand = async (command, args) => {
-      return await this.config.runCommand(command, args)
-    }
-    await checkAndRetryMeshUpdate(runAIOCommand)
+    console.log('Just testing!')
   }
 }
 
-TestCommand.description = 'Spin up an Adobe Commerce Storefront on EDS using this CLI tool'
+TestCommand.description = 'A test command'
