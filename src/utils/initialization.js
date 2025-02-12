@@ -23,10 +23,11 @@ export async function initialization (args, flags) {
   // GITHUB DESTINATION SELECTION
   let { org, repo } = flags
   if (!org) {
+    // TODO: read username/org name using gh, since it is authed already.
     org = await promptInput('Enter your GitHub username or organization name:')
   }
   if (!repo) {
-    repo = await promptInput('Enter your GitHub storefront repository name:')
+    repo = await promptInput('Enter the GitHub storefront repo name to create:')
   }
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo.')
@@ -44,9 +45,9 @@ export async function initialization (args, flags) {
   config.set('commerce.template.repo', template.split('/')[1])
 
   // DATASOURCE SELECTION
-  const STR_DEMO = 'Use Adobe\'s demo instance (Default Endpoints)'
-  const STR_BYO = 'Provide your backend API URL (Mesh -> Your_Endpoints)'
-  const STR_PICK = 'Pick an available instance (Mesh -> SaaS)'
+  const STR_DEMO = 'Use Adobe\'s demo API (Default Endpoints)'
+  const STR_BYO = 'Provide your backend API URL (Mesh -> Your Endpoints)'
+  const STR_PICK = 'Pick an available API (Mesh -> SaaS)'
 
   const commerceDataSourceOptions = [
     STR_DEMO,
