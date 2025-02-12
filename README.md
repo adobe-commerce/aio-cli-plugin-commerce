@@ -11,28 +11,39 @@
 
 # Prerequisites
 
-!! You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
+❗ You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
 
 ```sh
 brew install gh
 gh auth login
 ```
 
-You must also log in to the Adobe I/O CLI using your credentials:
-
-```sh
-aio config clear
-aio logout
-aio config set cli.env stage # or prod
-aio login # select the org
-aio console org select # select the org again so it is stored in config
-```
-
-You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning, at least at `4.1.0-beta.3`:
+❗ You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning, at least at `4.1.0-beta.3`.
 
 ```sh
 aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.1.0-beta.3
 ```
+
+❗ You must also log in to the Adobe I/O CLI using your credentials.
+
+```sh
+# logout/clear config
+aio config clear
+# set cli env to "prod" or "stage"
+aio config set cli.env prod
+# trigger login and select your org
+aio console org select
+```
+
+## Troubleshooting
+
+### Mesh Provisioning
+
+If you choose a workspace with a pre-existing mesh, the mesh provisioning will fail. Create or choose an empty workspace, or delete the pre-existing mesh (only if you are sure it is unused).
+
+### Instance Selection
+
+Sometimes your AIO authentication can become invalid. You must first `aio logout` and then `aio login`. Also verify you are using the correct cli environment (`stage` or `prod`).
 
 # Usage
 
@@ -45,39 +56,8 @@ $ aio commerce --help
 
 # Commands
 <!-- commands -->
-* [`aio help [COMMAND]`](#aio-help-command)
-* [`aio commerce`](#aio-pluginname)
-* [`aio commerce hello [NAME]`](#aio-pluginname-hello-name)
-
-## `aio help [COMMAND]`
-
-Display help for aio.
-
-```
-USAGE
-  $ aio help [COMMAND...] [-n]
-
-ARGUMENTS
-  COMMAND...  Command to show help for.
-
-FLAGS
-  -n, --nested-commands  Include all nested commands in the output.
-
-DESCRIPTION
-  Display help for aio.
-```
-
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v6.2.6/src/commands/help.ts)_
-
-## `aio commerce`
-
-```
-USAGE
-  $ aio commerce
-
-DESCRIPTION
-  Scaffold your own Adobe Commerce on EDS storefront
-```
+* [`aio commerce init`](#aio-commerce-init)
+* [`aio commerce dev`](#aio-pluginname)
 
 ## `aio commerce init`
 
