@@ -32,18 +32,16 @@ export class InitCommand extends Command {
     const runAIOCommand = async (command, args) => {
       return await this.config.runCommand(command, args)
     }
-    let shouldCreateMesh
     if (saas || paas) {
-      shouldCreateMesh = await confirmAPIMeshCreation()
-      if (shouldCreateMesh) {
-        const installedPlugins = this.config.plugins
-        await createMesh(runAIOCommand, installedPlugins)
-      } else {
+      if (flags.skipMesh) {
         // this means the user chose a non-demo endpoint and still opted out of
         // API Mesh creation. Use their endpoints in configs.js
         console.log(
           'Not creating API Mesh - will use provided endpoints.'
         )
+      } else {
+        const installedPlugins = this.config.plugins
+        await createMesh(runAIOCommand, installedPlugins)
       }
     } else {
       // this means the user chose to use demo env, so no need to create mesh
@@ -96,7 +94,11 @@ export class InitCommand extends Command {
 
 InitCommand.flags = {
   org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
-  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' })
+  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' }),
+  skipMesh: Flags.boolean({
+    default: false,
+    description: 'Skip creating API Mesh'
+  })
 }
 
 InitCommand.args = {

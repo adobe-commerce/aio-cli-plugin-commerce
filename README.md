@@ -66,8 +66,9 @@ USAGE
   $ aio commerce init [-o <value>] [-r <value>]
 
 FLAGS
-  -o, --org=<value>   your github org, ie "hlxsites"
-  -r, --repo=<value>  your github repo, ie "aem-boilerplate-commerce"
+  -o, --org=<value>   your github org or username, ie "my-org"
+  -r, --repo=<value>  your github repo, ie "my-test-storefront"
+  --skipMesh          skip creating API Mesh
 
 DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
