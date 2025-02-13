@@ -37,8 +37,9 @@ export async function initialization (args, flags) {
 
   // TEMPLATE SELECTION
   const template = await promptSelect('Which template would you like to use?', [
-    'adobe-commerce/adobe-demo-store',
-    'hlxsites/aem-boilerplate-commerce'
+    'adobe-commerce/adobe-demo-store', // ACCS template
+    'hlxsites/aem-boilerplate-commerce', // PaaS template
+    'adobe-rnd/aem-boilerplate-xcom' // UE Template
     // 'aabsites/citisignal' // TODO: Cannot use citisignal until we resolve how to use templates that use config service as some core files are missing https://magento.slack.com/archives/C085R48U3R7/p1738785011567519
   ])
   config.set('commerce.template.org', template.split('/')[0])
