@@ -63,10 +63,9 @@ $ aio commerce --help
 
 ```
 USAGE
-  $ aio commerce init [-o <value>] [-r <value>]
+  $ aio commerce init [-r <value>] [--skipMesh]
 
 FLAGS
-  -o, --org=<value>   your github org or username, ie "my-org"
   -r, --repo=<value>  your github repo, ie "my-test-storefront"
   --skipMesh          skip creating API Mesh
 
@@ -74,7 +73,7 @@ DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
 
 EXAMPLES
-  $ aio commerce:init --org sirugh --repo my-storefront
+  $ aio commerce:init --repo my-storefront
 ```
 
 ## `aio commerce dev`

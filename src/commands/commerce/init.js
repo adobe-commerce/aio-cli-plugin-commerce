@@ -93,7 +93,6 @@ export class InitCommand extends Command {
 }
 
 InitCommand.flags = {
-  org: Flags.string({ char: 'o', description: 'your github org, ie "hlxsites"' }),
   repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' }),
   skipMesh: Flags.boolean({
     default: false,

@@ -1,8 +1,11 @@
 import { promptInput, promptSelect } from './prompt.js'
+import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 import { getAndSelectInstances } from './accs.js'
 const aioLogger = Logger('commerce:initialization.js')
+const reset = '\x1b[0m'
+const boldWhite = '\x1b[1m\x1b[37m'
 /**
  * The initialization function serves as a place for all code in which we obtain
  * user inputs or set up the configuration to get the application ready to go.
@@ -21,11 +24,13 @@ export async function initialization (args, flags) {
 'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
 
   // GITHUB DESTINATION SELECTION
-  let { org, repo } = flags
+  let { repo } = flags
+  const { stdout: org } = await runCommand("gh api user --jq '.login'")
   if (!org) {
-    // TODO: read username/org name using gh, since it is authed already.
-    org = await promptInput('Enter your GitHub username or organization name:')
+    throw new Error('❌ Unable to get github username or org. Please authenticate first with `gh auth login`".')
   }
+  console.log(`✅ Using GitHub username: ${boldWhite}${org.trim()}${reset}`)
+
   if (!repo) {
     repo = await promptInput('Enter the GitHub storefront repo name to create:')
   }
