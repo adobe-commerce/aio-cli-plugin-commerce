@@ -1,4 +1,4 @@
-import { promptInput, promptSelect } from './prompt.js'
+import { promptConfirm, promptInput, promptSelect } from './prompt.js'
 import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
@@ -25,11 +25,14 @@ export async function initialization (args, flags) {
 
   // GITHUB DESTINATION SELECTION
   let { repo } = flags
-  const { stdout: org } = await runCommand("gh api user --jq '.login'")
+  let { stdout: org } = await runCommand("gh api user --jq '.login'")
   if (!org) {
-    throw new Error('❌ Unable to get github username or org. Please authenticate first with `gh auth login`".')
+    throw new Error('❌ Unable to get github username. Please authenticate first with `gh auth login`".')
   }
-  console.log(`✅ Using GitHub username: ${boldWhite}${org.trim()}${reset}`)
+  const answeredYes = await promptConfirm(`Would you like to create the code repository under your Github username, "${org.trim()}"?`)
+  if (!answeredYes) {
+    org = await promptInput('Enter the GitHub organization under which to create the code repository')
+  }
 
   if (!repo) {
     repo = await promptInput('Enter the GitHub storefront repo name to create:')
@@ -37,7 +40,8 @@ export async function initialization (args, flags) {
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo.')
   }
-  config.set('commerce.github.org', org)
+  console.log(`✅ Creating GitHub repository at: ${boldWhite}${org.trim()}/${repo}${reset}`)
+  config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
   config.set('commerce.github.repo', repo)
 
   // TEMPLATE SELECTION
