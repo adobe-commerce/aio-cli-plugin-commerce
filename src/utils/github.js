@@ -1,6 +1,7 @@
 import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
+// import { promptConfirm } from './prompt.js'
 const aioLogger = Logger('commerce:github.js')
 
 /**
@@ -9,8 +10,29 @@ const aioLogger = Logger('commerce:github.js')
 export async function createRepo () {
   const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
   const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
-  await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
-  console.log(`✅ Created repo at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
+
+  // Check if the repository already exists
+  const cmdResult = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
+  if (cmdResult?.stdout) { // if not exist, will throw and return 404.
+    // // If the repository exists, ask the user if they want to overwrite its content
+    // const overwrite = await promptConfirm(
+    //     `The repository ${githubOrg}/${githubRepo} already exists. Do you want to overwrite its content?`
+    // )
+    // // If the user wants to overwrite the repo, use "update" instead of "create"
+    // if (overwrite) {
+    //   // TODO: implement overwrite logic
+    // } else {
+    //   // If the user doesn't want to overwrite the repo, exit the program
+    //   console.error(`❌ Exiting. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
+    //   process.exit(1)
+    // }
+    console.error(`❌ Exiting. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
+    process.exit(1)
+  } else {
+    // If the repository does not exist, proceed with "create"
+    await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
+    console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
+  }
 }
 /**
  * fstab must be connected to DA content source

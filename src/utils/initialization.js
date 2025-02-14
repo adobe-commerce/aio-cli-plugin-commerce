@@ -35,7 +35,7 @@ export async function initialization (args, flags) {
   }
 
   if (!repo) {
-    repo = await promptInput('Enter the GitHub storefront repo name to create:')
+    repo = await promptInput('Enter the GitHub storefront repo name to create (must not exist already):')
   }
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo.')
