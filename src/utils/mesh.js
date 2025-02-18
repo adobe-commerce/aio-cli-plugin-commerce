@@ -34,9 +34,10 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
                 "headers": {
                     "mode": "no-cors",
                     "x-include-metadata": "true",
-                    "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
+                    "Cache-Control": "max-age=900, s-maxage=1800, stale-while-revalidate=30, stale-if-error=86400"
                 },
-                "includeHTTPDetails": false
+                "includeHTTPDetails": false,
+                "cache": true
             },
             "sources": [
                 {
@@ -102,9 +103,10 @@ function getPaaSMeshConfig (
                 "headers": {
                     "mode": "no-cors",
                     "x-include-metadata": "true",
-                    "Cache-Control": "max-age=900, s-max-age=1800, stale-while-revalidate=30, stale-if-error=86400"
+                    "Cache-Control": "max-age=900, s-maxage=1800, stale-while-revalidate=30, stale-if-error=86400"
                 },
-                "includeHTTPDetails": false
+                "includeHTTPDetails": false,
+                "cache": true
             },
             "sources": [{
                 "name": "CommerceGraphQl",
