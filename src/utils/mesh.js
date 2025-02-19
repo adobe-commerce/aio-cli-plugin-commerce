@@ -237,7 +237,7 @@ async function checkAndInstallMeshPlugin (installedPlugins) {
     console.log('Installing API Mesh plugin...')
 
     await runCommand(
-      'aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.1.0-beta.3' // will remove the beta version tag once the latest version is published with the necessary changes
+      'aio plugins:install @adobe/aio-cli-plugin-api-mesh'
     )
   }
 }

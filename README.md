@@ -18,10 +18,10 @@ brew install gh
 gh auth login
 ```
 
-❗ You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning, at least at `4.1.0-beta.3`.
+❗ You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning.
 
 ```sh
-aio plugins:install @adobe/aio-cli-plugin-api-mesh@4.1.0-beta.3
+aio plugins:install @adobe/aio-cli-plugin-api-mesh
 ```
 
 ❗ You must also log in to the Adobe I/O CLI using your credentials.
