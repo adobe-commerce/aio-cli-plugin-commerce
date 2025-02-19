@@ -81,6 +81,10 @@ export async function initialization (args, flags) {
     config.set('commerce.apiKey', apiKey)
     config.set('commerce.environmentId', envId)
   } else if (commerceDataSource === STR_PICK) {
+    const consoleConfig = config.get('console')
+    if (!consoleConfig || !consoleConfig.org) {
+      await runCommand('aio console:org select')
+    }
     const url = await getAndSelectInstances()
     saasUrl = url
   } else {
