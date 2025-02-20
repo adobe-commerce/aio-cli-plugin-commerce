@@ -2,12 +2,10 @@ import ims from '@adobe/aio-lib-ims'
 import { promptSelect } from './prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
-const aioLogger = Logger('commerce:accs.js')
+import CONSTANTS from './constants.js'
 
-const isStageIMS = config.get('cli.env') === 'stage'
-const CCM_BASE_URL = isStageIMS
-  ? 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
-  : 'https://core-commerce-saas-cloud-manager-service.corp.ethos340-prod-va6.ethos.adobe.net'
+const aioLogger = Logger('commerce:accs.js')
+const { CCM_BASE_URL } = CONSTANTS
 
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [

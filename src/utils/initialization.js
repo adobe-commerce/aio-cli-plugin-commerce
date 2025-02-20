@@ -3,6 +3,8 @@ import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 import { getAndSelectInstances } from './accs.js'
+import { selectOrganization } from './devConsole.js'
+
 const aioLogger = Logger('commerce:initialization.js')
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
@@ -83,7 +85,7 @@ export async function initialization (args, flags) {
   } else if (commerceDataSource === STR_PICK) {
     const consoleConfig = config.get('console')
     if (!consoleConfig || !consoleConfig.org) {
-      await runCommand('aio console:org select')
+      await selectOrganization()
     }
     const url = await getAndSelectInstances()
     saasUrl = url
