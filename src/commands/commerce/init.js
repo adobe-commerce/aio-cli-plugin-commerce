@@ -17,7 +17,7 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+import { createMesh, getMeshDetailsPage } from '../../utils/mesh.js'
 
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
@@ -25,7 +25,17 @@ const boldWhite = '\x1b[1m\x1b[37m'
 export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
-    await initialization(args, flags)
+    if (flags.repo && flags.template && flags.datasource) {
+      // Skip initialization. Instead just set configs here.
+      config.set('commerce.github.org', flags.repo.split('/')[0])
+      config.set('commerce.github.repo', flags.repo.split('/')[1])
+      config.set('commerce.template.org', flags.template.split('/')[0])
+      config.set('commerce.template.repo', flags.template.split('/')[1])
+      config.set('commerce.datasource.paas', flags.datasource)
+      config.set('commerce.datasource.catalog', flags.datasource)
+    } else {
+      await initialization(args, flags)
+    }
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
     const { saas, paas } = config.get('commerce.datasource')
 
@@ -52,11 +62,14 @@ export class InitCommand extends Command {
     await modifyFstab()
     await modifySidekickConfig()
 
-    // TODO: For summit, we can just pre-add the code sync bot to ALL repos for the single user. So comment out for summit, then uncomment afterwards.
-    openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
-    const res = await promptConfirm('Did you install the AEM Code Sync bot?')
-    if (!res) {
-      throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
+    if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
+      console.log('✅ AEM Code Sync Bot automatically installed :)')
+    } else {
+      openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
+      const res = await promptConfirm('Did you install the AEM Code Sync bot?')
+      if (!res) {
+        throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
+      }
     }
 
     const filePaths = await uploadStarterContent()
@@ -93,10 +106,21 @@ export class InitCommand extends Command {
 }
 
 InitCommand.flags = {
-  repo: Flags.string({ char: 'r', description: 'your github repo, ie "aem-boilerplate-commerce"' }),
+  datasource: Flags.string({
+    char: 'd',
+    description: 'your Commerce datasource, ie "https://na1-sandbox.api.commerce.adobe.com/F1psVHfVkXhcQxhqNbCora/graphql'
+  }),
+  repo: Flags.string({
+    char: 'r',
+    description: 'your github repo to create, ie my-git-user/my-site"'
+  }),
   skipMesh: Flags.boolean({
     default: false,
     description: 'Skip creating API Mesh'
+  }),
+  template: Flags.string({
+    char: 't',
+    description: 'Template to use for storefront code and content, ie "adobe-commerce/adobe-demo-store"'
   })
 }
 
@@ -105,5 +129,5 @@ InitCommand.args = {
 
 InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
 InitCommand.examples = [
-  '$ aio commerce:init --org sirugh --repo my-storefront'
+  '$ aio commerce:init --template adobe-commerce/adobe-demo-store --skipMesh --repo my-git-user/my-site'
 ]
