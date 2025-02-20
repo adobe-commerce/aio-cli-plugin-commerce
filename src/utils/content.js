@@ -55,7 +55,7 @@ async function getFilePathsFromAem () {
           return data.data.resources
             .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json') && !resource.path.startsWith('/sitemap-content.xml'))
             .map(resource => {
-              if (templateRepo === 'citisignal-one' || templateRepo === 'adobe-demo-store') {
+              if (templateRepo === 'citisignal-one' || templateRepo === 'adobe-demo-store' || templateRepo === 'ccdm-demo-store') {
                 // These templates have not published all files, thus we have to use preview urls for content source
                 return `https://main--${templateRepo}--${templateOrg}.aem.page/${resource.path.replace(/^\/+/, '')}`
               } else {
