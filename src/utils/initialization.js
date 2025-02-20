@@ -24,7 +24,7 @@ export async function initialization (args, flags) {
 'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
 
   // GITHUB DESTINATION SELECTION
-  let { repo } = flags
+  let { repo, template } = flags
   let { stdout: org } = await runCommand("gh api user --jq '.login'")
   if (!org) {
     throw new Error('❌ Unable to get github username. Please authenticate first with `gh auth login`".')
@@ -34,9 +34,8 @@ export async function initialization (args, flags) {
     org = await promptInput('Enter the GitHub organization under which to create the code repository')
   }
 
-  if (!repo) {
-    repo = await promptInput('Enter the GitHub storefront repo name to create (must not exist already):')
-  }
+  repo = repo?.split('/')[1] || await promptInput('Enter the GitHub storefront repo name to create (must not exist already):')
+
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo.')
   }
@@ -45,7 +44,8 @@ export async function initialization (args, flags) {
   config.set('commerce.github.repo', repo)
 
   // TEMPLATE SELECTION
-  const template = await promptSelect('Which template would you like to use?', [
+  // TODO: validate template is allowed
+  template = template || await promptSelect('Which template would you like to use?', [
     'adobe-commerce/adobe-demo-store', // ACCS template
     'hlxsites/aem-boilerplate-commerce', // PaaS template
     'adobe-rnd/aem-boilerplate-xcom' // UE Template
