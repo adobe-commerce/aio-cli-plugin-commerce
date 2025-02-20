@@ -57,7 +57,7 @@ folders:
   /products/: /products/default
 `
       const adobeStoreFstab = `mountpoints:
-/:
+  /:
     url: https://content.da.live/${org}/${repo}/
     type: markup
 
