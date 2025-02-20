@@ -95,7 +95,7 @@ export class InitCommand extends Command {
       })
     } catch (error) {
       console.log('\n************************************************')
-      console.error('❌ Sorry to see the setup fail, please run the following commands before attempting a retry:')
+      console.error('❌ Sorry to see the setup fail, please run the following commands before attempting a retry:\n')
       console.log(`Delete Github repo. Run ${boldWhite}gh repo delete ${githubOrg}/${githubRepo}${reset}`)
       console.log(`Delete API Mesh. Run ${boldWhite}aio api-mesh delete${reset}`)
       console.log(`Delete the Content at ${boldWhite}https://da.live/#/${githubOrg}/${githubRepo}${reset}`)
