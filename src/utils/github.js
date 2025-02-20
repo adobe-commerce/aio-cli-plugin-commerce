@@ -34,24 +34,44 @@ export async function createRepo () {
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
   }
 }
+
 /**
  * fstab must be connected to DA content source
  */
 export async function modifyFstab () {
   const { org, repo } = config.get('commerce.github')
+  const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {
     aioLogger.debug('writing fstab.yaml, attempt #', attempts)
     try {
-      const ENCODED_CONTENT = Buffer.from(`mountpoints:
+      // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
+      // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
+      const standardFstab = `mountpoints:
   /:
     url: https://content.da.live/${org}/${repo}/
     type: markup
 
 folders:
   /products/: /products/default
-`, 'utf8').toString('base64')
+`
+      const adobeStoreFstab = `mountpoints:
+  /:
+    url: https://content.da.live/${org}/${repo}/
+    type: markup
+
+folders:
+  /products/: /products/default
+  /apparel: /categories/default
+  /office: /categories/default
+  /lifestyle: /categories/default
+  /bags: /categories/default
+  /collections: /categories/default
+`
+
+      const fstab = templateRepo === 'adobe-demo-store' ? adobeStoreFstab : standardFstab
+      const ENCODED_CONTENT = Buffer.from(fstab, 'utf8').toString('base64')
 
       // TODO: this will not work for templates using config-service since this, and other files, are deleted. Need to refactor this a bit to support
       const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
@@ -64,7 +84,7 @@ folders:
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
   }
-  if (!repoReady) throw new Error('Unable to modify fstab for some reason - retry with AIO_LOG_LEVEL=DEBUG for more information.')
+  if (!repoReady) throw new Error('Unable to modify fstab for some reason - retry with AIO_LOG_LEVEL=debug for more information.')
 }
 
 /**
@@ -106,5 +126,5 @@ export async function modifySidekickConfig () {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
   }
-  if (!repoReady) throw new Error('Unable to modify sidekick config for some reason - retry with AIO_LOG_LEVEL=DEBUG for more information.')
+  if (!repoReady) throw new Error('Unable to modify sidekick config for some reason - retry with AIO_LOG_LEVEL=debug for more information.')
 }
