@@ -17,7 +17,7 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+import { createMesh, getMeshDetailsPage } from '../../utils/mesh.js'
 
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
