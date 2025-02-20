@@ -17,10 +17,12 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh, getMeshDetailsPage, confirmAPIMeshCreation } from '../../utils/mesh.js'
+import { createMesh, getMeshDetailsPage } from '../../utils/mesh.js'
+import Logger from '@adobe/aio-lib-core-logging'
 
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
+const aioLogger = Logger('commerce:init.js')
 
 export class InitCommand extends Command {
   async run () {
@@ -32,63 +34,76 @@ export class InitCommand extends Command {
     const runAIOCommand = async (command, args) => {
       return await this.config.runCommand(command, args)
     }
-    if (saas || paas) {
-      if (flags.skipMesh) {
-        // this means the user chose a non-demo endpoint and still opted out of
-        // API Mesh creation. Use their endpoints in configs.js
-        console.log(
-          'Not creating API Mesh - will use provided endpoints.'
-        )
+    try {
+      if (saas || paas) {
+        if (flags.skipMesh) {
+          // this means the user chose a non-demo endpoint and still opted out of
+          // API Mesh creation. Use their endpoints in configs.js
+          console.log(
+            'Not creating API Mesh - will use provided endpoints.'
+          )
+        } else {
+          const installedPlugins = this.config.plugins
+          await createMesh(runAIOCommand, installedPlugins)
+        }
       } else {
-        const installedPlugins = this.config.plugins
-        await createMesh(runAIOCommand, installedPlugins)
+        // this means the user chose to use demo env, so no need to create mesh
+        console.log('Not creating API Mesh - will use demo environment.')
       }
-    } else {
-      // this means the user chose to use demo env, so no need to create mesh
-      console.log('Not creating API Mesh - will use demo environment.')
-    }
 
-    await createRepo()
-    await modifyFstab()
-    await modifySidekickConfig()
+      await createRepo()
+      await modifyFstab()
+      await modifySidekickConfig()
 
-    // TODO: For summit, we can just pre-add the code sync bot to ALL repos for the single user. So comment out for summit, then uncomment afterwards.
-    openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
-    const res = await promptConfirm('Did you install the AEM Code Sync bot?')
-    if (!res) {
-      throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
-    }
-
-    const filePaths = await uploadStarterContent()
-    await previewContent(filePaths)
-    await publishContent()
-
-    const meshDetailsPageURL = getMeshDetailsPage()
-    const meshUrl = config.get('commerce.datasource.meshUrl')
-
-    console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉`)
-    console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
-    console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
-    console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
-    console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
-    console.log(`${boldWhite}Run your storefront locally:${reset} "aio commerce:dev"`)
-    if (meshUrl) {
-      console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
-      console.log(`To check the status of your Mesh, run ${boldWhite}aio api-mesh status${reset}`)
-      console.log(`To update your Mesh, run ${boldWhite}aio api-mesh update mesh_config.json${reset}`)
-      if (meshDetailsPageURL) {
-        meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
+      // TODO: For summit, we can just pre-add the code sync bot to ALL repos for the single user. So comment out for summit, then uncomment afterwards.
+      openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
+      const res = await promptConfirm('Did you install the AEM Code Sync bot?')
+      if (!res) {
+        throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
       }
-    }
-    console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
 
-    // cleanup
-    config.delete('commerce')
-    // reset github org and repo, for aio commerce:dev command
-    config.set('commerce.github', {
-      org: githubOrg,
-      repo: githubRepo
-    })
+      const filePaths = await uploadStarterContent()
+      await previewContent(filePaths)
+      await publishContent()
+
+      const meshDetailsPageURL = getMeshDetailsPage()
+      const meshUrl = config.get('commerce.datasource.meshUrl')
+
+      console.log('\n************************************************')
+      console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉\n`)
+      console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
+      console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
+      console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
+      console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
+      console.log(`${boldWhite}Run your storefront locally:${reset} "aio commerce:dev"`)
+      if (meshUrl) {
+        console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
+        console.log(`To check the status of your Mesh, run ${boldWhite}aio api-mesh status${reset}`)
+        console.log(`To update your Mesh, run ${boldWhite}aio api-mesh update mesh_config.json${reset}`)
+        if (meshDetailsPageURL) {
+          meshDetailsPageURL && console.log(`${boldWhite}View your Mesh details:${reset} ${meshDetailsPageURL}`)
+        }
+      }
+      console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
+      console.log('************************************************\n')
+      // cleanup
+      config.delete('commerce')
+      // reset github org and repo, for aio commerce:dev command
+      config.set('commerce.github', {
+        org: githubOrg,
+        repo: githubRepo
+      })
+    } catch (error) {
+      console.log('\n************************************************')
+      console.error('❌ Sorry to see the setup fail, please run the following commands before attempting a retry:')
+      console.log(`Delete Github repo. Run ${boldWhite}gh repo delete ${githubOrg}/${githubRepo}${reset}`)
+      console.log(`Delete API Mesh. Run ${boldWhite}aio api-mesh delete${reset}`)
+      console.log(`Delete the Content at ${boldWhite}https://da.live/#/${githubOrg}/${githubRepo}${reset}`)
+      console.log('************************************************\n')
+
+      aioLogger.error(error)
+      throw new Error('❌ Setup failed. Please try again.')
+    }
   }
 }
 
