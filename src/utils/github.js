@@ -84,7 +84,7 @@ folders:
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
   }
-  if (!repoReady) throw new Error('Unable to modify fstab for some reason - retry with AIO_LOG_LEVEL=DEBUG for more information.')
+  if (!repoReady) throw new Error('Unable to modify fstab for some reason - retry with AIO_LOG_LEVEL=debug for more information.')
 }
 
 /**
@@ -126,5 +126,5 @@ export async function modifySidekickConfig () {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
     }
   }
-  if (!repoReady) throw new Error('Unable to modify sidekick config for some reason - retry with AIO_LOG_LEVEL=DEBUG for more information.')
+  if (!repoReady) throw new Error('Unable to modify sidekick config for some reason - retry with AIO_LOG_LEVEL=debug for more information.')
 }
