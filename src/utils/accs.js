@@ -7,7 +7,7 @@ const aioLogger = Logger('commerce:accs.js')
 const isProdIms = config.get('cli.env') === 'prod'
 const CCM_BASE_URL = isProdIms
   ? 'https://ccm.api.commerce.adobe.com'
-  : 'https://core-commerce-saas-cloud-manager-service-deploy-et-16fe67.corp.ethos501-stage-va6.ethos.adobe.net'
+  : 'https://ccm-stage.api.commerce.adobe.com/'
 
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [
