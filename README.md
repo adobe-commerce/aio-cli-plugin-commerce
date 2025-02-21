@@ -3,7 +3,6 @@
 `commerce` commands for the Adobe I/O CLI
 
 <!-- toc -->
-* [aio-cli-plugin-boilerplate](#aio-cli-plugin-boilerplate)
 * [Prerequisites](#prerequisites)
 * [Usage](#usage)
 * [Commands](#commands)
