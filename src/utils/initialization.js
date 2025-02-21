@@ -41,7 +41,6 @@ export async function initialization (args, flags) {
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo.')
   }
-  console.log(`✅ Creating GitHub repository at: ${boldWhite}${org.trim()}/${repo}${reset}`)
   config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
   config.set('commerce.github.repo', repo)
 
