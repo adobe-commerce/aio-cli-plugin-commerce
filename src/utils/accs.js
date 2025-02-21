@@ -40,7 +40,7 @@ export async function getAndSelectInstances () {
     }
 
     const choices = DEFAULT_TENANTS.concat(
-      resp?.tenants?.map(tenant => `${tenant.name}: ${tenant.instanceURL}/graphql`) || []
+      resp?.tenants?.map(tenant => `${tenant.name}: ${tenant.serviceURLs.graphQL}`) || []
     )
 
     const choice = await promptSelect(
