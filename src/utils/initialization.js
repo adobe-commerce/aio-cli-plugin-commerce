@@ -6,8 +6,7 @@ import { getAndSelectInstances } from './accs.js'
 import { selectOrganization } from './devConsole.js'
 
 const aioLogger = Logger('commerce:initialization.js')
-const reset = '\x1b[0m'
-const boldWhite = '\x1b[1m\x1b[37m'
+
 /**
  * The initialization function serves as a place for all code in which we obtain
  * user inputs or set up the configuration to get the application ready to go.
@@ -57,13 +56,13 @@ export async function initialization (args, flags) {
 
   // DATASOURCE SELECTION
   const STR_DEMO = 'Use Adobe\'s demo API (Default Endpoints)'
-  const STR_BYO = 'Provide your backend API URL (Mesh -> Your Endpoints)'
   const STR_PICK = 'Pick an available API (Mesh -> SaaS)'
+  const STR_BYO = 'Provide your backend API URL (Mesh -> Your Endpoints)'
 
   const commerceDataSourceOptions = [
     STR_DEMO,
-    STR_PICK,
-    STR_BYO
+    STR_PICK
+    // STR_BYO // TODO: enable after summit
   ]
   const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
 
