@@ -6,6 +6,7 @@
 * [Prerequisites](#prerequisites)
 * [Usage](#usage)
 * [Commands](#commands)
+* [Troubleshooting](#troubleshooting)
 <!-- tocstop -->
 
 ![image](https://github.com/user-attachments/assets/7cd45e4b-945a-4e13-909d-b1fe2c426fe0)
