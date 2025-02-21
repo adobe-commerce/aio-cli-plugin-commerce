@@ -45,6 +45,36 @@ If you choose a workspace with a pre-existing mesh, the mesh provisioning will f
 
 Sometimes your AIO authentication can become invalid. You must first `aio logout` and then `aio login`. Also verify you are using the correct cli environment (`stage` or `prod`).
 
+### Wrong Org
+
+If you are already authenticated to experience.adobe.com with a specific org selected, the aio login command will use that authentication. If this does not match the org you are trying to use for CCM or API Mesh, you will need to log out and log in again.
+
+### 404
+
+If you see a 404 when you navigate to your storefront "aem.page" url, it can be due to a few reasons. Here are some steps you can take to troubleshoot:
+
+1. **Check the URL**: Ensure that the URL you are trying to access is correct and that there are no typos.
+2. **Check AEM Code Sync Bot**: Ensure that the AEM Code Sync Bot is installed to the correct github repository. _you cannot select "all repositories"!
+
+### Further steps
+
+If you are still having problems, please open an issue and confirm that you:
+
+- can consistently reproduce the issue
+- are able to obtain the full error output using AIO_LOG_LEVEL=debug aio commerce init.
+- verify you have tried using the "demo" backends
+- verify you have tried with and without API Mesh
+- verify you deleted the mesh before using the CLI (`aio api-mesh:delete`)
+- verify you have tried using unique destination repo name
+- verify you are in the correct IMS environment (`aio config set cli.env <env>`)
+- verify you are authorized to the correct IMS org (`aio config get console.org`)
+- Sign out of https://experience.adobe.com first before running the CLI, as this may “auto select” the wrong org
+- verify you are authorized to the correct gh user gh auth status
+
+Additionally, please:
+- provide the storefront url
+- provide exact steps/inputs you chose in order to reproduce the issue
+
 # Usage
 
 ```sh-session
