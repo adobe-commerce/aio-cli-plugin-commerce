@@ -3,6 +3,8 @@ import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 import { getAndSelectInstances } from './accs.js'
+import { selectOrganization } from './devConsole.js'
+
 const aioLogger = Logger('commerce:initialization.js')
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
@@ -39,7 +41,6 @@ export async function initialization (args, flags) {
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo.')
   }
-  console.log(`✅ Creating GitHub repository at: ${boldWhite}${org.trim()}/${repo}${reset}`)
   config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
   config.set('commerce.github.repo', repo)
 
@@ -81,6 +82,10 @@ export async function initialization (args, flags) {
     config.set('commerce.apiKey', apiKey)
     config.set('commerce.environmentId', envId)
   } else if (commerceDataSource === STR_PICK) {
+    const consoleConfig = config.get('console')
+    if (!consoleConfig || !consoleConfig.org) {
+      await selectOrganization()
+    }
     const url = await getAndSelectInstances()
     saasUrl = url
   } else {

@@ -2,12 +2,10 @@ import ims from '@adobe/aio-lib-ims'
 import { promptSelect } from './prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
-const aioLogger = Logger('commerce:accs.js')
+import CONSTANTS from './constants.js'
 
-const isProdIms = config.get('cli.env') === 'prod'
-const CCM_BASE_URL = isProdIms
-  ? 'https://ccm.api.commerce.adobe.com'
-  : 'https://ccm-stage.api.commerce.adobe.com/'
+const aioLogger = Logger('commerce:accs.js')
+const { CCM_BASE_URL } = CONSTANTS
 
 // A list of some default tenant (can remove later)
 const DEFAULT_TENANTS = [
