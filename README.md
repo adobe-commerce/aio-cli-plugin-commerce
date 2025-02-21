@@ -9,6 +9,9 @@
 * [Commands](#commands)
 <!-- tocstop -->
 
+![image](https://github.com/user-attachments/assets/7cd45e4b-945a-4e13-909d-b1fe2c426fe0)
+
+
 # Prerequisites
 
 ❗ You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
