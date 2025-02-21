@@ -7,9 +7,9 @@
     "@adobe/aio-lib-core-logging": "^3",
     "@adobe/aio-lib-env": "^3.0.1",
     "@adobe/aio-lib-ims": "^7.0.2",
+    "@inquirer/prompts": "^7.3.2",
     "@oclif/core": "^4",
     "@oclif/plugin-help": "^6",
-    "inquirer": "^8.2.6",
     "jsdom": "^25.0.1"
   },
   "devDependencies": {
