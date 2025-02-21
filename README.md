@@ -96,17 +96,19 @@ $ aio commerce --help
 
 ```
 USAGE
-  $ aio commerce init [-r <value>] [--skipMesh]
+  $ aio commerce init [-d <value>] [-r <value>] [--skipMesh] [-t <value>]
 
 FLAGS
-  -r, --repo=<value>  your github repo, ie "my-test-storefront"
-  --skipMesh          skip creating API Mesh
+  -d, --datasource=<value>  your datasource, ie "https://my-commerce-api.com/graphql
+  -r, --repo=<value>        your github repo, ie "my-git-user/my-test-storefront"
+  --skipMesh                skip creating API Mesh
+  -t, --template=<value>    the template to use, ie "adobe-commerce/adobe-demo-store
 
 DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
 
 EXAMPLES
-  $ aio commerce:init --repo my-storefront
+  $  aio commerce:init --template "adobe-commerce/adobe-demo-store" --skipMesh --repo "my-git-user/my-site"
 ```
 
 ## `aio commerce dev`
