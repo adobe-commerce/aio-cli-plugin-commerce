@@ -1,21 +1,14 @@
-import inquirer from 'inquirer'
-
+import Logger from '@adobe/aio-lib-core-logging'
+import { confirm, input, search } from '@inquirer/prompts'
+const aioLogger = Logger('commerce:prompt.js')
 /**
  *
  * @param message
  */
 export async function promptConfirm (message) {
-  const prompt = inquirer.createPromptModule({ output: process.stderr })
-
-  const confirm = await prompt([
-    {
-      type: 'confirm',
-      name: 'res',
-      message
-    }
-  ])
-
-  return confirm.res
+  const res = await confirm({ message })
+  aioLogger.debug(`promptConfirm: ${res}`)
+  return res
 }
 
 /**
@@ -23,15 +16,9 @@ export async function promptConfirm (message) {
  * @param message
  */
 export async function promptInput (message) {
-  const selected = await inquirer.prompt([
-    {
-      name: 'item',
-      message,
-      type: 'input'
-    }
-  ])
-
-  return selected.item
+  const res = await input({ message })
+  aioLogger.debug(`promptInput: ${res}`)
+  return res
 }
 
 /**
@@ -40,14 +27,16 @@ export async function promptInput (message) {
  * @param choices
  */
 export async function promptSelect (message, choices) {
-  const selected = await inquirer.prompt([
-    {
-      name: 'item',
-      message,
-      type: 'list',
-      choices
-    }
-  ])
+  const res = await search({
+    message,
+    source: async (input, { signal }) => {
+      if (!input) { return choices }
 
-  return selected.item
+      // return fuzzy search results from the choices array
+      const fuzzyResults = choices.filter(choice => choice.toLowerCase().includes(input.toLowerCase()))
+      return fuzzyResults
+    }
+  })
+  aioLogger.debug(`promptSelect: ${res}`)
+  return res
 }
