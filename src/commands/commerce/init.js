@@ -81,6 +81,7 @@ export class InitCommand extends Command {
 
       const meshDetailsPageURL = getMeshDetailsPage()
       const meshUrl = config.get('commerce.datasource.meshUrl')
+      const adminUrl = config.get('commerce.datasource.admin')
 
       console.log('\n************************************************')
       console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉\n`)
@@ -88,7 +89,9 @@ export class InitCommand extends Command {
       console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
       console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
       console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
-      console.log(`${boldWhite}Run your storefront locally:${reset} "aio commerce:dev"`)
+      if (adminUrl) {
+        console.log(`${boldWhite}Access your Commerce Admin:${reset} ${adminUrl}`)
+      }
       if (meshUrl) {
         console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
         console.log(`To check the status of your Mesh, run ${boldWhite}aio api-mesh status${reset}`)

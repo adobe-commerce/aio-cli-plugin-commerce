@@ -40,7 +40,7 @@ export async function getAndSelectInstances () {
     }
 
     const choices = DEFAULT_TENANTS.concat(
-      resp?.tenants?.map(tenant => `${tenant.name}: ${tenant.instanceURL}/graphql`) || []
+      resp?.tenants?.map(tenant => `${tenant.name}: ${tenant.serviceURLs.graphQL}`) || []
     )
 
     const choice = await promptSelect(
@@ -49,6 +49,18 @@ export async function getAndSelectInstances () {
     )
     const urlMatch = choice.match(urlPattern)
     aioLogger.debug('selected', urlMatch[0])
+
+    try {
+      const chosen = resp?.tenants?.find(tenant => tenant.serviceURLs.graphQL === urlMatch[0])
+      if (chosen) {
+        config.set('commerce.datasource.admin', chosen.serviceURLs.admin)
+      } else {
+        // no admin url
+        aioLogger.debug('unable to get admin url')
+      }
+    } catch (e) {
+      aioLogger.debug('unable to get admin url')
+    }
     return urlMatch[0]
   } catch (e) {
     aioLogger.log('Tenant API is not available. Check your aio IMS Org settings and try again.')
