@@ -76,10 +76,12 @@ export class InitCommand extends Command {
         }
       }
       const filePaths = await uploadStarterContent()
+      console.log('⏳ Previewing some necessary files...')
       // we have to wait for code to sync before previewing content otherwise we
       // risk the preview caching a 404 which is unrecoverable (for now).
       await sleep(5000)
       await previewContent(filePaths)
+      console.log('⏳ Publishing some necessary files...')
       await publishContent()
 
       const meshDetailsPageURL = getMeshDetailsPage()
