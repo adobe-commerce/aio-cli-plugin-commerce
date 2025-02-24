@@ -2,73 +2,39 @@ import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:preview.js')
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
+// TODO: DRY - only diff for the preview/publish functions is the API url and log detail (use of term preview vs publish).
+// we should refactor
 /**
- * Given an array of filenames, uses the hlx admin api to preview the content.
- * This function accounts for the rate limiting imposed on the API by previewing
- * 10 files every second.
- * @param {Array} files the array of files to be previewed
- * @returns {Promise<Array>} that resolves to the array of results
+ * https://www.aem.live/docs/admin.html#tag/preview/operation/bulkPreview
+ * // TODO: update to take paths, instead of full urls
+ * @param files urls whose paths we will preview
  */
 export async function previewContent (files) {
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
-  console.log('⏳ Previewing files, this may take some time...')
-
-  const results = []
-  const batchSize = 10
-  let i = 0
-
-  while (i < files.length) {
-    const chunk = files.slice(i, Math.min(i + batchSize, files.length))
-    const chunkPromises = chunk.map(file => previewFile(file))
-    await Promise.all(chunkPromises)
-    await delay(1000)
-    i += batchSize
-  }
-
-  /**
-   * TODO Refactor previewContent and publishContent functions -- too much repeated code!
-   * @param file
-   */
-  async function previewFile (file) {
-    let { pathname } = new URL(file)
-    if (pathname.endsWith('/')) {
-      pathname = pathname.replace(/\/$/, '/index')
+  try {
+    const previewFiles = files.map(file => new URL(file).pathname)
+    aioLogger.debug(previewFiles)
+    const url = new URL(`https://admin.hlx.page/preview/${org}/${repo}/main/*`)
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        paths: [...previewFiles]
+      })
+    })
+    if (res.status !== 202) {
+      aioLogger.debug(res)
+      console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    } else {
+      console.log('✅ Started batch preview job.')
     }
-    const url = new URL(`https://admin.hlx.page/preview/${org}/${repo}/main${pathname}`)
-
-    aioLogger.debug(`Previewing {
-      "origin": "${file}",
-      "destination": "https://da.live/edit#/${org}/${repo}${pathname.replace(/\.[^.]+$/, '')}"
-    }`)
-
-    let result
-    try {
-      const res = await fetch(url, { method: 'POST' })
-      if (res.status !== 200) {
-        result = { source: file, status: 'failed', message: `Failed to preview https://da.live/edit#/${org}/${repo}${pathname.replace(/\.[^.]+$/, '')}` }
-        aioLogger.debug(res)
-      } else {
-        result = { source: file, status: 'success' }
-      }
-    } catch (error) {
-      result = { source: file, status: 'error', message: error.message }
-      aioLogger.debug(error)
-    }
-    results.push(result)
+  } catch (error) {
+    console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    aioLogger.debug(error)
   }
-
-  const successes = results.filter(({ status }) => status === 'success')
-  const failures = results.filter(({ status }) => status === 'failed' || status === 'error')
-
-  if (failures.length) {
-    console.log(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually previewing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
-    aioLogger.debug(failures)
-  }
-  console.log(`✅ Previewed ${successes.length} files.`)
-  return results
 }
 
 const filesToPublish = [
@@ -82,60 +48,31 @@ const filesToPublish = [
 
 /**
  * For DA Live Preview, we must publish some files. This must be done AFTER preview.
+ * https://www.aem.live/docs/admin.html#tag/publish/operation/bulkPublish
  */
 export async function publishContent () {
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
-  console.log('⏳ Publishing some necessary files...')
+  const url = new URL(`https://admin.hlx.page/live/${org}/${repo}/main/*`)
 
-  const results = []
-  const batchSize = 10
-  let i = 0
-
-  while (i < filesToPublish.length) {
-    const chunk = filesToPublish.slice(i, Math.min(i + batchSize, filesToPublish.length))
-    const chunkPromises = chunk.map(file => publishFile(file))
-    await Promise.all(chunkPromises)
-    await delay(1000)
-    i += batchSize
-  }
-
-  /**
-   *
-   * @param file
-   * @param pathname
-   */
-  async function publishFile (pathname) {
-    const url = new URL(`https://admin.hlx.page/live/${org}/${repo}/main${pathname}`)
-
-    aioLogger.debug(`Publishing {
-        "origin": "${pathname}",
-        "destination": "https://da.live/edit#/${org}/${repo}${pathname.replace(/\.[^.]+$/, '')}"
-      }`)
-
-    let result
-    try {
-      const res = await fetch(url, { method: 'POST' })
-      if (res.status !== 200) {
-        result = { source: pathname, status: 'failed', message: `Failed to publish https://da.live/edit#/${org}/${repo}${pathname.replace(/\.[^.]+$/, '')}` }
-        aioLogger.debug(res)
-      } else {
-        result = { source: pathname, status: 'success' }
-      }
-    } catch (error) {
-      result = { source: pathname, status: 'error', message: error.message }
-      aioLogger.debug(error)
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        paths: [...filesToPublish]
+      })
+    })
+    if (res.status !== 202) {
+      aioLogger.debug(res)
+      console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    } else {
+      console.log('✅ Started batch publish job.')
     }
-    results.push(result)
+  } catch (error) {
+    console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
+    aioLogger.debug(error)
   }
-
-  const successes = results.filter(({ status }) => status === 'success')
-  const failures = results.filter(({ status }) => status === 'failed' || status === 'error')
-
-  if (failures.length) {
-    console.log(`❌ Had issues with ${failures.length} files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
-    aioLogger.debug(failures)
-  }
-  console.log(`✅ Published ${successes.length} files.`)
-  return results
 }
