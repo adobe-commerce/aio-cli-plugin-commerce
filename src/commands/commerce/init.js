@@ -82,7 +82,6 @@ export class InitCommand extends Command {
       console.log('⏳ Publishing some necessary files...')
       await publishContent()
 
-      const meshDetailsPageURL = getMeshDetailsPage()
       const meshUrl = config.get('commerce.datasource.meshUrl')
       const adminUrl = config.get('commerce.datasource.admin')
 
@@ -96,6 +95,7 @@ export class InitCommand extends Command {
         console.log(`${boldWhite}Access your Commerce Admin:${reset} ${adminUrl}`)
       }
       if (meshUrl) {
+        const meshDetailsPageURL = getMeshDetailsPage()
         console.log(`${boldWhite}Try out your API:${reset} ${meshUrl}`)
         console.log(`To check the status of your Mesh, run ${boldWhite}aio api-mesh status${reset}`)
         console.log(`To update your Mesh, run ${boldWhite}aio api-mesh update mesh_config.json${reset}`)
