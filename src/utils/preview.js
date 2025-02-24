@@ -2,9 +2,12 @@ import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:preview.js')
 
+// TODO: DRY - only diff for the preview/publish functions is the API url and log detail (use of term preview vs publish).
+// we should refactor
 /**
  * https://www.aem.live/docs/admin.html#tag/preview/operation/bulkPreview
- * @param files
+ * // TODO: update to take paths, instead of full urls
+ * @param files urls whose paths we will preview
  */
 export async function previewContent (files) {
   const { org, repo } = config.get('commerce.github')
@@ -63,8 +66,8 @@ export async function publishContent () {
       })
     })
     if (res.status !== 202) {
-      console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
       aioLogger.debug(res)
+      console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
       console.log('✅ Started batch publish job.')
     }
