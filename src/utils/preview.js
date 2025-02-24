@@ -29,7 +29,7 @@ export async function previewContent (files) {
       aioLogger.debug(res)
       console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
-      console.log('✅ Started batch preview job.')
+      console.log('✅ Started batch content preview job.')
     }
   } catch (error) {
     console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
@@ -69,7 +69,7 @@ export async function publishContent () {
       aioLogger.debug(res)
       console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
-      console.log('✅ Started batch publish job.')
+      console.log('✅ Started batch content publish job.')
     }
   } catch (error) {
     console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)

@@ -15,11 +15,10 @@ import { uploadStarterContent } from '../../utils/content.js'
 import { previewContent, publishContent } from '../../utils/preview.js'
 import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
-import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
+import { codeSyncComplete, createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
 import { createMesh, getMeshDetailsPage } from '../../utils/mesh.js'
 import Logger from '@adobe/aio-lib-core-logging'
-import { sleep } from '../../utils/sleep.js'
 
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
@@ -76,10 +75,9 @@ export class InitCommand extends Command {
         }
       }
       const filePaths = await uploadStarterContent()
+      console.log('⏳ Validating code sync...')
+      await codeSyncComplete()
       console.log('⏳ Previewing some necessary files...')
-      // we have to wait for code to sync before previewing content otherwise we
-      // risk the preview caching a 404 which is unrecoverable (for now).
-      await sleep(5000)
       await previewContent(filePaths)
       console.log('⏳ Publishing some necessary files...')
       await publishContent()

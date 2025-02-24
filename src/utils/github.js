@@ -128,3 +128,28 @@ export async function modifySidekickConfig () {
   }
   if (!repoReady) throw new Error('Unable to modify sidekick config for some reason - retry with AIO_LOG_LEVEL=debug for more information.')
 }
+
+/**
+ * fetches a url once a second, until res.status is 200. On average seems to take
+ * around 30 seconds.
+ */
+export async function codeSyncComplete () {
+  const { org, repo } = config.get('commerce.github')
+  // retry 60 times
+  const retries = 60
+  let attempts = 0
+  // TODO: get url to check from code source, rather than assume scripts/scripts.js exists.
+  const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/scripts.js`
+  aioLogger.debug(`Checking code resource is uploaded at ${resourceUrl}`)
+  while (attempts < retries) {
+    try {
+      const res = await fetch(resourceUrl)
+      if (res.status === 200) return
+      throw new Error('Failed to fetch script')
+    } catch (error) {
+      attempts++
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    }
+  }
+  throw new Error(`Failed to confirm code resource sync after ${retries} retries.`)
+}
