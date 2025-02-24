@@ -19,6 +19,7 @@ import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/githu
 import { initialization } from '../../utils/initialization.js'
 import { createMesh, getMeshDetailsPage } from '../../utils/mesh.js'
 import Logger from '@adobe/aio-lib-core-logging'
+import { sleep } from '../../utils/sleep.js'
 
 const reset = '\x1b[0m'
 const boldWhite = '\x1b[1m\x1b[37m'
@@ -74,8 +75,10 @@ export class InitCommand extends Command {
           throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
         }
       }
-
       const filePaths = await uploadStarterContent()
+      // we have to wait for code to sync before previewing content otherwise we
+      // risk the preview caching a 404 which is unrecoverable (for now).
+      await sleep(5000)
       await previewContent(filePaths)
       await publishContent()
 

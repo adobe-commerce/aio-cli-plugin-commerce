@@ -19,7 +19,7 @@ export async function previewContent (files) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        paths: ['/*']
+        paths: [...files]
       })
     })
     if (res.status !== 200) {
@@ -33,6 +33,15 @@ export async function previewContent (files) {
     aioLogger.debug(error)
   }
 }
+
+const filesToPublish = [
+  '/configs.json',
+  '/placeholders.json',
+  // TODO: nav, footer, and mini-cart are only necessary for base boilerplate, not citisignal. Add logic to conditionally determine whether we need to publish these at all. We may need to find if there are any citisignal files which need publishing too.
+  '/nav',
+  '/footer',
+  '/mini-cart'
+]
 
 /**
  * For DA Live Preview, we must publish some files. This must be done AFTER preview.
@@ -51,7 +60,7 @@ export async function publishContent () {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        paths: ['/*']
+        paths: [...filesToPublish]
       })
     })
     if (res.status !== 200) {
