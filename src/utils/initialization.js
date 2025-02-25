@@ -26,7 +26,7 @@ export async function initialization (args, flags) {
 
   // GITHUB DESTINATION SELECTION
   let { repo, template } = flags
-  let { stdout: org } = await runCommand("gh api user --jq '.login'")
+  let { stdout: org } = await runCommand('gh api user --jq .login')
   if (!org) {
     throw new Error('❌ Unable to get github username. Please authenticate first with `gh auth login`".')
   }
