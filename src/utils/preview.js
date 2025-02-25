@@ -25,11 +25,15 @@ export async function previewContent (files) {
         paths: [...previewFiles]
       })
     })
+    aioLogger.debug(res)
     if (res.status !== 202) {
-      aioLogger.debug(res)
       console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
+      const detailsUrl = `${res.links.self}/details`
+      aioLogger.debug(detailsUrl)
       console.log('✅ Started batch content preview job.')
+      await waitForComplete(detailsUrl, previewFiles.length)
+      console.log('✅ Batch content preview job completed successfully.')
     }
   } catch (error) {
     console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
@@ -37,6 +41,35 @@ export async function previewContent (files) {
   }
 }
 
+/**
+ *
+ * @param detailsUrl
+ * @param fileCount
+ * @param interval
+ * @param maxRetries
+ */
+export async function waitForComplete (detailsUrl, fileCount, interval = 1000, maxRetries = 10) {
+  let retryCount = 0
+  while (retryCount <= maxRetries) {
+    const res = await fetch(detailsUrl)
+    if (res.ok) {
+      const data = await res.json()
+      const isComplete =
+        data.data.phase === 'completed' &&
+        data.progress.processed === fileCount &&
+        data.progress.success === fileCount
+      aioLogger.debug(data)
+      if (isComplete) {
+        return
+      }
+    } else {
+      aioLogger.debug(`details fetch failed, retrying (${retryCount + 1}/${maxRetries})`, res)
+    }
+
+    await new Promise(resolve => setTimeout(resolve, interval))
+    retryCount++
+  }
+}
 /**
  * For DA Live Preview, we must publish some files. This must be done AFTER preview.
  * https://www.aem.live/docs/admin.html#tag/publish/operation/bulkPublish
@@ -58,11 +91,15 @@ export async function publishContent (files) {
         paths: [...publishFiles]
       })
     })
+    aioLogger.debug(res)
     if (res.status !== 202) {
-      aioLogger.debug(res)
       console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
+      const detailsUrl = `${res.links.self}/details`
+      aioLogger.debug(detailsUrl)
       console.log('✅ Started batch content publish job.')
+      await waitForComplete(detailsUrl, publishFiles.length)
+      console.log('✅ Batch content publish job completed successfully.')
     }
   } catch (error) {
     console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
