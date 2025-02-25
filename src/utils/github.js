@@ -40,7 +40,7 @@ export async function createRepo () {
  */
 export async function modifyFstab () {
   const { org, repo } = config.get('commerce.github')
-  const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
+  const { repo: templateRepo } = config.get('commerce.template')
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {

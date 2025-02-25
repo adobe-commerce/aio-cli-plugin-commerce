@@ -77,10 +77,10 @@ export class InitCommand extends Command {
       const filePaths = await uploadStarterContent()
       console.log('⏳ Validating code sync...')
       await codeSyncComplete()
-      console.log('⏳ Previewing some necessary files...')
+      console.log('⏳ Previewing your content files...')
       await previewContent(filePaths)
-      console.log('⏳ Publishing some necessary files...')
-      await publishContent()
+      console.log('⏳ Publishing your content files...')
+      await publishContent(filePaths)
 
       const meshUrl = config.get('commerce.datasource.meshUrl')
       const adminUrl = config.get('commerce.datasource.admin')
