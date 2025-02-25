@@ -60,7 +60,7 @@ export async function previewContent (files) {
       const resJson = await res.json()
       const detailsUrl = `${resJson.links.self}/details`
       aioLogger.debug(detailsUrl)
-      console.log('✅ Started batch content preview job.')
+      console.log('⏳ Started batch content preview job.')
       await waitForComplete(detailsUrl, (data) => {
         return data.data.phase === 'completed' &&
         data.progress.processed === previewFiles.length &&
@@ -102,7 +102,7 @@ export async function publishContent (files) {
       const resJson = await res.json()
       const detailsUrl = `${resJson.links.self}/details`
       aioLogger.debug(detailsUrl)
-      console.log('✅ Started batch content publish job.')
+      console.log('⏳ Started batch content publish job.')
       await waitForComplete(detailsUrl, (data) => {
         return data.data.phase === 'completed' &&
         data.progress.processed === publishFiles.length &&
