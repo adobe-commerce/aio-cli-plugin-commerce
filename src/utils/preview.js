@@ -34,7 +34,7 @@ export async function waitForComplete (detailsUrl, callback, interval = 1000, ma
 // we should refactor
 /**
  * https://www.aem.live/docs/admin.html#tag/preview/operation/bulkPreview
- * // TODO: update to take paths, instead of full urls
+ * TODO: update to take paths, instead of full urls
  * @param files urls whose paths we will preview
  */
 export async function previewContent (files) {
