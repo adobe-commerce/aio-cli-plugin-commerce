@@ -12,10 +12,8 @@ const meshConfigFilePath = path.join('./', 'mesh_config.json')
 /**
  *
  * @param core
- * @param githubOrg
- * @param githubRepo
  */
-function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
+function getCSaaSMeshConfig (core) {
   return `
     {
         "meshConfig": {
@@ -25,11 +23,7 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
                     "exposedHeaders": ["Content-Range", "X-Content-Range"],
                     "maxAge": 60480,
                     "methods": ["GET", "POST"],
-                    "origin": [
-                    "http://localhost:3000",
-                    "https://main--${githubRepo}--${githubOrg}.aem.page",
-                    "https://main--${githubRepo}--${githubOrg}.aem.live"
-                    ]
+                    "origin": "*"
                 },
                 "headers": {
                     "mode": "no-cors",
@@ -72,19 +66,9 @@ function getCSaaSMeshConfig (core, githubOrg, githubRepo) {
  *
  * @param core
  * @param catalog
- * @param githubOrg
- * @param githubRepo
  * @param apiKey
- * @param environmentId
  */
-function getPaaSMeshConfig (
-  core,
-  catalog,
-  githubOrg,
-  githubRepo,
-  apiKey,
-  environmentId
-) {
+function getPaaSMeshConfig (core, catalog, apiKey) {
   return `
     {
         "meshConfig": {
@@ -94,11 +78,7 @@ function getPaaSMeshConfig (
                     "exposedHeaders": ["Content-Range", "X-Content-Range"],
                     "maxAge": 60480,
                     "methods": ["GET", "POST"],
-                    "origin": [
-                        "http://localhost:3000",
-                        "https://main--${githubRepo}--${githubOrg}.aem.page",
-                        "https://main--${githubRepo}--${githubOrg}.aem.live"
-                    ]
+                    "origin": "*"
                 },
                 "headers": {
                     "mode": "no-cors",
@@ -180,36 +160,23 @@ function getPaaSMeshConfig (
  * @param saas
  * @param core
  * @param catalog
- * @param githubOrg
- * @param githubRepo
  * @param apiKey
- * @param environmentId
  */
 async function createTempMeshConfigFile (
   saas,
   core,
   catalog,
-  githubOrg,
-  githubRepo,
-  apiKey,
-  environmentId
+  apiKey
 ) {
   let meshConfigFile
 
   // If user chose SaaS (initialization.js) they will only have commerce.datasource.saas
   if (core && catalog) {
     aioLogger.debug('creating Mesh for PaaS/CatalogServices')
-    meshConfigFile = getPaaSMeshConfig(
-      core,
-      catalog,
-      githubOrg,
-      githubRepo,
-      apiKey,
-      environmentId
-    )
+    meshConfigFile = getPaaSMeshConfig(core, catalog, apiKey)
   } else {
     aioLogger.debug('creating Mesh for SaaS')
-    meshConfigFile = getCSaaSMeshConfig(saas, githubOrg, githubRepo)
+    meshConfigFile = getCSaaSMeshConfig(saas)
   }
 
   await fsPromise.writeFile(meshConfigFilePath, meshConfigFile)
@@ -251,22 +218,12 @@ export async function createMesh (runAIOCommand, installedPlugins) {
   try {
     await checkAndInstallMeshPlugin(installedPlugins)
 
-    const { apiKey, environmentId, datasource, github } =
-            config.get('commerce')
+    const { apiKey, datasource } = config.get('commerce')
     const { saas, paas, catalog } = datasource
-    const { org: githubOrg, repo: githubRepo } = github
 
     console.log('Creating API Mesh...')
 
-    await createTempMeshConfigFile(
-      saas,
-      paas,
-      catalog,
-      githubOrg,
-      githubRepo,
-      apiKey,
-      environmentId
-    )
+    await createTempMeshConfigFile(saas, paas, catalog, apiKey)
 
     const { meshUrl } = await runAIOCommand('api-mesh:create', [
       meshConfigFilePath,
