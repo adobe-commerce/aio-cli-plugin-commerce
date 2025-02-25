@@ -29,7 +29,8 @@ export async function previewContent (files) {
     if (res.status !== 202) {
       console.log(`❌ Had issues previewing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
-      const detailsUrl = `${res.links.self}/details`
+      const resJson = await res.json()
+      const detailsUrl = `${resJson.links.self}/details`
       aioLogger.debug(detailsUrl)
       console.log('✅ Started batch content preview job.')
       await waitForComplete(detailsUrl, previewFiles.length)
@@ -95,7 +96,8 @@ export async function publishContent (files) {
     if (res.status !== 202) {
       console.log(`❌ Had issues publishing files. Please try the CLI command again with AIO_LOG_LEVEL=debug for more information, or try manually publishing your content from the document authoring page at https://da.live/#/${org}/${repo}`)
     } else {
-      const detailsUrl = `${res.links.self}/details`
+      const resJson = await res.json()
+      const detailsUrl = `${resJson.links.self}/details`
       aioLogger.debug(detailsUrl)
       console.log('✅ Started batch content publish job.')
       await waitForComplete(detailsUrl, publishFiles.length)
