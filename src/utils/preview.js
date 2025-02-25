@@ -28,6 +28,7 @@ export async function waitForComplete (detailsUrl, callback, interval = 1000, ma
     await new Promise(resolve => setTimeout(resolve, interval))
     retryCount++
   }
+  throw new Error('fetch failed after max retries')
 }
 
 // TODO: DRY - only diff for the preview/publish functions is the API url and log detail (use of term preview vs publish).
