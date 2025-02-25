@@ -75,7 +75,7 @@ export async function previewContent (files) {
 }
 
 /**
- * For DA Live Preview, we must publish some files. This must be done AFTER preview.
+ *
  * https://www.aem.live/docs/admin.html#tag/publish/operation/bulkPublish
  * @param files
  */
