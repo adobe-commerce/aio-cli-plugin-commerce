@@ -35,6 +35,7 @@ export class InitCommand extends Command {
       config.set('commerce.template.repo', flags.template.split('/')[1])
       config.set('commerce.datasource.paas', flags.datasource)
       config.set('commerce.datasource.catalog', flags.datasource)
+      aioLogger.debug(config.get('commerce'))
     } else {
       await initialization(args, flags)
     }
