@@ -1,6 +1,6 @@
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
-import { fetchWithRetry } from './fetchWithRetry'
+import { fetchWithRetry } from './fetchWithRetry.js'
 const aioLogger = Logger('commerce:preview.js')
 
 // TODO: DRY - only diff for the preview/publish functions is the API url and log detail (use of term preview vs publish).
