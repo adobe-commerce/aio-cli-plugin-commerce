@@ -18,10 +18,20 @@ import { runCommand } from '../../utils/runCommand.js'
 export class BatchCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(BatchCommand)
-    const datasources = [
-      'https://na1-sandbox.api.commerce.adobe.com/S8LHdXGTfuMfrg6rb7Q5Mm/graphql'
-    ]
+    // TODO: fake datasources - 15  endpoints to use...
+    const datasources = Array(10).fill('https://na1-sandbox.api.commerce.adobe.com/S8LHdXGTfuMfrg6rb7Q5Mm/graphql')
 
+    // TODO: rate limit reset for gh user will be ~ same time as bot reset. so we can use this to delay the bot.
+    // gh api \                                                                                                                                                   2566ms  Tue Feb 25 16:20:40 2025
+    //     -H "Accept: application/vnd.github+json" \
+    //     -H "X-GitHub-Api-Version: 2022-11-28" \
+    //     /rate_limit | jq .rate
+    // {
+    // "limit": 5000,
+    // "used": 37,
+    // "remaining": 4963,
+    // "reset": 1740523308
+    // }
     for await (const [index, datasource] of datasources.entries()) {
       const repo = `${flags.repo}-${(index + 1)}`
       await this.config.runCommand('commerce:init', [
