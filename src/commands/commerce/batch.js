@@ -34,13 +34,18 @@ export class BatchCommand extends Command {
     // }
     for await (const [index, datasource] of datasources.entries()) {
       const repo = `${flags.repo}-${(index + 1)}`
-      await this.config.runCommand('commerce:init', [
-        `--template=${flags.template}`,
-        `--repo=${repo}`,
-        `--datasource=${datasource}`,
-        '--skipMesh'
-      ])
-      console.log(`Created storefront: ${repo}`)
+      try {
+        await this.config.runCommand('commerce:init', [
+          `--template=${flags.template}`,
+          `--repo=${repo}`,
+          `--datasource=${datasource}`,
+          '--skipMesh'
+        ])
+        console.log(`Created storefront: ${repo}`)
+      } catch (e) {
+        console.error(`! Failed to complete run for ${repo}`)
+        console.error(e)
+      }
     }
   }
 }
