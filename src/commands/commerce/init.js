@@ -63,7 +63,7 @@ export class InitCommand extends Command {
       }
 
       if (flags.skipGit) {
-        console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${flags.repo}`)
+        console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${githubOrg}/${githubRepo}`)
       } else {
         await createRepo()
         await modifyFstab()

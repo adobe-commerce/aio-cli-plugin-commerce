@@ -58,7 +58,8 @@
     "prepack": "oclif manifest && oclif readme",
     "postpack": "rm -f oclif.manifest.json",
     "version": "oclif readme && git add README.md",
-    "e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --collectCoverage=false --testRegex 'e2e/e2e.js'"
+    "e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --collectCoverage=false --testRegex 'e2e/e2e.js'",
+    "checkSync": "node src/scripts/checkSync.js"
   },
   "jest": {
     "collectCoverage": true,
