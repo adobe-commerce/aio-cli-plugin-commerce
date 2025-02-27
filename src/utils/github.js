@@ -32,17 +32,18 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     // If the repository does not exist, proceed with "create"
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
-    await modifyFstab()
-    await modifySidekickConfig()
+    await modifyFstab(githubOrg, githubRepo, templateRepo)
+    await modifySidekickConfig(githubOrg, githubRepo)
   }
 }
 
 /**
  * fstab must be connected to DA content source
+ * @param githubOrg
+ * @param githubRepo
+ * @param templateRepo
  */
-export async function modifyFstab () {
-  const { org, repo } = config.get('commerce.github')
-  const { repo: templateRepo } = config.get('commerce.template')
+export async function modifyFstab (githubOrg, githubRepo, templateRepo) {
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {
@@ -52,7 +53,7 @@ export async function modifyFstab () {
       // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
       const standardFstab = `mountpoints:
   /:
-    url: https://content.da.live/${org}/${repo}/
+    url: https://content.da.live/${githubOrg}/${githubRepo}/
     type: markup
 
 folders:
@@ -60,7 +61,7 @@ folders:
 `
       const adobeStoreFstab = `mountpoints:
   /:
-    url: https://content.da.live/${org}/${repo}/
+    url: https://content.da.live/${githubOrg}/${githubRepo}/
     type: markup
 
 folders:
@@ -76,8 +77,8 @@ folders:
       const ENCODED_CONTENT = Buffer.from(fstab, 'utf8').toString('base64')
 
       // TODO: this will not work for templates using config-service since this, and other files, are deleted. Need to refactor this a bit to support
-      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/fstab.yaml -q .sha`)
-      await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
+      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -q .sha`)
+      await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 
       repoReady = true
       aioLogger.debug('fstab mountpoint updated')
@@ -91,9 +92,10 @@ folders:
 
 /**
  * Sidekick requires specific config settings in github repo to have "edit" link back to DA
+ * @param githubOrg
+ * @param githubRepo
  */
-export async function modifySidekickConfig () {
-  const { org, repo } = config.get('commerce.github')
+export async function modifySidekickConfig (githubOrg, githubRepo) {
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {
@@ -110,7 +112,7 @@ export async function modifySidekickConfig () {
             "environments": [
                 "edit"
             ],
-            "url": "https://main--${repo}--${org}.aem.live/tools/picker/dist/index.html",
+            "url": "https://main--${githubRepo}--${githubOrg}.aem.live/tools/picker/dist/index.html",
             "isPalette": true,
             "paletteRect": "top: 54px; left: 5px; bottom: 5px; width: 300px; height: calc(100% - 59px); border-radius: var(--hlx-sk-button-border-radius); overflow: hidden; resize: horizontal;"
         }
@@ -118,8 +120,8 @@ export async function modifySidekickConfig () {
 }
 `, 'utf8').toString('base64')
 
-      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${org}/${repo}/contents/tools/sidekick/config.json -q .sha`)
-      await runCommand(`gh api -X PUT repos/${org}/${repo}/contents/tools/sidekick/config.json -f message="update sidekick config" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
+      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -q .sha`)
+      await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -f message="update sidekick config" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
 
       repoReady = true
       aioLogger.debug('sidekick config modified with content source')
