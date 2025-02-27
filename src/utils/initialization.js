@@ -43,7 +43,7 @@ export async function initialization (args, flags) {
     answer = await promptConfirm(`Would you like to create the code and content under your github username, "${org.trim()}"?`)
   }
   if (!answer) {
-    org = await promptInput('Enter the organization under which to create the code and content')
+    org = await promptInput('Enter the organization under which to create the code and content:')
   }
   repo = repo?.split('/')[1] || await promptInput('Enter the storefront name to create (must not exist already):')
 

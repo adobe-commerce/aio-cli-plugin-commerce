@@ -66,8 +66,6 @@ export class InitCommand extends Command {
         console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${githubOrg}/${githubRepo}`)
       } else {
         await createRepo()
-        await modifyFstab()
-        await modifySidekickConfig()
 
         if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
           console.log('✅ AEM Code Sync Bot automatically installed :)')

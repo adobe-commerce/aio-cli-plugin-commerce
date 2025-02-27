@@ -10,17 +10,16 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Command } from '@oclif/core'
-import { createRepo, modifyFstab, modifySidekickConfig } from '../../utils/github.js'
+import { createRepo } from '../../utils/github.js'
 import config from '@adobe/aio-lib-core-config'
 /**
  * Clones github repos in preparation of content and mesh provisioning with aio commerce init --skipGit
  */
 export class CreateRepos extends Command {
   async run () {
+    console.log('Starting to create repos...')
     // const { args, flags } = await this.parse(CreateRepos)
-    // const start = 0 // n-1
-    // const count = 100
-    const start = 16 // n
+    const start = 1
     const end = 100
     const owner = 'adobe-summit-L322' // adobe-summit-L321
     const repoPrefix = 'seat'
@@ -35,8 +34,6 @@ export class CreateRepos extends Command {
       config.set('commerce.template.repo', templateRepo)
       try {
         await createRepo()
-        await modifyFstab()
-        await modifySidekickConfig()
       } catch (e) {
         console.error(`! Failed to complete run for "${repo}". Skipping.`)
         console.error(e)
