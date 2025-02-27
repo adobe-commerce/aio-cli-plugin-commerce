@@ -80,8 +80,6 @@ export class InitCommand extends Command {
         await codeSyncComplete()
       }
       const filePaths = await uploadStarterContent()
-      console.log('⏳ Validating code sync...')
-      await codeSyncComplete()
       console.log('⏳ Previewing your content files...')
       await previewContent(filePaths)
       console.log('⏳ Publishing your content files...')
