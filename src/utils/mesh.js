@@ -27,8 +27,7 @@ function getCSaaSMeshConfig (core) {
                 },
                 "headers": {
                     "mode": "no-cors",
-                    "x-include-metadata": "true",
-                    "Cache-Control": "max-age=900, s-maxage=1800, stale-while-revalidate=30, stale-if-error=86400"
+                    "x-include-metadata": "true"
                 },
                 "includeHTTPDetails": false,
                 "cache": true
@@ -48,7 +47,7 @@ function getCSaaSMeshConfig (core) {
                                 "Magento-Store-Code": "{context.headers['magento-store-code']}",
                                 "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
                                 "x-api-key": "{context.headers['x-api-key']}",
-                                "Authorization": "context.headers['Authorization']"
+                                "Authorization": "{context.headers['Authorization']}"
                             }
                         }
                     },
@@ -82,8 +81,7 @@ function getPaaSMeshConfig (core, catalog, apiKey) {
                 },
                 "headers": {
                     "mode": "no-cors",
-                    "x-include-metadata": "true",
-                    "Cache-Control": "max-age=900, s-maxage=1800, stale-while-revalidate=30, stale-if-error=86400"
+                    "x-include-metadata": "true"
                 },
                 "includeHTTPDetails": false,
                 "cache": true
@@ -97,7 +95,7 @@ function getPaaSMeshConfig (core, catalog, apiKey) {
                         "operationHeaders": {
                             "Content-Type": "application/json",
                             "Store": "{context.headers['store']}",
-                            "Authorization": "context.headers['Authorization']"
+                            "Authorization": "{context.headers['Authorization']}"
                         }
                     }
                 },

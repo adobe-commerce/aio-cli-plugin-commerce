@@ -1,6 +1,5 @@
 import { getAemHtml } from './importer.js'
 import { modifyConfig } from './configs.js'
-import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import config from '@adobe/aio-lib-core-config'
