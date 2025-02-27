@@ -40,6 +40,7 @@ export class InitCommand extends Command {
       await initialization(args, flags)
     }
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
+    const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
     const { saas, paas } = config.get('commerce.datasource')
 
     const runAIOCommand = async (command, args) => {
@@ -65,7 +66,7 @@ export class InitCommand extends Command {
       if (flags.skipGit) {
         console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${githubOrg}/${githubRepo}`)
       } else {
-        await createRepo()
+        await createRepo(githubOrg, githubRepo, templateOrg, templateRepo)
 
         if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
           console.log('✅ AEM Code Sync Bot automatically installed :)')

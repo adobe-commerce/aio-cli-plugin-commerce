@@ -6,11 +6,12 @@ const aioLogger = Logger('commerce:github.js')
 
 /**
  * Creates github repo from template
+ * @param githubOrg
+ * @param githubRepo
+ * @param templateOrg
+ * @param templateRepo
  */
-export async function createRepo () {
-  const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
-  const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
-
+export async function createRepo (githubOrg, githubRepo, templateOrg, templateRepo) {
   // Check if the repository already exists
   const cmdResult = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
   if (cmdResult?.stdout) { // if not exist, will throw and return 404.
