@@ -43,7 +43,8 @@ function saveProgress (index, restartAfter = 0) {
 
 // Function to check a single URL
 /**
- *
+ * Checks that a given seat has scripts/scripts.js file. This is fragile.
+ * TODO: improve check to, somehow, validate that the expected number of files has been sync'd by Helix Bot
  * @param index
  */
 async function checkURL (index) {
