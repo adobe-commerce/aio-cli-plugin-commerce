@@ -26,12 +26,13 @@ export async function createRepo () {
     //   console.error(`❌ Exiting. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
     //   process.exit(1)
     // }
-    console.error(`❌ Exiting. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
-    process.exit(1)
+    console.error(`❌ Skipping. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
   } else {
     // If the repository does not exist, proceed with "create"
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
+    await modifyFstab()
+    await modifySidekickConfig()
   }
 }
 

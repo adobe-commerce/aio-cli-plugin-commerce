@@ -1,6 +1,5 @@
 import { getAemHtml } from './importer.js'
 import { modifyConfig } from './configs.js'
-import { runCommand } from './runCommand.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import config from '@adobe/aio-lib-core-config'
@@ -30,8 +29,26 @@ export async function uploadStarterContent () {
 async function getBulkStatusUrl () {
   const templateOrg = config.get('commerce.template.org')
   const templateRepo = config.get('commerce.template.repo')
-  const { stdout: response } = await runCommand(`curl --data '{ "paths": ["/*"] }' --header "Content-Type: application/json" 'https://admin.hlx.page/status/${templateOrg}/${templateRepo}/main/*'`)
-  return JSON.parse(response).links.self + '/details'
+  let res
+  try {
+    res = await fetch(`https://admin.hlx.page/status/${templateOrg}/${templateRepo}/main/*`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        paths: ['/*']
+      })
+    })
+    const data = await res.json()
+    aioLogger.debug(data)
+    return `${data.links.self}/details`
+  } catch (e) {
+    aioLogger.debug(res)
+    aioLogger.debug(e)
+    console.log('Failed to fetch status URL!')
+    throw e
+  }
 }
 
 /**

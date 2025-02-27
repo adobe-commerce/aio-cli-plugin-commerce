@@ -35,6 +35,7 @@ export class InitCommand extends Command {
       config.set('commerce.template.repo', flags.template.split('/')[1])
       config.set('commerce.datasource.paas', flags.datasource)
       config.set('commerce.datasource.catalog', flags.datasource)
+      aioLogger.debug(config.get('commerce'))
     } else {
       await initialization(args, flags)
     }
@@ -61,18 +62,22 @@ export class InitCommand extends Command {
         console.log('Not creating API Mesh - will use demo environment.')
       }
 
-      await createRepo()
-      await modifyFstab()
-      await modifySidekickConfig()
-
-      if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
-        console.log('✅ AEM Code Sync Bot automatically installed :)')
+      if (flags.skipGit) {
+        console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${githubOrg}/${githubRepo}`)
       } else {
-        openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
-        const res = await promptConfirm('Did you install the AEM Code Sync bot?')
-        if (!res) {
-          throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
+        await createRepo()
+
+        if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
+          console.log('✅ AEM Code Sync Bot automatically installed :)')
+        } else {
+          openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
+          const res = await promptConfirm('Did you install the AEM Code Sync bot?')
+          if (!res) {
+            throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
+          }
         }
+        console.log('⏳ Validating code sync...')
+        await codeSyncComplete()
       }
       const filePaths = await uploadStarterContent()
       console.log('⏳ Validating code sync...')
@@ -134,6 +139,10 @@ InitCommand.flags = {
   repo: Flags.string({
     char: 'r',
     description: 'your github repo to create, ie my-git-user/my-site"'
+  }),
+  skipGit: Flags.boolean({
+    default: false,
+    description: 'Skip creating Git Repo. Assumes you already created at --repo'
   }),
   skipMesh: Flags.boolean({
     default: false,
