@@ -1,3 +1,8 @@
+/**
+ * This script deletes all the repositories created by the create-repos.js script.
+ * Only to be used for housekeeping purposes. Please do not run this script without supervision.
+ */
+
 import childProcess from 'child_process'
 
 /**

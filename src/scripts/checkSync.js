@@ -1,3 +1,8 @@
+/**
+ * This script is designed to check the status of code syncs for a series of repositories.
+ * Only to be used for housekeeping purposes. Please do not run this script without supervision.
+ */
+
 import fs from 'fs'
 
 const PROGRESS_FILE = 'progress.json'
