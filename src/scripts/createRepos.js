@@ -1,3 +1,8 @@
+/**
+ * This is a script to create multiple GitHub repositories using a template repository.
+ * Only to be used for housekeeping purposes. Please do not run this script without supervision.
+ */
+
 import { createRepo } from '../utils/github.js'
 
 const start = 1
