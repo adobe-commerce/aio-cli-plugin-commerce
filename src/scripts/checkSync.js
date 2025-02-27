@@ -41,35 +41,18 @@ function saveProgress (index, restartAfter = 0) {
   }
 }
 
-// Function to check a single URL
 /**
- * Checks that a given seat has scripts/scripts.js file. This is fragile.
- * TODO: improve check to, somehow, validate that the expected number of files has been sync'd by Helix Bot
- * @param index
+ * Checks that the code sync for a specific seat is complete.
+ * If not, it triggers the code sync and waits until it's done.
+ * @param index The index of the seat to check.
  */
-async function checkURL (index) {
-  const url = BASE_URL.replace('#', index)
-  console.log(`🔎 Checking: ${url}`)
-
+async function checkRepo (index) {
   try {
-    const response = await fetch(url)
-    if (response.status === 404) {
-      console.log(`❌ ${url} not found (404).`)
-
-      try {
-        await triggerCodeSync(index)
-        console.log(`✅ Code sync completed for seat-${index}. Proceeding to the next index.`)
-        return index + 1 // Move to the next repo
-      } catch (error) {
-        console.error(`🚨 Error during code sync for seat-${index}:`, error)
-        return index - 1 // Restart from the previous repo
-      }
-    } else {
-      console.log(`✅ ${url} is available.`)
-      return index + 1 // Move to the next repo
-    }
+    await triggerCodeSync(index)
+    console.log(`✅ Code sync completed for seat-${index}. Proceeding to the next repo.`)
+    return index + 1 // Move to the next repo
   } catch (error) {
-    console.error(`🚨 Error checking ${url}:`, error)
+    console.error(`🚨 Error during code sync for seat-${index}:`, error)
     return index - 1 // Restart from the previous repo
   }
 }
@@ -173,7 +156,7 @@ async function runChecks () {
 
   let index = lastChecked
   while (index <= TOTAL_REPOS) {
-    index = await checkURL(index)
+    index = await checkRepo(index)
     if (index < 1) index = 1 // Prevent negative index
     saveProgress(index)
   }
