@@ -83,7 +83,7 @@ async function triggerCodeSync (seat) {
   }
 }
 
-async function checkPhaseCompletion (detailsUrl, seat, maxRetries = 60, interval = 1000) {
+async function checkPhaseCompletion (detailsUrl, seat, maxRetries = 60, interval = 5000) {
   let attempts = 0
 
   while (attempts < maxRetries) {
