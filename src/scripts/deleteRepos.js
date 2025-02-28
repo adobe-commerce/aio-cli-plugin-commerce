@@ -30,7 +30,7 @@ function runCommand (cmd) {
  */
 function deleteRepos (start, end) {
   for (let seat = start; seat <= end; seat++) {
-    const repoName = `adobe-summit-L322/seat-${seat}`
+    const repoName = `adobe-summit-L322/seat-${seat.toString().padStart(2, '0')}`
     const command = `gh api \
                       --method DELETE \
                       -H "Accept: application/vnd.github+json" \
@@ -52,7 +52,7 @@ function deleteRepos (start, end) {
 }
 
 if (process.argv.length !== 4) {
-  console.log('Usage: node delete-repos.js <start> <end>')
+  console.log('Usage: node deleteRepos.js <start> <end>')
 } else {
   const start = parseInt(process.argv[2])
   const end = parseInt(process.argv[3])
