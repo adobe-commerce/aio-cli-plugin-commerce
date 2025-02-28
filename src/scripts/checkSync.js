@@ -13,11 +13,6 @@ const WAIT_TIME_MS = 1 * 60 * 60 * 1000 // 1 hour
 // for L322, it seems to be 418. For L321, seems around 411.
 const GIT_FILES_TO_CHECK = 418
 
-/**
- * Pads the index to two digits (01, 02, ..., 99)
- * @param {number} index
- * @returns {string} Padded index
- */
 function padIndex (index) {
   return index.toString().padStart(2, '0')
 }
@@ -60,11 +55,12 @@ async function saveAndExit (index) {
   // Determine restart time in CST
   const restartTimestamp = Date.now() + WAIT_TIME_MS
   const restartTime = new Date(restartTimestamp).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour12: true })
+  const nextIndex = index - 1 > 0 ? index - 1 : 1
 
-  console.log(`🚨 Script exiting. Restart at seat-${padIndex(index)} after ~1 hour at: ${restartTime} CST`)
+  console.log(`🚨 Script exiting. Restart at seat-${padIndex(nextIndex)} after ~1 hour at: ${restartTime} CST`)
 
-  saveProgress(index, restartTimestamp)
-  process.exit(1)
+  saveProgress(nextIndex, restartTimestamp)
+  process.exit(0)
 }
 
 async function triggerCodeSync (seat) {
@@ -77,7 +73,6 @@ async function triggerCodeSync (seat) {
     if (postResponse.status !== 202) {
       console.error(`No code found for seat-${padIndex(seat)}. Ensure repo exists.`)
       saveAndExit(seat)
-      process.exit(1)
     }
     const postData = await postResponse.json()
     const detailsUrl = `${postData.links.self}/details`
