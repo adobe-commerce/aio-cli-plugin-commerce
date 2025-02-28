@@ -96,7 +96,7 @@ async function checkPhaseCompletion (detailsUrl, seat, maxRetries = 60, interval
           return
         } else if (detailsData.error.includes('rate limit exceeded')) {
           console.log(`⚠️ Seat-${padIndex(seat)} processing rate limit exceeded.`)
-          saveAndExit(seat - 1) // start again on previous seat if rate limit exceeded
+          saveAndExit(seat)
         } else {
           console.log('Unknown state! Data:', detailsData)
           saveAndExit(seat)
