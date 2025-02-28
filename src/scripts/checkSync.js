@@ -55,11 +55,9 @@ async function saveAndExit (index) {
   // Determine restart time in CST
   const restartTimestamp = Date.now() + WAIT_TIME_MS
   const restartTime = new Date(restartTimestamp).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour12: true })
-  const nextIndex = index - 1 > 0 ? index - 1 : 1
+  console.log(`🚨 Script exiting. Restart at seat-${padIndex(index)} after ~1 hour at: ${restartTime} CST`)
 
-  console.log(`🚨 Script exiting. Restart at seat-${padIndex(nextIndex)} after ~1 hour at: ${restartTime} CST`)
-
-  saveProgress(nextIndex, restartTimestamp)
+  saveProgress(index, restartTimestamp)
   process.exit(0)
 }
 
@@ -98,7 +96,7 @@ async function checkPhaseCompletion (detailsUrl, seat, maxRetries = 60, interval
           return
         } else if (detailsData.error.includes('rate limit exceeded')) {
           console.log(`⚠️ Seat-${padIndex(seat)} processing rate limit exceeded.`)
-          saveAndExit(seat)
+          saveAndExit(seat - 1) // start again on previous seat if rate limit exceeded
         } else {
           console.log('Unknown state! Data:', detailsData)
           saveAndExit(seat)
