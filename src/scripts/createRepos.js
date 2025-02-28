@@ -10,11 +10,6 @@ const repoPrefix = 'seat'
 const templateOrg = 'adobe-commerce'
 const templateRepo = 'adobe-demo-store'
 
-/**
- *
- * @param start
- * @param end
- */
 async function createRepos (start, end) {
   console.log('Starting to create repos...')
 

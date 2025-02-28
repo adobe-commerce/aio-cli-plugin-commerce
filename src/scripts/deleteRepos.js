@@ -5,10 +5,6 @@
 
 import childProcess from 'child_process'
 
-/**
- *
- * @param cmd
- */
 function runCommand (cmd) {
   return new Promise((resolve, reject) => {
     childProcess.exec(cmd, (error, stdout, stderr) => {
@@ -23,11 +19,6 @@ function runCommand (cmd) {
   })
 }
 
-/**
- *
- * @param start
- * @param end
- */
 function deleteRepos (start, end) {
   for (let seat = start; seat <= end; seat++) {
     const repoName = `adobe-summit-L322/seat-${seat.toString().padStart(2, '0')}`
