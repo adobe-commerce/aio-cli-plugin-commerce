@@ -98,8 +98,8 @@ export async function initialization (args, flags) {
     const url = await getAndSelectInstances()
     saasUrl = url
   } else {
-    // Demo instance for the ACCS summit lab (Commerce Extensibility Lab -> Summit Demo)
-    saasUrl = 'https://na1-sandbox.api.commerce.adobe.com/Vi7V652YrG2CcCR1WAYPXg/graphql'
+    // If using demo instance, we don't need to set any urls - they should just
+    // copy from the config.
   }
   config.set('commerce.datasource.paas', paasUrl)
   config.set('commerce.datasource.catalog', catalogUrl)
