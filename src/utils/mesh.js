@@ -5,16 +5,30 @@ import Logger from '@adobe/aio-lib-core-logging'
 
 import { runCommand } from './runCommand.js'
 import { promptConfirm } from './prompt.js'
+import CONSTANTS from './constants.js'
 
 const aioLogger = Logger('commerce:mesh.js')
 const meshConfigFilePath = path.join('./', 'mesh_config.json')
+const { REMOTE_ACCS_MESH_CONFIG } = CONSTANTS
 
 /**
  *
  * @param core
  */
-function getCSaaSMeshConfig (core) {
-  return `
+async function getCSaaSMeshConfig (core) {
+  try {
+    aioLogger.debug('Fetching remote mesh config file...')
+    const now = new Date().toISOString()
+    const res = await fetch(`${REMOTE_ACCS_MESH_CONFIG}?cache-bust=${now}`) // using cache-bust query param with timestamp to avoid getting cached response from gist
+    const remoteMeshConfig = await res.json()
+    remoteMeshConfig.meshConfig.sources[0].handler.graphql.endpoint = core
+
+    return JSON.stringify(remoteMeshConfig, null, 2)
+  } catch (err) {
+    aioLogger.debug(err)
+    aioLogger.error('Failed to fetch remote mesh config file, using local file instead.')
+
+    return `
     {
         "meshConfig": {
             "responseConfig": {
@@ -59,6 +73,7 @@ function getCSaaSMeshConfig (core) {
         }
     }
     `
+  }
 }
 
 /**
@@ -174,7 +189,7 @@ async function createTempMeshConfigFile (
     meshConfigFile = getPaaSMeshConfig(core, catalog, apiKey)
   } else {
     aioLogger.debug('creating Mesh for SaaS')
-    meshConfigFile = getCSaaSMeshConfig(saas)
+    meshConfigFile = await getCSaaSMeshConfig(saas)
   }
 
   await fsPromise.writeFile(meshConfigFilePath, meshConfigFile)
