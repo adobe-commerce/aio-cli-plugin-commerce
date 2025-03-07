@@ -14,9 +14,9 @@
 
 # Prerequisites
 
-❗ You must have the Node version 22 or greater. Consider using [NVM](https://formulae.brew.sh/formula/nvm) to manage muliply versions
+❗ You must have Node >= 22. Consider using [nvm](https://formulae.brew.sh/formula/nvm) to manage multiple versions.
 
-❗Install [aio CLI](https://developer.adobe.com/runtime/docs/guides/tools/cli_install/)
+❗ You must have the [aio CLI](https://developer.adobe.com/runtime/docs/guides/tools/cli_install/) installed.
 
 ❗ You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
 
@@ -43,6 +43,12 @@ aio console org select
 ```
 
 ## Troubleshooting
+
+### Name Restrictions
+
+Due to AEM restrictions on subdomains the full project url cannot exceed 63 characters. You also cannot use the `_` character.
+
+Consider using a short name, and hyphens instead of underscores.
 
 ### Mesh Provisioning
 
@@ -110,10 +116,9 @@ FLAGS
 
 DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
- ❗ DO NOT USE underscore `_` symbol in repository name when prompted. You can use hypens `-` instead
 
 EXAMPLES
-  $  aio commerce:init 
+  $  aio commerce:init
   $  aio commerce:init --template "adobe-commerce/adobe-demo-store" --skipMesh --repo "my-git-user/my-site"
 
 ```
