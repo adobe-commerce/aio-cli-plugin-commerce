@@ -27,7 +27,7 @@ const aioLogger = Logger('commerce:init.js')
 export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
-    if (flags.repo && flags.template && flags.datasource) {
+    if (flags.repo && flags.template && flags.datasource !== undefined) {
       // Skip initialization. Instead just set configs here.
       config.set('commerce.github.org', flags.repo.split('/')[0])
       config.set('commerce.github.repo', flags.repo.split('/')[1])
