@@ -65,9 +65,9 @@ export async function initialization (args, flags) {
   config.set('commerce.template.repo', template.split('/')[1])
 
   // DATASOURCE SELECTION
-  const STR_DEMO = 'Use Adobe\'s demo API (Default Endpoints)'
-  const STR_PICK = 'Pick an available API (Mesh -> SaaS)'
-  const STR_BYO = 'Provide your backend API URL (Mesh -> Your Endpoints)'
+  const STR_DEMO = 'Use the demo Adobe Commerce tenant'
+  const STR_PICK = 'Pick an available Adobe Commerce tenant'
+  const STR_BYO = 'Provide your own Adobe Commerce tenant API URL'
 
   const commerceDataSourceOptions = [
     STR_DEMO,
