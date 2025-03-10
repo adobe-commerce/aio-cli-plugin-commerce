@@ -12,6 +12,7 @@ const PROGRESS_FILE = 'progress.json'
 const WAIT_TIME_MS = 1 * 60 * 60 * 1000 // 1 hour
 // the amount of git files we expect the code sync to have to have processed.
 // for L322, it seems to be 418. For L321, seems to be 412.
+// TODO: this needs to be dynamic, based on the source repo.
 const GIT_FILES_TO_CHECK = 412
 
 function parseDestinationString (destString) {
