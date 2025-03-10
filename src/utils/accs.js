@@ -44,7 +44,7 @@ export async function getAndSelectInstances () {
     )
 
     const choice = await promptSelect(
-      'Select tenant',
+      'Select tenant (type to search)',
       choices
     )
     const urlMatch = choice.match(urlPattern)
