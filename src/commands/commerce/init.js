@@ -27,7 +27,7 @@ const aioLogger = Logger('commerce:init.js')
 export class InitCommand extends Command {
   async run () {
     const { args, flags } = await this.parse(InitCommand)
-    if (flags.repo && flags.template && flags.datasource) {
+    if (flags.repo && flags.template && flags.datasource !== undefined) {
       // Skip initialization. Instead just set configs here.
       config.set('commerce.github.org', flags.repo.split('/')[0])
       config.set('commerce.github.repo', flags.repo.split('/')[1])
@@ -40,6 +40,7 @@ export class InitCommand extends Command {
       await initialization(args, flags)
     }
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
+    const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
     const { saas, paas } = config.get('commerce.datasource')
 
     const runAIOCommand = async (command, args) => {
@@ -65,7 +66,7 @@ export class InitCommand extends Command {
       if (flags.skipGit) {
         console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${githubOrg}/${githubRepo}`)
       } else {
-        await createRepo()
+        await createRepo(githubOrg, githubRepo, templateOrg, templateRepo)
 
         if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
           console.log('✅ AEM Code Sync Bot automatically installed :)')
