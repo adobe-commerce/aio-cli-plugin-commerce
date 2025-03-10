@@ -136,11 +136,12 @@ export async function modifySidekickConfig (githubOrg, githubRepo) {
 /**
  * fetches a url once a second, until res.status is 200. On average seems to take
  * around 30 seconds.
+ * @param org
+ * @param repo
  */
-export async function codeSyncComplete () {
-  const { org, repo } = config.get('commerce.github')
-  // retry 60 times
-  const retries = 60
+export async function codeSyncComplete (org, repo) {
+  const retries = 100
+  const delayMs = 1000
   let attempts = 0
   // TODO: get url to check from code source, rather than assume scripts/scripts.js exists.
   const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/scripts.js`
@@ -152,8 +153,8 @@ export async function codeSyncComplete () {
       throw new Error('Failed to fetch script')
     } catch (error) {
       attempts++
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, delayMs))
     }
   }
-  throw new Error(`Failed to confirm code resource sync after ${retries} retries.`)
+  throw new Error(`Failed to confirm code resource sync after ${delayMs / 1000 * retries} seconds.`)
 }

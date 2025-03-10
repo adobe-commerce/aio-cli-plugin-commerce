@@ -27,6 +27,10 @@ gh auth login
 
 ### Mesh Prerequisites
 
+The prerequisites in this section are only necessary if you are provisioning API Mesh for your storefront.
+
+❗ You must have _developer access_ in [Adobe Developer Console](developer.adobe.com/console) to create Meshes. Please make sure you have the correct entitlements and also accept the terms and conditions of the Developer Console.
+
 ❗ You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning.
 
 ```sh
@@ -43,8 +47,6 @@ aio config set cli.env prod
 # trigger login and select your org
 aio console org select
 ```
-
-❗ You must have _developer access_ in [Adobe Developer Console](developer.adobe.com/console) to create Meshes.
 
 ## Troubleshooting
 
