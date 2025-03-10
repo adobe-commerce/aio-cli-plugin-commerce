@@ -1,10 +1,8 @@
 /**
- * This is a script to create multiple GitHub repositories using a template repository.
+ * This is a script to clone content automatically.
  * Only to be used for housekeeping purposes. Please do not run this script without supervision.
- *
  */
-
-import { createRepo } from '../utils/github.js'
+import { execSync } from 'child_process'
 
 const owner = 'adobe-summit-L321'
 const templateRepo = 'ccdm-demo-store'
@@ -13,22 +11,27 @@ const templateRepo = 'ccdm-demo-store'
 const repoPrefix = 'seat'
 const templateOrg = 'adobe-commerce'
 
-async function createRepos (start, end) {
-  console.log('Starting to create repos...')
+async function cloneContent (start, end) {
+  console.log('Starting to clone content...')
 
   for (let i = start; i <= end; i++) {
-    const repo = `${repoPrefix}-${i.toString().padStart(2, '0')}`
+    const repoNumber = i.toString().padStart(2, '0')
+    const command = `aio commerce:init --template "${templateOrg}/${templateRepo}" --repo "${owner}/${repoPrefix}-${repoNumber}" --datasource "" --skipMesh --skipGit`
+    console.log(`\nExecuting command ${i} of ${end}:`)
+    console.log(command)
+
     try {
-      await createRepo(owner, repo, templateOrg, templateRepo)
-    } catch (e) {
-      console.error(`! Failed to complete run for "${repo}". Skipping.`)
-      console.error(e)
+      execSync(command, { stdio: 'inherit' })
+      console.log(`Successfully completed iteration ${i}`)
+    } catch (error) {
+      console.error(`Error in iteration ${i}:`, error.message)
+      throw error
     }
   }
 }
 
 if (process.argv.length !== 4) {
-  console.log('Usage: node createRepos.js <start> <end>')
+  console.log('Usage: node cloneContent.js <start> <end>')
 } else {
   const start = parseInt(process.argv[2])
   const end = parseInt(process.argv[3])
@@ -38,7 +41,7 @@ if (process.argv.length !== 4) {
   } else if (start > end) {
     console.log('Start cannot be greater than End.')
   } else {
-    createRepos(start, end).then(() => {
+    cloneContent(start, end).then(() => {
       console.log('All repos created successfully.')
     }).catch((error) => {
       console.error('Error creating repos:', error)

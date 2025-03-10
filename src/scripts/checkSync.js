@@ -6,12 +6,14 @@
 import fs from 'fs'
 
 const PROGRESS_FILE = 'progress.json'
-const POST_URL = 'https://admin.hlx.page/code/adobe-summit-L322/seat-##/main/*'
 const TOTAL_REPOS = 100
 const WAIT_TIME_MS = 1 * 60 * 60 * 1000 // 1 hour
 // the amount of git files we expect the code sync to have to have processed.
-// for L322, it seems to be 418. For L321, seems around 411.
-const GIT_FILES_TO_CHECK = 418
+// for L322, it seems to be 418. For L321, seems to be 412.
+const POST_URL = 'https://admin.hlx.page/code/adobe-summit-L321/seat-##/main/*'
+const GIT_FILES_TO_CHECK = 412
+// const POST_URL = 'https://admin.hlx.page/code/adobe-summit-L322/seat-##/main/*'
+// const GIT_FILES_TO_CHECK = 418
 
 function padIndex (index) {
   return index.toString().padStart(2, '0')

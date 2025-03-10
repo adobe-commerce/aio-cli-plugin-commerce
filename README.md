@@ -12,7 +12,7 @@
 ![image](https://github.com/user-attachments/assets/7cd45e4b-945a-4e13-909d-b1fe2c426fe0)
 
 
-# Prerequisites
+## Prerequisites
 
 ❗ You must have Node >= 22. Consider using [nvm](https://formulae.brew.sh/formula/nvm) to manage multiple versions.
 
@@ -24,6 +24,8 @@
 brew install gh
 gh auth login
 ```
+
+### Mesh Prerequisites
 
 ❗ You must also have the `api-mesh` plugin installed if you wish to use mesh provisioning.
 
@@ -41,6 +43,8 @@ aio config set cli.env prod
 # trigger login and select your org
 aio console org select
 ```
+
+❗ You must have _developer access_ in [Adobe Developer Console](developer.adobe.com/console) to create Meshes.
 
 ## Troubleshooting
 
