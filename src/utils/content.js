@@ -138,6 +138,7 @@ async function uploadFilesToDA (files) {
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
 
+  // TODO: We should not copy or upload sitemap.json or query-index.json, or any Helix generated files.
   const promises = files.sort().map((file) => {
     const contentFilePath = getContentFilePath(file)
     aioLogger.debug(`FETCHING ${contentFilePath}`)
