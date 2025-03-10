@@ -78,7 +78,7 @@ export class InitCommand extends Command {
           }
         }
         console.log('⏳ Validating code sync...')
-        await codeSyncComplete()
+        await codeSyncComplete(githubOrg, githubRepo)
       }
       const filePaths = await uploadStarterContent()
       console.log('⏳ Previewing your content files...')
