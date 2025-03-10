@@ -1,19 +1,23 @@
 /**
  * This script is designed to check the status of code syncs for a series of repositories.
  * Only to be used for housekeeping purposes. Please do not run this script without supervision.
+ *
+ * Usage: node checkSync.js <destination> <start> <end>
+ * Example: node checkSync.js adobe-summit-L322/seat 0 100
  */
 
 import fs from 'fs'
 
 const PROGRESS_FILE = 'progress.json'
-const TOTAL_REPOS = 100
 const WAIT_TIME_MS = 1 * 60 * 60 * 1000 // 1 hour
 // the amount of git files we expect the code sync to have to have processed.
 // for L322, it seems to be 418. For L321, seems to be 412.
-const POST_URL = 'https://admin.hlx.page/code/adobe-summit-L321/seat-##/main/*'
 const GIT_FILES_TO_CHECK = 412
-// const POST_URL = 'https://admin.hlx.page/code/adobe-summit-L322/seat-##/main/*'
-// const GIT_FILES_TO_CHECK = 418
+
+function parseDestinationString (destString) {
+  const [org, prefix] = destString.split('/')
+  return { org, prefix }
+}
 
 function padIndex (index) {
   return index.toString().padStart(2, '0')
@@ -42,50 +46,51 @@ function saveProgress (index, restartAfter = 0) {
   }
 }
 
-async function checkRepo (index) {
+async function checkRepo (destination, index) {
   try {
-    await triggerCodeSync(index)
-    console.log(`✅ Code sync completed for seat-${padIndex(index)}. Proceeding to the next repo.`)
+    await triggerCodeSync(destination, index)
+    console.log(`✅ Code sync completed for ${destination}-${padIndex(index)}. Proceeding to the next repo.`)
     return index + 1 // Move to the next repo
   } catch (error) {
-    console.error(`🚨 Error during code sync for seat-${padIndex(index)}:`, error)
+    console.error(`🚨 Error during code sync for ${destination}-${padIndex(index)}:`, error)
     return index - 1 // Restart from the previous repo
   }
 }
 
-async function saveAndExit (index) {
+async function saveAndExit (destination, index) {
   // Determine restart time in CST
   const restartTimestamp = Date.now() + WAIT_TIME_MS
   const restartTime = new Date(restartTimestamp).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour12: true })
-  console.log(`🚨 Script exiting. Restart at seat-${padIndex(index)} after ~1 hour at: ${restartTime} CST`)
+  console.log(`🚨 Script exiting. Restart at ${destination}-${padIndex(index)} after ~1 hour at: ${restartTime} CST`)
 
   saveProgress(index, restartTimestamp)
   process.exit(0)
 }
 
-async function triggerCodeSync (seat) {
-  const postUrl = POST_URL.replace('##', padIndex(seat))
+async function triggerCodeSync (destination, seat) {
+  const { org, prefix } = parseDestinationString(destination)
+  const postUrl = `https://admin.hlx.page/code/${org}/${prefix}-${padIndex(seat)}/main/*`
   console.log(`🔄 Calling Helix Admin Code Sync at: ${postUrl}`)
 
   try {
     const postResponse = await fetch(postUrl, { method: 'POST' })
 
     if (postResponse.status !== 202) {
-      console.error(`No code found for seat-${padIndex(seat)}. Ensure repo exists.`)
-      saveAndExit(seat)
+      console.error(`No code found for ${destination}-${padIndex(seat)}. Ensure repo exists.`)
+      saveAndExit(destination, seat)
     }
     const postData = await postResponse.json()
     const detailsUrl = `${postData.links.self}/details`
     console.log(`🔍 Checking details at: ${detailsUrl}`)
 
-    await checkPhaseCompletion(detailsUrl, seat)
+    await checkPhaseCompletion(detailsUrl, destination, seat)
   } catch (error) {
-    console.error(`Error processing seat-${padIndex(seat)}:`, error)
+    console.error(`Error processing ${destination}-${padIndex(seat)}:`, error)
     throw error
   }
 }
 
-async function checkPhaseCompletion (detailsUrl, seat, maxRetries = 60, interval = 5000) {
+async function checkPhaseCompletion (detailsUrl, destination, seat, maxRetries = 60, interval = 5000) {
   let attempts = 0
 
   while (attempts < maxRetries) {
@@ -94,30 +99,30 @@ async function checkPhaseCompletion (detailsUrl, seat, maxRetries = 60, interval
       const detailsData = await detailsResponse.json()
       if (detailsData.state === 'stopped') {
         if (detailsData.progress && detailsData?.progress.processed >= GIT_FILES_TO_CHECK) {
-          console.log(`✅ Seat-${padIndex(seat)} processing completed.`)
+          console.log(`✅ ${destination}-${padIndex(seat)} processing completed.`)
           return
         } else if (detailsData.error.includes('rate limit exceeded')) {
-          console.log(`⚠️ Seat-${padIndex(seat)} processing rate limit exceeded.`)
-          saveAndExit(seat)
+          console.log(`⚠️ ${destination}-${padIndex(seat)} processing rate limit exceeded.`)
+          saveAndExit(destination, seat)
         } else {
           console.log('Unknown state! Data:', detailsData)
-          saveAndExit(seat)
+          saveAndExit(destination, seat)
         }
       } else {
-        console.log(`⏳ Seat-${padIndex(seat)} still processing... retrying (${attempts + 1}/${maxRetries}) in ${(interval / 1000)}s.`)
+        console.log(`⏳ ${destination}-${padIndex(seat)} still processing... retrying (${attempts + 1}/${maxRetries}) in ${(interval / 1000)}s.`)
       }
     } catch (error) {
-      console.error(`Error fetching details for seat-${padIndex(seat)}:`, error)
+      console.error(`Error fetching details for ${destination}-${padIndex(seat)}:`, error)
     }
 
     attempts++
     await new Promise(resolve => setTimeout(resolve, interval)) // Wait 1s before retrying
   }
 
-  await saveAndExit(seat)
+  await saveAndExit(destination, seat)
 }
 
-async function runChecks () {
+async function runChecks (destination, start, end) {
   const { lastChecked, restartAfter } = loadProgress()
 
   // Check if we are running before the allowed restart time
@@ -128,13 +133,27 @@ async function runChecks () {
   }
 
   let index = lastChecked
-  while (index <= TOTAL_REPOS) {
-    index = await checkRepo(index)
-    if (index < 1) index = 1 // Prevent negative index
+  while (index <= end) {
+    index = await checkRepo(destination, index)
+    if (index < start) index = start // Prevent going below start
     saveProgress(index)
   }
   console.log('✅ All repos checked successfully.')
 }
 
-// Start process
-runChecks()
+if (process.argv.length !== 5) {
+  console.log('Usage: node checkSync.js <destination> <start> <end>')
+  console.log('Example: node checkSync.js adobe-summit-L322/seat 0 100')
+} else {
+  const destination = process.argv[2]
+  const start = parseInt(process.argv[3])
+  const end = parseInt(process.argv[4])
+
+  if (!Number.isInteger(start) || !Number.isInteger(end)) {
+    console.error('Start and End must be integers')
+  } else if (start > end) {
+    console.log('Start cannot be greater than End.')
+  } else {
+    runChecks(destination, start, end)
+  }
+}

@@ -1,22 +1,34 @@
 /**
  * This is a script to clone content automatically.
  * Only to be used for housekeeping purposes. Please do not run this script without supervision.
+ *
+ * Usage: node cloneContent.js <source> <destination> <start> <end>
+ * Example: node cloneContent.js adobe-commerce/adobe-demo-store adobe-summit-L322/seat 0 100
  */
+
 import { execSync } from 'child_process'
 
-const owner = 'adobe-summit-L321'
-const templateRepo = 'ccdm-demo-store'
-// const owner = 'adobe-summit-L322'
-// const templateRepo = 'adobe-demo-store'
-const repoPrefix = 'seat'
-const templateOrg = 'adobe-commerce'
+function parseRepoString (repoString) {
+  const [org, repo] = repoString.split('/')
+  return { org, repo }
+}
 
-async function cloneContent (start, end) {
+function parseDestinationString (destString) {
+  const [org, prefix] = destString.split('/')
+  return { org, prefix }
+}
+
+async function cloneContent (source, destination, start, end) {
   console.log('Starting to clone content...')
+  console.log(`Source: ${source}`)
+  console.log(`Destination: ${destination}`)
+
+  const { org: sourceOrg, repo: sourceRepo } = parseRepoString(source)
+  const { org: destOrg, prefix: repoPrefix } = parseDestinationString(destination)
 
   for (let i = start; i <= end; i++) {
     const repoNumber = i.toString().padStart(2, '0')
-    const command = `aio commerce:init --template "${templateOrg}/${templateRepo}" --repo "${owner}/${repoPrefix}-${repoNumber}" --datasource "" --skipMesh --skipGit`
+    const command = `aio commerce:init --template "${sourceOrg}/${sourceRepo}" --repo "${destOrg}/${repoPrefix}-${repoNumber}" --datasource "" --skipMesh --skipGit`
     console.log(`\nExecuting command ${i} of ${end}:`)
     console.log(command)
 
@@ -30,18 +42,21 @@ async function cloneContent (start, end) {
   }
 }
 
-if (process.argv.length !== 4) {
-  console.log('Usage: node cloneContent.js <start> <end>')
+if (process.argv.length !== 6) {
+  console.log('Usage: node cloneContent.js <source> <destination> <start> <end>')
+  console.log('Example: node cloneContent.js adobe-commerce/adobe-demo-store adobe-summit-L322/seat 0 100')
 } else {
-  const start = parseInt(process.argv[2])
-  const end = parseInt(process.argv[3])
+  const source = process.argv[2]
+  const destination = process.argv[3]
+  const start = parseInt(process.argv[4])
+  const end = parseInt(process.argv[5])
 
   if (!Number.isInteger(start) || !Number.isInteger(end)) {
     console.error('Start and End must be integers')
   } else if (start > end) {
     console.log('Start cannot be greater than End.')
   } else {
-    cloneContent(start, end).then(() => {
+    cloneContent(source, destination, start, end).then(() => {
       console.log('All repos created successfully.')
     }).catch((error) => {
       console.error('Error creating repos:', error)
