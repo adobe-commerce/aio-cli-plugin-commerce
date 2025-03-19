@@ -11,6 +11,10 @@
 
 ![image](https://github.com/user-attachments/assets/7cd45e4b-945a-4e13-909d-b1fe2c426fe0)
 
+## Note
+
+There is currently a known issue affecting aio-cli so you will see a warning related to `punycode`. This does not impact
+functionality. Follow here: https://github.com/adobe/aio-cli/issues/679
 
 ## Prerequisites
 
