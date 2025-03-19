@@ -57,6 +57,7 @@ export async function initialization (args, flags) {
   // TODO: validate template is allowed
   template = template || await promptSelect('Which template would you like to use?', [
     'adobe-commerce/adobe-demo-store', // ACCS template
+    'adobe-commerce/ccdm-demo-store', // CCDM template
     'hlxsites/aem-boilerplate-commerce' // PaaS template
     // 'adobe-rnd/aem-boilerplate-xcom' // UE Template
     // 'aabsites/citisignal' // TODO: Cannot use citisignal until we resolve how to use templates that use config service as some core files are missing https://magento.slack.com/archives/C085R48U3R7/p1738785011567519
