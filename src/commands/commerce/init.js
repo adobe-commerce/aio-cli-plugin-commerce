@@ -67,15 +67,10 @@ export class InitCommand extends Command {
         console.log(`Not creating Git Repos - assuming it already exists at https://github.com/${githubOrg}/${githubRepo}`)
       } else {
         await createRepo(githubOrg, githubRepo, templateOrg, templateRepo)
-
-        if (githubOrg === 'adobe-summit-L322' || githubOrg === 'adobe-summit-L321') {
-          console.log('✅ AEM Code Sync Bot automatically installed :)')
-        } else {
-          openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
-          const res = await promptConfirm('Did you install the AEM Code Sync bot?')
-          if (!res) {
-            throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
-          }
+        openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
+        const res = await promptConfirm('Did you install the AEM Code Sync bot?')
+        if (!res) {
+          throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
         }
         console.log('⏳ Validating code sync...')
         await codeSyncComplete(githubOrg, githubRepo)
