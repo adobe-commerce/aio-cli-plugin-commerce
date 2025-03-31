@@ -251,10 +251,7 @@ export async function updateMesh (runAIOCommand, installedPlugins, meshUrl) {
 
     await createTempMeshConfigFile(saas, paas, catalog, apiKey)
 
-    await runAIOCommand('api-mesh:update', [
-      meshConfigFilePath,
-      '-c'
-    ])
+    await runAIOCommand('api-mesh:update', [meshConfigFilePath, '-c'])
 
     config.set('commerce.datasource.meshUrl', meshUrl)
   } catch (error) {
@@ -269,28 +266,24 @@ export async function updateMesh (runAIOCommand, installedPlugins, meshUrl) {
   }
 }
 
-export async function getMesh (runAIOCommand, installedPlugins) {
+export async function describeMesh (runAIOCommand, installedPlugins) {
   try {
     await checkAndInstallMeshPlugin(installedPlugins)
 
-    const { meshUrl } = await runAIOCommand('api-mesh:get', ['-c'])
+    const { meshUrl } = await runAIOCommand('api-mesh:describe')
 
     return meshUrl
   } catch (error) {
     aioLogger.error(error)
-    console.log(
-      'API Mesh updation failed, please retry by running \naio api-mesh update mesh_config.json'
-    )
+    console.log('Failed to get API Mesh details')
 
-    throw new Error(
-      'API Mesh updation failed, please retry by running aio api-mesh update mesh_config.json'
-    )
+    throw new Error('Failed to get API Mesh details')
   }
 }
 
 export async function setupMesh (runAIOCommand, installedPlugins) {
   try {
-    const meshUrl = await getMesh(runAIOCommand, installedPlugins)
+    const meshUrl = await describeMesh(runAIOCommand, installedPlugins)
 
     if (meshUrl) {
       await updateMesh(runAIOCommand, installedPlugins, meshUrl)
