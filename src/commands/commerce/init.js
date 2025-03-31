@@ -17,7 +17,7 @@ import { promptConfirm } from '../../utils/prompt.js'
 import config from '@adobe/aio-lib-core-config'
 import { codeSyncComplete, createRepo } from '../../utils/github.js'
 import { initialization } from '../../utils/initialization.js'
-import { createMesh, getMeshDetailsPage } from '../../utils/mesh.js'
+import { setupMesh, getMeshDetailsPage } from '../../utils/mesh.js'
 import Logger from '@adobe/aio-lib-core-logging'
 
 const reset = '\x1b[0m'
@@ -56,7 +56,7 @@ export class InitCommand extends Command {
           )
         } else {
           const installedPlugins = this.config.plugins
-          await createMesh(runAIOCommand, installedPlugins)
+          await setupMesh(runAIOCommand, installedPlugins)
         }
       } else {
         // this means the user chose to use demo env, so no need to create mesh

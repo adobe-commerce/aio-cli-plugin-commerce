@@ -160,12 +160,7 @@ function getPaaSMeshConfig (core, catalog, apiKey) {
  * @param catalog
  * @param apiKey
  */
-async function createTempMeshConfigFile (
-  saas,
-  core,
-  catalog,
-  apiKey
-) {
+async function createTempMeshConfigFile (saas, core, catalog, apiKey) {
   let meshConfigFile
 
   // If user chose SaaS (initialization.js) they will only have commerce.datasource.saas
@@ -201,9 +196,7 @@ async function checkAndInstallMeshPlugin (installedPlugins) {
   if (!meshPlugin) {
     console.log('Installing API Mesh plugin...')
 
-    await runCommand(
-      'aio plugins:install @adobe/aio-cli-plugin-api-mesh'
-    )
+    await runCommand('aio plugins:install @adobe/aio-cli-plugin-api-mesh')
   }
 }
 
@@ -237,6 +230,81 @@ export async function createMesh (runAIOCommand, installedPlugins) {
 
     throw new Error(
       'API Mesh creation failed, please retry by running aio api-mesh update mesh_config.json'
+    )
+  }
+}
+
+/**
+ *
+ * @param runAIOCommand
+ * @param installedPlugins
+ * @param meshUrl
+ */
+export async function updateMesh (runAIOCommand, installedPlugins, meshUrl) {
+  try {
+    await checkAndInstallMeshPlugin(installedPlugins)
+
+    const { apiKey, datasource } = config.get('commerce')
+    const { saas, paas, catalog } = datasource
+
+    console.log('Updating API Mesh...')
+
+    await createTempMeshConfigFile(saas, paas, catalog, apiKey)
+
+    await runAIOCommand('api-mesh:update', [
+      meshConfigFilePath,
+      '-c'
+    ])
+
+    config.set('commerce.datasource.meshUrl', meshUrl)
+  } catch (error) {
+    aioLogger.error(error)
+    console.log(
+      'API Mesh updation failed, please retry by running \naio api-mesh update mesh_config.json'
+    )
+
+    throw new Error(
+      'API Mesh updation failed, please retry by running aio api-mesh update mesh_config.json'
+    )
+  }
+}
+
+export async function getMesh (runAIOCommand, installedPlugins) {
+  try {
+    await checkAndInstallMeshPlugin(installedPlugins)
+
+    const { meshUrl } = await runAIOCommand('api-mesh:get', ['-c'])
+
+    return meshUrl
+  } catch (error) {
+    aioLogger.error(error)
+    console.log(
+      'API Mesh updation failed, please retry by running \naio api-mesh update mesh_config.json'
+    )
+
+    throw new Error(
+      'API Mesh updation failed, please retry by running aio api-mesh update mesh_config.json'
+    )
+  }
+}
+
+export async function setupMesh (runAIOCommand, installedPlugins) {
+  try {
+    const meshUrl = await getMesh(runAIOCommand, installedPlugins)
+
+    if (meshUrl) {
+      await updateMesh(runAIOCommand, installedPlugins, meshUrl)
+    } else {
+      await createMesh(runAIOCommand, installedPlugins)
+    }
+  } catch (error) {
+    aioLogger.error(error)
+    console.log(
+      'API Mesh setup failed, please retry by running \naio api-mesh update mesh_config.json'
+    )
+
+    throw new Error(
+      'API Mesh setup failed, please retry by running aio api-mesh update mesh_config.json'
     )
   }
 }
