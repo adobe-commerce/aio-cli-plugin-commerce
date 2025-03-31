@@ -30,7 +30,7 @@ function getCSaaSMeshConfig (core) {
                     "x-include-metadata": "true"
                 },
                 "includeHTTPDetails": false,
-                "cache": true
+                "cache": false
             },
             "sources": [
                 {
@@ -84,7 +84,7 @@ function getPaaSMeshConfig (core, catalog, apiKey) {
                     "x-include-metadata": "true"
                 },
                 "includeHTTPDetails": false,
-                "cache": true
+                "cache": false
             },
             "sources": [{
                 "name": "CommerceGraphQl",
