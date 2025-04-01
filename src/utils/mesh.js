@@ -251,7 +251,7 @@ export async function updateMesh (runAIOCommand, installedPlugins, meshUrl) {
 
     await createTempMeshConfigFile(saas, paas, catalog, apiKey)
 
-    await runAIOCommand('api-mesh:update', [meshConfigFilePath, '-c'])
+    await runAIOCommand('api-mesh:update', [meshConfigFilePath])
 
     config.set('commerce.datasource.meshUrl', meshUrl)
   } catch (error) {
