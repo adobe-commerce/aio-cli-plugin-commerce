@@ -275,7 +275,7 @@ export async function describeMesh (runAIOCommand, installedPlugins) {
     aioLogger.error(error)
     console.log('Failed to get API Mesh details')
 
-    throw new Error('Failed to get API Mesh details')
+    return null
   }
 }
 
