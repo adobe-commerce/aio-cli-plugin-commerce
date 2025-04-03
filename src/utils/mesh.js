@@ -273,7 +273,7 @@ export async function describeMesh (runAIOCommand, installedPlugins) {
     return meshUrl
   } catch (error) {
     aioLogger.debug(error)
-    aioLogger.log('No mesh found for this workspace.')
+    console.log('No mesh found on this workspace.')
 
     return null
   }
