@@ -55,8 +55,9 @@ export async function initialization (args, flags) {
 
   // TEMPLATE SELECTION
   // TODO: validate template is allowed
-  template = template || 'adobe-commerce/adobe-demo-store' || await promptSelect('Which template would you like to use?', [
-    'adobe-commerce/adobe-demo-store' // ACCS template
+  template = template || await promptSelect('Which template would you like to use?', [
+    'adobe-commerce/adobe-demo-store', // ACCS template
+    'adobe-commerce/ccdm-demo-store' // ACO template
     // 'hlxsites/aem-boilerplate-commerce' // PaaS template - TODO: is now using helix 5. Cannot use until we update CLI to work with helix 5/config-service
     // 'adobe-rnd/aem-boilerplate-xcom' // UE Template
     // 'aabsites/citisignal' // TODO: Cannot use citisignal until we resolve how to use templates that use config service as some core files are missing https://magento.slack.com/archives/C085R48U3R7/p1738785011567519
