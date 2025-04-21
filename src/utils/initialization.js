@@ -68,30 +68,16 @@ export async function initialization (args, flags) {
   // DATASOURCE SELECTION
   const STR_DEMO = 'Use the demo Adobe Commerce tenant'
   const STR_PICK = 'Pick an available Adobe Commerce tenant'
-  const STR_BYO = 'Provide your own Adobe Commerce tenant API URL'
 
   const commerceDataSourceOptions = [
     STR_DEMO,
     STR_PICK
-    // STR_BYO // TODO: enable after summit
   ]
   const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
 
-  let paasUrl = ''
-  let catalogUrl = ''
   let saasUrl = ''
 
-  if (commerceDataSource === STR_BYO) {
-    paasUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://mystore.com/graphql):').then(validateAndFormatURL)
-    catalogUrl = await promptInput('Enter your Commerce Catalog Service API URL (ex. https://catalog-service.adobe.io/graphql):').then(validateAndFormatURL)
-    if (!paasUrl || !catalogUrl) {
-      throw Error('❌ Please provide a valid URL for Commerce GraphQL API and Catalog Service.')
-    }
-    const apiKey = await promptInput('Enter your Adobe Catalog Service API Key:')
-    const envId = await promptInput('Enter your Adobe Environment Id:')
-    config.set('commerce.apiKey', apiKey)
-    config.set('commerce.environmentId', envId)
-  } else if (commerceDataSource === STR_PICK) {
+  if (commerceDataSource === STR_PICK) {
     const consoleConfig = config.get('console')
     if (!consoleConfig || !consoleConfig.org) {
       await selectOrganization()
@@ -102,34 +88,6 @@ export async function initialization (args, flags) {
     // If using demo instance, we don't need to set any urls - they should just
     // copy from the config.
   }
-  config.set('commerce.datasource.paas', paasUrl)
-  config.set('commerce.datasource.catalog', catalogUrl)
   config.set('commerce.datasource.saas', saasUrl)
   aioLogger.debug('inputs', config.get('commerce'))
-}
-
-/**
- *
- * @param {string} url  a url like adobe.com, www.adobe.com, http://adobe.com, etc.
- * @returns {string|null} a validated and formatted URL or null if the input is invalid.
- */
-function validateAndFormatURL (url) {
-  // Regular expression to check if the string is a valid URL
-  const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/
-
-  // If the URL doesn't match the pattern, return null
-  if (!urlPattern.test(url)) {
-    aioLogger.debug('string is not valid URL', url)
-    return null
-  }
-
-  // If the URL doesn't start with 'http://' or 'https://', prepend 'https://'
-  if (!/^https?:\/\//i.test(url)) {
-    url = 'https://' + url
-  } else if (/^http:\/\//i.test(url)) {
-    // If the URL starts with 'http://', replace it with 'https://'
-    url = url.replace(/^http:\/\//i, 'https://')
-  }
-
-  return url
 }

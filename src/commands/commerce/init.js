@@ -33,21 +33,20 @@ export class InitCommand extends Command {
       config.set('commerce.github.repo', flags.repo.split('/')[1])
       config.set('commerce.template.org', flags.template.split('/')[0])
       config.set('commerce.template.repo', flags.template.split('/')[1])
-      config.set('commerce.datasource.paas', flags.datasource)
-      config.set('commerce.datasource.catalog', flags.datasource)
+      config.set('commerce.datasource.saas', flags.datasource)
       aioLogger.debug(config.get('commerce'))
     } else {
       await initialization(args, flags)
     }
     const { org: githubOrg, repo: githubRepo } = config.get('commerce.github')
     const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
-    const { saas, paas } = config.get('commerce.datasource')
+    const { saas } = config.get('commerce.datasource')
 
     const runAIOCommand = async (command, args) => {
       return await this.config.runCommand(command, args)
     }
     try {
-      if (saas || paas) {
+      if (saas) {
         if (flags.skipMesh) {
           // this means the user chose a non-demo endpoint and still opted out of
           // API Mesh creation. Use their endpoints in configs.js

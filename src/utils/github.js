@@ -15,18 +15,6 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
   // Check if the repository already exists
   const cmdResult = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
   if (cmdResult?.stdout) { // if not exist, will throw and return 404.
-    // // If the repository exists, ask the user if they want to overwrite its content
-    // const overwrite = await promptConfirm(
-    //     `The repository ${githubOrg}/${githubRepo} already exists. Do you want to overwrite its content?`
-    // )
-    // // If the user wants to overwrite the repo, use "update" instead of "create"
-    // if (overwrite) {
-    //   // TODO: implement overwrite logic
-    // } else {
-    //   // If the user doesn't want to overwrite the repo, exit the program
-    //   console.error(`❌ Exiting. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
-    //   process.exit(1)
-    // }
     console.error(`❌ Skipping. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
   } else {
     // If the repository does not exist, proceed with "create"
@@ -43,7 +31,7 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
  * @param githubRepo
  * @param templateRepo
  */
-export async function modifyFstab (githubOrg, githubRepo, templateRepo) {
+async function modifyFstab (githubOrg, githubRepo, templateRepo) {
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {
@@ -95,7 +83,7 @@ folders:
  * @param githubOrg
  * @param githubRepo
  */
-export async function modifySidekickConfig (githubOrg, githubRepo) {
+async function modifySidekickConfig (githubOrg, githubRepo) {
   let repoReady = false
   let attempts = 0
   while (!repoReady && attempts++ <= 10) {
