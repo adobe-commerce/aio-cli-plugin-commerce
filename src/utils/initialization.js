@@ -67,16 +67,20 @@ export async function initialization (args, flags) {
   // DATASOURCE SELECTION
   const STR_DEMO = 'Use the demo Adobe Commerce tenant'
   const STR_PICK = 'Pick an available Adobe Commerce tenant'
+  const STR_BYO = 'Provide your own Adobe Commerce tenant API URL'
 
   const commerceDataSourceOptions = [
     STR_DEMO,
-    STR_PICK
+    STR_PICK,
+    STR_BYO
   ]
   const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
 
   let saasUrl = ''
 
-  if (commerceDataSource === STR_PICK) {
+  if (commerceDataSource === STR_BYO) {
+    saasUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://example.com/graphql):').then(validateAndFormatURL)
+  } else if (commerceDataSource === STR_PICK) {
     const consoleConfig = config.get('console')
     if (!consoleConfig || !consoleConfig.org) {
       await selectOrganization()
@@ -89,4 +93,30 @@ export async function initialization (args, flags) {
   }
   config.set('commerce.datasource.saas', saasUrl)
   aioLogger.debug('inputs', config.get('commerce'))
+}
+
+/**
+ *
+ * @param {string} url  a url like adobe.com, www.adobe.com, http://adobe.com, etc.
+ * @returns {string|null} a validated and formatted URL or null if the input is invalid.
+ */
+function validateAndFormatURL (url) {
+  // Regular expression to check if the string is a valid URL
+  const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/
+
+  // If the URL doesn't match the pattern, return null
+  if (!urlPattern.test(url)) {
+    aioLogger.debug('string is not valid URL', url)
+    return null
+  }
+
+  // If the URL doesn't start with 'http://' or 'https://', prepend 'https://'
+  if (!/^https?:\/\//i.test(url)) {
+    url = 'https://' + url
+  } else if (/^http:\/\//i.test(url)) {
+    // If the URL starts with 'http://', replace it with 'https://'
+    url = url.replace(/^http:\/\//i, 'https://')
+  }
+
+  return url
 }
