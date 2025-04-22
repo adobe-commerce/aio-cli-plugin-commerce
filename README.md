@@ -13,8 +13,6 @@
 
 ## Note
 
-Only templates on "helix 4" will work, currently. We will update this to work with helix-5 templates in the future.
-
 There is currently a known issue affecting aio-cli so you will see a warning related to `punycode`. This does not impact
 functionality. Follow here: https://github.com/adobe/aio-cli/issues/679
 

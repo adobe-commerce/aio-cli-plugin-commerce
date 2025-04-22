@@ -15,26 +15,90 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
   // Check if the repository already exists
   const cmdResult = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
   if (cmdResult?.stdout) { // if not exist, will throw and return 404.
-    // // If the repository exists, ask the user if they want to overwrite its content
-    // const overwrite = await promptConfirm(
-    //     `The repository ${githubOrg}/${githubRepo} already exists. Do you want to overwrite its content?`
-    // )
-    // // If the user wants to overwrite the repo, use "update" instead of "create"
-    // if (overwrite) {
-    //   // TODO: implement overwrite logic
-    // } else {
-    //   // If the user doesn't want to overwrite the repo, exit the program
-    //   console.error(`❌ Exiting. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
-    //   process.exit(1)
-    // }
     console.error(`❌ Skipping. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
   } else {
     // If the repository does not exist, proceed with "create"
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
+    // without timeout the commits are all out of order for some reason, and "initial commit" is the last, so fstab and other things are wiped although the appear in commit history
+    // TODO figure out how to create the commits in proper order without having a timeout or delay.
+    await new Promise(resolve => {
+      setTimeout(() => resolve(), 5000)
+    })
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
     await modifyFstab(githubOrg, githubRepo, templateRepo)
     await modifySidekickConfig(githubOrg, githubRepo)
+
+    // aem-boilerplate-commerce is on config service, so for scaffolded repos we need to create a local config.json
+    if (templateRepo === 'aem-boilerplate-commerce') {
+      await createLocalCommerceConfig(githubOrg, githubRepo, templateOrg, templateRepo)
+    }
   }
+}
+
+/**
+ * Creates a local config.json based on the demo-config.json structure
+ * @param githubOrg
+ * @param githubRepo
+ * @param templateOrg
+ * @param templateRepo
+ */
+async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, templateRepo) {
+  const { saas, meshUrl } = config.get('commerce.datasource')
+
+  const cfg = await fetch(`https://main--${templateRepo}--${templateOrg}.aem.live/config.json`).then(res => res.json())
+
+  const coreEndpoint = meshUrl || saas || cfg.public.default['commerce-core-endpoint']
+  const catalogEndpoint = meshUrl || saas || cfg.public.default['commerce-endpoint']
+  const apiKey = config.get('commerce.apiKey') || cfg.public.default.headers.cs['x-api-key']
+  const environmentId = config.get('commerce.environmentId') || cfg.public.default.headers.cs['Magento-Environment-Id']
+
+  let repoReady = false
+  let attempts = 0
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing config.json, attempt #', attempts)
+    try {
+      const CONTENT = `{
+  "public": {
+    "default": {
+      "commerce-core-endpoint": "${coreEndpoint}",
+      "commerce-endpoint": "${catalogEndpoint}",
+      "headers": {
+        "cs": {
+          "Magento-Customer-Group": "b6589fc6ab0dc82cf12099d1c2d40ab994e8410c",
+          "Magento-Store-Code": "main_website_store",
+          "Magento-Store-View-Code": "default",
+          "Magento-Website-Code": "base",
+          "x-api-key": "${apiKey}",
+          "Magento-Environment-Id": "${environmentId}"
+        }
+      },
+      "analytics": {
+        "base-currency-code": "USD",
+        "environment": "Production",
+        "store-id": 1,
+        "store-name": "Main Website Store",
+        "store-url": "https://main--${githubRepo}--${githubOrg}.aem.live/",
+        "store-view-id": 1,
+        "store-view-name": "Default Store View",
+        "website-id": 1,
+        "website-name": "Main Website"
+      }
+    }
+  }
+}
+`
+      aioLogger.debug(CONTENT)
+      const ENCODED_CONTENT = Buffer.from(CONTENT, 'utf8').toString('base64')
+      await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/config.json -f message="create local commerce config" -f content="${ENCODED_CONTENT.trim()}"`)
+
+      repoReady = true
+      aioLogger.debug('commerce local config created')
+    } catch (error) {
+      aioLogger.debug(`commerce local config update attempt ${attempts} failed:`, error)
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for 1 second
+    }
+  }
+  if (!repoReady) throw new Error('Unable to create commerce local config for some reason - retry with AIO_LOG_LEVEL=debug for more information.')
 }
 
 /**
@@ -43,15 +107,12 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
  * @param githubRepo
  * @param templateRepo
  */
-export async function modifyFstab (githubOrg, githubRepo, templateRepo) {
+async function modifyFstab (githubOrg, githubRepo, templateRepo) {
   let repoReady = false
   let attempts = 0
-  while (!repoReady && attempts++ <= 10) {
-    aioLogger.debug('writing fstab.yaml, attempt #', attempts)
-    try {
-      // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
-      // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
-      const standardFstab = `mountpoints:
+  // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
+  // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
+  const standardFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/
     type: markup
@@ -59,7 +120,7 @@ export async function modifyFstab (githubOrg, githubRepo, templateRepo) {
 folders:
   /products/: /products/default
 `
-      const adobeStoreFstab = `mountpoints:
+  const adobeStoreFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/
     type: markup
@@ -72,13 +133,26 @@ folders:
   /bags: /categories/default
   /collections: /categories/default
 `
+  const fstab = templateRepo === 'adobe-demo-store' ? adobeStoreFstab : standardFstab
+  const ENCODED_CONTENT = Buffer.from(fstab, 'utf8').toString('base64')
+  let FILE_SHA
+  try {
+    const { stdout } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -q .sha`)
+    FILE_SHA = stdout
+  } catch (e) {
+    aioLogger.debug(e)
+    aioLogger.debug('No sidekick/config.json found in repo - will create')
+  }
 
-      const fstab = templateRepo === 'adobe-demo-store' ? adobeStoreFstab : standardFstab
-      const ENCODED_CONTENT = Buffer.from(fstab, 'utf8').toString('base64')
-
-      // TODO: this will not work for templates using config-service since this, and other files, are deleted. Need to refactor this a bit to support
-      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -q .sha`)
-      await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing fstab.yaml, attempt #', attempts)
+    try {
+      // hlx4 repos will have fstab, so we need to modify
+      if (FILE_SHA) {
+        await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
+      } else {
+        await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -f message="create fstab" -f content="${ENCODED_CONTENT.trim()}"`)
+      }
 
       repoReady = true
       aioLogger.debug('fstab mountpoint updated')
@@ -95,13 +169,10 @@ folders:
  * @param githubOrg
  * @param githubRepo
  */
-export async function modifySidekickConfig (githubOrg, githubRepo) {
+async function modifySidekickConfig (githubOrg, githubRepo) {
   let repoReady = false
   let attempts = 0
-  while (!repoReady && attempts++ <= 10) {
-    aioLogger.debug('writing tools/sidekick/config.json, attempt #', attempts)
-    try {
-      const ENCODED_CONTENT = Buffer.from(`{
+  const ENCODED_CONTENT = Buffer.from(`{
     "project": "Boilerplate",
     "editUrlLabel": "Document Authoring",
     "editUrlPattern": "https://da.live/edit#/{{org}}/{{site}}{{pathname}}",
@@ -120,9 +191,23 @@ export async function modifySidekickConfig (githubOrg, githubRepo) {
 }
 `, 'utf8').toString('base64')
 
-      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -q .sha`)
-      await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -f message="update sidekick config" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
+  let FILE_SHA
+  try {
+    const { stdout } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -q .sha`)
+    FILE_SHA = stdout
+  } catch (e) {
+    aioLogger.debug(e)
+    aioLogger.debug('No sidekick/config.json found in repo - will create')
+  }
 
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing tools/sidekick/config.json, attempt #', attempts)
+    try {
+      if (FILE_SHA) {
+        await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -f message="update sidekick config" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
+      } else {
+        await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -f message="create sidekick config" -f content="${ENCODED_CONTENT.trim()}"`)
+      }
       repoReady = true
       aioLogger.debug('sidekick config modified with content source')
     } catch (error) {

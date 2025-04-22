@@ -20,9 +20,13 @@ const aioLogger = Logger('commerce:initialization.js')
  * @param flags - flags from the command
  */
 export async function initialization (args, flags) {
-  console.log('🛒 Welcome to the Adobe Commerce Storefront Scaffolder 🛒\n' +
-    '--------------------------------------------\n' +
-'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
+  console.log(`
+🛒 Welcome to the Adobe Commerce Storefront Scaffolder 🛒
+----------------------------------------------------------
+This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you'll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\n\nBefore we begin, make sure you have read the prerequisites documentation here:
+https://github.com/adobe-commerce/aio-cli-plugin-commerce?tab=readme-ov-file#prerequisites
+
+Now, let's get started!\n`)
 
   // GITHUB DESTINATION SELECTION
   let { repo, template, skipGit } = flags
@@ -54,11 +58,10 @@ export async function initialization (args, flags) {
   config.set('commerce.github.repo', repo)
 
   // TEMPLATE SELECTION
-  // TODO: validate template is allowed
   template = template || await promptSelect('Which template would you like to use?', [
     'adobe-commerce/adobe-demo-store', // ACCS template
-    'adobe-commerce/ccdm-demo-store' // ACO template
-    // 'hlxsites/aem-boilerplate-commerce' // PaaS template - TODO: is now using helix 5. Cannot use until we update CLI to work with helix 5/config-service
+    'adobe-commerce/ccdm-demo-store', // ACO template
+    'hlxsites/aem-boilerplate-commerce' // template
     // 'adobe-rnd/aem-boilerplate-xcom' // UE Template
     // 'aabsites/citisignal' // TODO: Cannot use citisignal until we resolve how to use templates that use config service as some core files are missing https://magento.slack.com/archives/C085R48U3R7/p1738785011567519
   ])
@@ -72,25 +75,15 @@ export async function initialization (args, flags) {
 
   const commerceDataSourceOptions = [
     STR_DEMO,
-    STR_PICK
-    // STR_BYO // TODO: enable after summit
+    STR_PICK,
+    STR_BYO
   ]
   const commerceDataSource = await promptSelect('How would you like to connect to Commerce data', commerceDataSourceOptions)
 
-  let paasUrl = ''
-  let catalogUrl = ''
   let saasUrl = ''
 
   if (commerceDataSource === STR_BYO) {
-    paasUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://mystore.com/graphql):').then(validateAndFormatURL)
-    catalogUrl = await promptInput('Enter your Commerce Catalog Service API URL (ex. https://catalog-service.adobe.io/graphql):').then(validateAndFormatURL)
-    if (!paasUrl || !catalogUrl) {
-      throw Error('❌ Please provide a valid URL for Commerce GraphQL API and Catalog Service.')
-    }
-    const apiKey = await promptInput('Enter your Adobe Catalog Service API Key:')
-    const envId = await promptInput('Enter your Adobe Environment Id:')
-    config.set('commerce.apiKey', apiKey)
-    config.set('commerce.environmentId', envId)
+    saasUrl = await promptInput('Enter your Commerce GraphQL API URL (ex. https://example.com/graphql):').then(validateAndFormatURL)
   } else if (commerceDataSource === STR_PICK) {
     const consoleConfig = config.get('console')
     if (!consoleConfig || !consoleConfig.org) {
@@ -102,8 +95,6 @@ export async function initialization (args, flags) {
     // If using demo instance, we don't need to set any urls - they should just
     // copy from the config.
   }
-  config.set('commerce.datasource.paas', paasUrl)
-  config.set('commerce.datasource.catalog', catalogUrl)
   config.set('commerce.datasource.saas', saasUrl)
   aioLogger.debug('inputs', config.get('commerce'))
 }

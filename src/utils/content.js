@@ -70,7 +70,12 @@ async function getFilePathsFromAem () {
         const data = await response.json()
         if (data.state === 'stopped') {
           return data.data.resources
-            .filter(resource => !resource.path.startsWith('/draft') && !resource.path.startsWith('/helix-env.json') && !resource.path.startsWith('/sitemap-content.xml'))
+            .filter(resource =>
+              !resource.path.startsWith('/draft') &&
+              !resource.path.startsWith('/helix-env.json') &&
+              !resource.path.startsWith('/sitemap-content.xml') &&
+              !resource.path.startsWith('/products-ssg')
+            )
             .map(resource => {
               if (templateRepo === 'citisignal-one' || templateRepo === 'adobe-demo-store' || templateRepo === 'ccdm-demo-store') {
                 // These templates have not published all files, thus we have to use preview urls for content source
@@ -122,6 +127,7 @@ async function getBlob (text, pathname) {
   if (ext !== 'json') {
     content = await getAemHtml(text)
   } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
+    // conditional specifically for helix 4 storefront config file (adobe-demo-store, ccdm-demo-store)
     content = modifyConfig(text)
   }
   return new Blob([content], { type })
@@ -138,7 +144,6 @@ async function uploadFilesToDA (files) {
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
 
-  // TODO: We should not copy or upload sitemap.json or query-index.json, or any Helix generated files.
   const promises = files.sort().map((file) => {
     const contentFilePath = getContentFilePath(file)
     aioLogger.debug(`FETCHING ${contentFilePath}`)

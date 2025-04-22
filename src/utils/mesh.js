@@ -11,9 +11,9 @@ const meshConfigFilePath = path.join('./', 'mesh_config.json')
 
 /**
  *
- * @param core
+ * @param endpoint
  */
-function getCSaaSMeshConfig (core) {
+function getMeshConfig (endpoint) {
   return `
     {
         "meshConfig": {
@@ -36,7 +36,7 @@ function getCSaaSMeshConfig (core) {
                     "name": "CommerceSaaSGraphQl",
                     "handler": {
                         "graphql": {
-                            "endpoint": "${core}",
+                            "endpoint": "${endpoint}",
                             "useGETForQueries": true,
                             "operationHeaders": {
                                 "Content-Type": "application/json",
@@ -62,113 +62,11 @@ function getCSaaSMeshConfig (core) {
 
 /**
  *
- * @param core
- * @param catalog
- * @param apiKey
+ * @param saas the saas endpoint
  */
-function getPaaSMeshConfig (core, catalog, apiKey) {
-  return `
-    {
-        "meshConfig": {
-            "responseConfig": {
-                "CORS": {
-                    "credentials": true,
-                    "exposedHeaders": ["Content-Range", "X-Content-Range"],
-                    "maxAge": 60480,
-                    "methods": ["GET", "POST"],
-                    "origin": "*"
-                },
-                "headers": {
-                    "mode": "no-cors",
-                    "x-include-metadata": "true"
-                },
-                "includeHTTPDetails": false
-            },
-            "sources": [{
-                "name": "CommerceGraphQl",
-                "handler": {
-                    "graphql": {
-                        "endpoint": "${core}",
-                        "useGETForQueries": true,
-                        "operationHeaders": {
-                            "Content-Type": "application/json",
-                            "Store": "{context.headers['store']}",
-                            "Authorization": "{context.headers['Authorization']}"
-                        }
-                    }
-                },
-                "transforms": [{
-                    "filterSchema": {
-                        "mode": "bare",
-                        "filters": [
-                            "Query.!category",
-                            "Query.!customerOrders",
-                            "Query.!products",
-                            "Query.!categories",
-                            "Query.!urlResolver",
-                            "Query.!wishlist",
-                            "Query.!categoryList",
-                            "Mutation.!setPaymentMethodAndPlaceOrder",
-                            "Mutation.!addBundleProductsToCart",
-                            "Mutation.!addConfigurableProductsToCart",
-                            "Mutation.!addDownloadableProductsToCart",
-                            "Mutation.!addSimpleProductsToCart",
-                            "Mutation.!addVirtualProductsToCart",
-                            "Mutation.!createCustomer",
-                            "Mutation.!updateCustomer"
-                        ]
-                    }
-                }],
-                "responseConfig": {
-                "headers": ["X-Magento-Cache-Id"]
-                }
-            },
-            {
-                "name": "CatalogServiceGraphql",
-                "handler": {
-                    "graphql": {
-                        "endpoint": "${catalog}",
-                        "useGETForQueries": true,
-                        "schemaHeaders": {
-                            "Content-Type": "application/json",
-                            "x-api-key": "${apiKey}"
-                        },
-                        "operationHeaders": {
-                            "Content-Type": "application/json",
-                            "Magento-Environment-Id": "{context.headers['magento-environment-id']}",
-                            "Magento-Website-Code": "{context.headers['magento-website-code']}",
-                            "Magento-Store-View-Code": "{context.headers['magento-store-view-code']}",
-                            "Magento-Store-Code": "{context.headers['magento-store-code']}",
-                            "Magento-Customer-Group": "{context.headers['magento-customer-group']}",
-                            "x-api-key": "{context.headers['x-api-key']}",
-                            "Authorization": "context.headers['Authorization']"
-                        }
-                    }
-                }
-            }]
-        }
-    }
-    `
-}
-
-/**
- *
- * @param saas
- * @param core
- * @param catalog
- * @param apiKey
- */
-async function createTempMeshConfigFile (saas, core, catalog, apiKey) {
-  let meshConfigFile
-
-  // If user chose SaaS (initialization.js) they will only have commerce.datasource.saas
-  if (core && catalog) {
-    aioLogger.debug('creating Mesh for PaaS/CatalogServices')
-    meshConfigFile = getPaaSMeshConfig(core, catalog, apiKey)
-  } else {
-    aioLogger.debug('creating Mesh for SaaS')
-    meshConfigFile = getCSaaSMeshConfig(saas)
-  }
+async function createTempMeshConfigFile (saas) {
+  aioLogger.debug('creating Mesh')
+  const meshConfigFile = getMeshConfig(saas)
 
   await fsPromise.writeFile(meshConfigFilePath, meshConfigFile)
 }
@@ -207,12 +105,11 @@ export async function createMesh (runAIOCommand, installedPlugins) {
   try {
     await checkAndInstallMeshPlugin(installedPlugins)
 
-    const { apiKey, datasource } = config.get('commerce')
-    const { saas, paas, catalog } = datasource
+    const { datasource: { saas } } = config.get('commerce')
 
     console.log('Creating API Mesh...')
 
-    await createTempMeshConfigFile(saas, paas, catalog, apiKey)
+    await createTempMeshConfigFile(saas)
 
     const { meshUrl } = await runAIOCommand('api-mesh:create', [
       meshConfigFilePath,
@@ -242,12 +139,11 @@ export async function updateMesh (runAIOCommand, installedPlugins, meshUrl) {
   try {
     await checkAndInstallMeshPlugin(installedPlugins)
 
-    const { apiKey, datasource } = config.get('commerce')
-    const { saas, paas, catalog } = datasource
+    const { datasource: { saas } } = config.get('commerce')
 
     console.log('Updating API Mesh...')
 
-    await createTempMeshConfigFile(saas, paas, catalog, apiKey)
+    await createTempMeshConfigFile(saas)
 
     await runAIOCommand('api-mesh:update', [meshConfigFilePath])
 
