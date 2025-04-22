@@ -110,12 +110,9 @@ async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, te
 async function modifyFstab (githubOrg, githubRepo, templateRepo) {
   let repoReady = false
   let attempts = 0
-  while (!repoReady && attempts++ <= 10) {
-    aioLogger.debug('writing fstab.yaml, attempt #', attempts)
-    try {
-      // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
-      // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
-      const standardFstab = `mountpoints:
+  // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
+  // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
+  const standardFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/
     type: markup
@@ -123,7 +120,7 @@ async function modifyFstab (githubOrg, githubRepo, templateRepo) {
 folders:
   /products/: /products/default
 `
-      const adobeStoreFstab = `mountpoints:
+  const adobeStoreFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/
     type: markup
@@ -136,12 +133,21 @@ folders:
   /bags: /categories/default
   /collections: /categories/default
 `
+  const fstab = templateRepo === 'adobe-demo-store' ? adobeStoreFstab : standardFstab
+  const ENCODED_CONTENT = Buffer.from(fstab, 'utf8').toString('base64')
+  let FILE_SHA
+  try {
+    const { stdout } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -q .sha`)
+    FILE_SHA = stdout
+  } catch (e) {
+    aioLogger.debug(e)
+    aioLogger.debug('No sidekick/config.json found in repo - will create')
+  }
 
-      const fstab = templateRepo === 'adobe-demo-store' ? adobeStoreFstab : standardFstab
-      const ENCODED_CONTENT = Buffer.from(fstab, 'utf8').toString('base64')
-
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing fstab.yaml, attempt #', attempts)
+    try {
       // hlx4 repos will have fstab, so we need to modify
-      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -q .sha`)
       if (FILE_SHA) {
         await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/fstab.yaml -f message="update fstab" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
       } else {
@@ -166,10 +172,7 @@ folders:
 async function modifySidekickConfig (githubOrg, githubRepo) {
   let repoReady = false
   let attempts = 0
-  while (!repoReady && attempts++ <= 10) {
-    aioLogger.debug('writing tools/sidekick/config.json, attempt #', attempts)
-    try {
-      const ENCODED_CONTENT = Buffer.from(`{
+  const ENCODED_CONTENT = Buffer.from(`{
     "project": "Boilerplate",
     "editUrlLabel": "Document Authoring",
     "editUrlPattern": "https://da.live/edit#/{{org}}/{{site}}{{pathname}}",
@@ -188,8 +191,18 @@ async function modifySidekickConfig (githubOrg, githubRepo) {
 }
 `, 'utf8').toString('base64')
 
-      // hlx4 repos will have sidekick config, so we need to modify
-      const { stdout: FILE_SHA } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -q .sha`)
+  let FILE_SHA
+  try {
+    const { stdout } = await runCommand(`gh api repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -q .sha`)
+    FILE_SHA = stdout
+  } catch (e) {
+    aioLogger.debug(e)
+    aioLogger.debug('No sidekick/config.json found in repo - will create')
+  }
+
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing tools/sidekick/config.json, attempt #', attempts)
+    try {
       if (FILE_SHA) {
         await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/tools/sidekick/config.json -f message="update sidekick config" -f content="${ENCODED_CONTENT.trim()}" -f sha="${FILE_SHA.trim()}"`)
       } else {
