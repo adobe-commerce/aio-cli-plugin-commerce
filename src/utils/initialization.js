@@ -20,9 +20,18 @@ const aioLogger = Logger('commerce:initialization.js')
  * @param flags - flags from the command
  */
 export async function initialization (args, flags) {
-  console.log('🛒 Welcome to the Adobe Commerce Storefront Scaffolder 🛒\n' +
-    '--------------------------------------------\n' +
-'This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you\'ll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\nLet\'s get started!')
+  console.log(`
+🛒 Welcome to the Adobe Commerce Storefront Scaffolder 🛒
+----------------------------------------------------------
+This tool aims to automate the GitHub repository creation, the content source uploading, and the initial content preview.\nIn just a few minutes, you'll have your very own storefront codebase as well as an Edge Delivery Services content space ready to go.\n\nBefore we begin, make sure you have the following prerequisites completed:
+
+- gh cli installed and authenticated: https://cli.github.com/
+- aio authenticated and configured
+- Adobe IMS organization access and entitlement if creating API Mesh
+- Developer Terms & Conditions accepted if creating API Mesh
+
+You can read more here: https://github.com/adobe-commerce/aio-cli-plugin-commerce?tab=readme-ov-file#prerequisites\n
+Now, let's get started!`)
 
   // GITHUB DESTINATION SELECTION
   let { repo, template, skipGit } = flags
