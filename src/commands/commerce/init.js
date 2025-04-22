@@ -67,7 +67,7 @@ export class InitCommand extends Command {
       } else {
         await createRepo(githubOrg, githubRepo, templateOrg, templateRepo)
         openBrowser('https://github.com/apps/aem-code-sync/installations/select_target')
-        const res = await promptConfirm('Did you install the AEM Code Sync bot: https://github.com/apps/aem-code-sync/installations/select_target?')
+        const res = await promptConfirm('Did you install the AEM Code Sync bot? https://github.com/apps/aem-code-sync/installations/select_target')
         if (!res) {
           throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
         }
