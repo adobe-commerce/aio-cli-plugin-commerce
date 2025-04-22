@@ -29,6 +29,8 @@ brew install gh
 gh auth login
 ```
 
+❗ The Github account used by the CLI must have permission to create repositories and install Github Applications on that repository.
+
 ### Mesh Prerequisites
 
 The prerequisites in this section are only necessary if you are provisioning API Mesh for your storefront.
@@ -58,7 +60,7 @@ aio console org select
 
 Due to AEM restrictions on subdomains the full project url cannot exceed 63 characters. You also cannot use the `_` character.
 
-Consider using a short name, and hyphens instead of underscores.
+⚠️ Consider using a short name, and hyphens instead of underscores.
 
 ### Mesh Provisioning
 
@@ -74,9 +76,9 @@ If you are already authenticated to experience.adobe.com with a specific org sel
 
 ### 404
 
-If you see a 404 when you navigate to your storefront "aem.page" url, it can be due to a few reasons. Here are some steps you can take to troubleshoot:
+If you see a 404 when you navigate to your storefront url, it can be due to a few reasons. Here are some steps you can take to troubleshoot:
 
-1. **Check the URL**: Ensure that the URL you are trying to access is correct and that there are no typos.
+1. **Check the URL**: Ensure that the URL you are trying to access is correct and that there are no typos. The format should be `https://{branch}--{site}--{org}.aem.live`
 2. **Check AEM Code Sync Bot**: Ensure that the AEM Code Sync Bot is installed to the correct github repository. _you cannot select "all repositories"!
 
 ### Further steps
