@@ -27,6 +27,9 @@ export async function getAemHtml (text) {
   const inner = aemHtml
     .replaceAll('./media', `${fromOrigin}/media`)
     .replaceAll('href="/', `href="${fromOrigin}/`)
+    // Also update all helix references, now that we are on helix 5 and hlx.live doesnt work.
+    .replaceAll('.hlx.live', '.aem.live')
+
   return `
     <body>
       <header></header>
