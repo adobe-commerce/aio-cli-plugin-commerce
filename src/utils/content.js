@@ -72,6 +72,7 @@ async function getFilePathsFromAem () {
           return data.data.resources
             .filter(resource =>
               !resource.path.startsWith('/draft') &&
+              !resource.path.startsWith('/full-index.json') &&
               !resource.path.startsWith('/helix-env.json') &&
               !resource.path.startsWith('/sitemap-content.xml') &&
               !resource.path.startsWith('/products-ssg')
