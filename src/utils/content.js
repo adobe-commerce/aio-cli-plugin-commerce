@@ -11,11 +11,11 @@ const aioLogger = Logger('commerce:content.js')
  * uploaded to content repository destination.
  *
  * @param url
+ * @returns [string] array of paths
  */
 export async function uploadStarterContent () {
-  console.log('⏳ Cloning content from boilerplate')
   const filePaths = await getFilePathsFromAem()
-  console.log('⏳ Uploading content to document authoring space.')
+  console.log(`⏳ Cloning ${filePaths.length} content documents from source boilerplate`)
   await uploadFilesToDA(filePaths)
 
   // TODO: Trim out failed uploads. Context: If files fail to upload, then we
@@ -24,97 +24,26 @@ export async function uploadStarterContent () {
 }
 
 /**
- * https://www.aem.live/docs/admin.html#tag/status/operation/bulkStatus
- */
-async function getBulkStatusUrl () {
-  const templateOrg = config.get('commerce.template.org')
-  const templateRepo = config.get('commerce.template.repo')
-  let res
-  try {
-    res = await fetch(`https://admin.hlx.page/status/${templateOrg}/${templateRepo}/main/*`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        paths: ['/*']
-      })
-    })
-    const data = await res.json()
-    aioLogger.debug(data)
-    return `${data.links.self}/details`
-  } catch (e) {
-    aioLogger.debug(res)
-    aioLogger.debug(e)
-    console.log('Failed to fetch status URL!')
-    throw e
-  }
-}
-
-/**
  *
  */
 async function getFilePathsFromAem () {
-  const templateOrg = config.get('commerce.template.org')
-  const templateRepo = config.get('commerce.template.repo')
-  const maxTry = 3
-  let tryCount = 1
-  const bulkStatusUrl = await getBulkStatusUrl()
-  aioLogger.debug(`Getting paths from ${bulkStatusUrl}`)
-  // Since bulkStatus is async, it may not be complete when we fetch, so we need to retry until state is "stopped"
-  while (tryCount <= maxTry) {
-    aioLogger.debug(`Attempt ${tryCount}...`)
-    try {
-      const response = await fetch(bulkStatusUrl)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.state === 'stopped') {
-          return data.data.resources
-            .filter(resource =>
-              // TODO: Use `full-index` from boilerplate, rather than excluding by list.
-              // See https://main--aem-boilerplate-commerce--hlxsites.aem.live/full-index.json for example.
-              // paths that should be generated anew
-              !resource.path.startsWith('/full-index.json') &&
-              !resource.path.startsWith('/helix-env.json') &&
-              !resource.path.startsWith('/sitemap-content.xml') &&
-              // paths that should not be copied
-              !resource.path.startsWith('/draft') &&
-              // paths for byom
-              !resource.path.startsWith('/products-ssg') &&
-              !resource.path.startsWith('/products-byom') &&
-              // paths that Mark needs to test GSC
-              !resource.path.startsWith('/structured-data')
-            )
-            .map(resource => {
-              if (templateRepo === 'citisignal-one' || templateRepo === 'adobe-demo-store' || templateRepo === 'ccdm-demo-store') {
-                // These templates have not published all files, thus we have to use preview urls for content source
-                return `https://main--${templateRepo}--${templateOrg}.aem.page/${resource.path.replace(/^\/+/, '')}`
-              } else {
-                // should be able to use published for all others
-                return `https://main--${templateRepo}--${templateOrg}.aem.live/${resource.path.replace(/^\/+/, '')}`
-              }
-            })
-        } else {
-          tryCount++
-          await new Promise(resolve => setTimeout(resolve, 5000))
-        }
-      } else {
-        aioLogger.error('Failed to fetch data:', response)
-        break
-      }
-    } catch (error) {
-      aioLogger.error(error)
-      tryCount++
-      if (tryCount < maxTry) {
-        await new Promise(resolve => setTimeout(resolve, 5000))
-      } else {
-        aioLogger.error('Max tries exceeded')
-        break
-      }
-    }
+  const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
+  const idxUrl = `https://main--${templateRepo}--${templateOrg}.aem.live/full-index.json`
+  const index = await fetch(idxUrl).then(res => res.json())
+  const paths = index.data.map(idx => idx.path) || []
+
+  if (paths.length === 0) {
+    aioLogger.debug(`No paths - does this exist? ${idxUrl}`)
   }
-  aioLogger.warn('No resources found -- nothing to push!')
-  return []
+
+  return [
+    ...paths,
+    // Also copy placeholders, since it is not in the full-index.
+    '/placeholders.json'
+    // TODO: do we need metadata or other files not in the index?
+    // '/metadata.json',
+    // '/products/default/metadata.json'
+  ]
 }
 
 /**
@@ -149,17 +78,17 @@ async function getBlob (text, pathname) {
  * @param files Array of string urls
  */
 async function uploadFilesToDA (files) {
+  const { org: templateOrg, repo: templateRepo } = config.get('commerce.template')
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const daUrl = `https://admin.da.live/source/${org}/${repo}`
-
   const promises = files.sort().map((file) => {
-    const contentFilePath = getContentFilePath(file)
-    aioLogger.debug(`FETCHING ${contentFilePath}`)
+    const contentFilePath = `https://main--${templateRepo}--${templateOrg}.aem.live${getContentFilePath(file)}`
+    aioLogger.debug(`Fetching ${contentFilePath}`)
     return new Promise((resolve, reject) => {
       fetch(contentFilePath)
         .then(async (resp) => {
-          if (!resp.ok) throw Error('Unable to fetch file')
+          if (!resp.ok) throw Error('File not found.')
           const { pathname } = new URL(contentFilePath)
           let blob
           if (contentFilePath.endsWith('.png') || contentFilePath.endsWith('.jpg')) {
@@ -180,7 +109,7 @@ async function uploadFilesToDA (files) {
           }).then(() => resolve()).catch((error) => reject(error))
         })
         .catch((error) => {
-          aioLogger.debug('Error fetching', file, error)
+          aioLogger.debug('Error fetching', contentFilePath, error)
           resolve(null) // return null instead of rejecting
         })
     })
@@ -214,21 +143,10 @@ function getContentFilePath (contentUrl) {
 /**
  * Checks if a file has a specific extension.
  *
- * @param {string} file - The file URL or name to check.
+ * @param {string} file - The file path or url to check.
  * @returns {boolean} True if the file has an extension, false otherwise.
  */
 function hasExtension (file) {
-  // Remove leading slashes and split into parts
-  const urlParts = file.replace(/^\/+|\/+$/g, '').split('/')
-
-  // If there's no extension in the URL, return false
-  if (urlParts.length < 2 || !urlParts[urlParts.length - 1].includes('.')) {
-    return false
-  }
-
-  // Get the last part with the extension
-  const extension = urlParts[urlParts.length - 1]
-
-  // Return true if the extension is not empty
-  return extension !== '' && extension.includes('.')
+  const lastPart = file.split('/').pop()
+  return lastPart && lastPart.includes('.')
 }
