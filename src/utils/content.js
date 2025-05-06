@@ -71,11 +71,19 @@ async function getFilePathsFromAem () {
         if (data.state === 'stopped') {
           return data.data.resources
             .filter(resource =>
-              !resource.path.startsWith('/draft') &&
+              // TODO: Use `full-index` from boilerplate, rather than excluding by list.
+              // See https://main--aem-boilerplate-commerce--hlxsites.aem.live/full-index.json for example.
+              // paths that should be generated anew
               !resource.path.startsWith('/full-index.json') &&
               !resource.path.startsWith('/helix-env.json') &&
               !resource.path.startsWith('/sitemap-content.xml') &&
-              !resource.path.startsWith('/products-ssg')
+              // paths that should not be copied
+              !resource.path.startsWith('/draft') &&
+              // paths for byom
+              !resource.path.startsWith('/products-ssg') &&
+              !resource.path.startsWith('/products-byom') &&
+              // paths that Mark needs to test GSC
+              !resource.path.startsWith('/structured-data')
             )
             .map(resource => {
               if (templateRepo === 'citisignal-one' || templateRepo === 'adobe-demo-store' || templateRepo === 'ccdm-demo-store') {
