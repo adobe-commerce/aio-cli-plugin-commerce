@@ -124,7 +124,7 @@ async function uploadFilesToDA (files) {
  * If the file  url ends in an extension, the extension is used.
  * Otherwise the last part of the path is used as the filename + .md
  *
- * @param {string} contentUrl url representation of the resource, from Helix bulkStatus API
+ * @param {string} contentUrl url or path of the resource
  * @returns {string} the content file path, ending in .md, index.md, or .json
  */
 function getContentFilePath (contentUrl) {
