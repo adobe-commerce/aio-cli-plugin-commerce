@@ -36,14 +36,7 @@ async function getFilePathsFromAem () {
     aioLogger.debug(`No paths - does this exist? ${idxUrl}`)
   }
 
-  return [
-    ...paths,
-    // Also copy placeholders, since it is not in the full-index.
-    '/placeholders.json'
-    // TODO: do we need metadata or other files not in the index?
-    // '/metadata.json',
-    // '/products/default/metadata.json'
-  ]
+  return paths
 }
 
 /**
