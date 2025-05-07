@@ -7,15 +7,13 @@ const aioLogger = Logger('commerce:preview.js')
 // we should refactor
 /**
  * https://www.aem.live/docs/admin.html#tag/preview/operation/bulkPreview
- * TODO: update to take paths, instead of full urls
- * @param files urls whose paths we will preview
+ * @param previewFiles urls whose paths we will preview
  */
-export async function previewContent (files) {
+export async function previewContent (previewFiles) {
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const url = new URL(`https://admin.hlx.page/preview/${org}/${repo}/main/*`)
   try {
-    const previewFiles = files.map(file => new URL(file).pathname)
     aioLogger.debug(previewFiles)
     const res = await fetch(url, {
       method: 'POST',
@@ -49,14 +47,13 @@ export async function previewContent (files) {
 /**
  *
  * https://www.aem.live/docs/admin.html#tag/publish/operation/bulkPublish
- * @param files
+ * @param publishFiles urls whose paths we will preview
  */
-export async function publishContent (files) {
+export async function publishContent (publishFiles) {
   const { org, repo } = config.get('commerce.github')
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const url = new URL(`https://admin.hlx.page/live/${org}/${repo}/main/*`)
   try {
-    const publishFiles = files.map(file => new URL(file).pathname)
     aioLogger.debug(publishFiles)
     const res = await fetch(url, {
       method: 'POST',
