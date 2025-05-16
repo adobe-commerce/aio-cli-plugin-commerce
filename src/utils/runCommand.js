@@ -10,8 +10,11 @@ const aioLogger = Logger('commerce:runCommand.js')
 export async function runCommand (command) {
   try {
     const { stdout, stderr } = await execPromise(command)
+    aioLogger.debug('stdout:', stdout)
+    aioLogger.debug('stderr:', stderr)
     return { stdout, stderr }
   } catch (error) {
-    aioLogger.debug(`Execution error: ${error}`)
+    aioLogger.debug(error)
+    throw error
   }
 }

@@ -24,6 +24,8 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     await new Promise(resolve => {
       setTimeout(() => resolve(), 5000)
     })
+    // If it still does not exist, this should throw.
+    await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
     await modifyFstab(githubOrg, githubRepo, templateRepo)
     await modifySidekickConfig(githubOrg, githubRepo)
