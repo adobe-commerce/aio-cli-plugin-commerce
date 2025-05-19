@@ -12,21 +12,43 @@ const aioLogger = Logger('commerce:github.js')
  * @param templateRepo
  */
 export async function createRepo (githubOrg, githubRepo, templateOrg, templateRepo) {
-  // Check if the repository already exists
-  const cmdResult = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
-  if (cmdResult?.stdout) {
-    console.error(`❌ Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
-    throw new Error(`Cannot create a repository that already exists: ${githubOrg}/${githubRepo}`)
-  } else {
-    // If the repository does not exist, proceed with "create"
+  console.log(`⏳ Attempting to create code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
+
+  try {
+    // First check if the user has access to the org.
+    // TODO: This requires admin:org scope on gh token, so skip this for now
+    // const orgCheck = await runCommand(`gh api orgs/${githubOrg}`)
+    // if (!orgCheck?.stdout) {
+    //   throw new Error(`You don't have access to the organization ${githubOrg}. Please ensure you have the necessary permissions.`)
+    // }
+
+    // Check if the repository already exists
+    try {
+      const repoCheck = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
+      if (repoCheck?.stdout) {
+        throw new Error(`Repository ${githubOrg}/${githubRepo} already exists. Please choose a different name.`)
+      }
+    } catch (error) {
+      // If we get a 404, the repo doesn't exist which is what we want
+      if (!error.message.includes('404')) {
+        throw error
+      }
+    }
+
+    // If we get here, we have access to the org and the repo doesn't exist
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
-    // without timeout the commits are all out of order for some reason, and "initial commit" is the last, so fstab and other things are wiped although the appear in commit history
-    // TODO figure out how to create the commits in proper order without having a timeout or delay.
+
+    // Wait for repo creation to complete
     await new Promise(resolve => {
       setTimeout(() => resolve(), 5000)
     })
-    // If it still does not exist, this should throw.
-    await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
+
+    // Verify the repo was created successfully
+    const verifyRepo = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
+    if (!verifyRepo?.stdout) {
+      throw new Error(`Failed to create repository ${githubOrg}/${githubRepo}. Please try again.`)
+    }
+
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
     await modifyFstab(githubOrg, githubRepo, templateRepo)
     await modifySidekickConfig(githubOrg, githubRepo)
@@ -35,6 +57,9 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     if (templateRepo === 'aem-boilerplate-commerce') {
       await createLocalCommerceConfig(githubOrg, githubRepo, templateOrg, templateRepo)
     }
+  } catch (error) {
+    console.error(`❌ ${error.message}`)
+    throw error
   }
 }
 
