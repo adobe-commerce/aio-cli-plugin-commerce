@@ -119,7 +119,7 @@ export class InitCommand extends Command {
       console.log('************************************************\n')
 
       aioLogger.error(error)
-      throw new Error('❌ Setup failed. Please try again.')
+      throw new Error('Setup failed. Please try again.')
     }
   }
 }

@@ -14,8 +14,9 @@ const aioLogger = Logger('commerce:github.js')
 export async function createRepo (githubOrg, githubRepo, templateOrg, templateRepo) {
   // Check if the repository already exists
   const cmdResult = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
-  if (cmdResult?.stdout) { // if not exist, will throw and return 404.
-    console.error(`❌ Skipping. Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
+  if (cmdResult?.stdout) {
+    console.error(`❌ Cannot create repository that already exists: ${githubOrg}/${githubRepo}`)
+    throw new Error(`Cannot create a repository that already exists: ${githubOrg}/${githubRepo}`)
   } else {
     // If the repository does not exist, proceed with "create"
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
