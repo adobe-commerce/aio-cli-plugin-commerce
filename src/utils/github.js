@@ -38,8 +38,9 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     // If we get here, we have access to the org and the repo doesn't exist
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
 
-    // Wait for repo creation to complete
+    // without timeout the commits are all out of order for some reason, and "initial commit" is the last, so fstab and other things are wiped although the appear in commit history
     // TODO figure out how to create the commits in proper order without having a timeout or delay.
+    // Wait for repo creation to complete
     await new Promise(resolve => {
       setTimeout(() => resolve(), 5000)
     })
