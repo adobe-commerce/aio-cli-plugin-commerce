@@ -39,6 +39,7 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
 
     // Wait for repo creation to complete
+    // TODO figure out how to create the commits in proper order without having a timeout or delay.
     await new Promise(resolve => {
       setTimeout(() => resolve(), 5000)
     })
