@@ -52,7 +52,12 @@ Now, let's get started!\n`)
   repo = repo?.split('/')[1] || await promptInput('Enter the storefront name to create (must not exist already):')
 
   if (!org || !repo) {
-    throw new Error('❌ Please provide both the github org/name and repo.')
+    throw new Error('❌ Please provide both the github org/name and repo (site) name.')
+  }
+
+  if (repo.includes('_')) {
+    // site name cannot have underscores
+    throw new Error('❌ Github repo name (site name) cannot have underscores.')
   }
   config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
   config.set('commerce.github.repo', repo)
