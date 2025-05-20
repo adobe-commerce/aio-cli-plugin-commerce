@@ -52,8 +52,19 @@ Now, let's get started!\n`)
   repo = repo?.split('/')[1] || await promptInput('Enter the storefront name to create (must not exist already):')
 
   if (!org || !repo) {
-    throw new Error('❌ Please provide both the github org/name and repo.')
+    throw new Error('❌ Please provide both the github org/name and repo (site) name.')
   }
+
+  // site name cannot have underscores
+  if (repo.includes('_')) {
+    throw new Error('❌ Github repo name (site name) cannot have underscores.')
+  }
+
+  // https://www.aem.live/docs/faq#what-is-the-character-limit-for-a-branchsubdomain
+  if (`main--${repo}--${org}`.length >= 63) {
+    throw new Error('❌ Github repo name (site name) too long. Use shorter name.\nhttps://www.aem.live/docs/faq#what-is-the-character-limit-for-a-branchsubdomain')
+  }
+
   config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
   config.set('commerce.github.repo', repo)
 
