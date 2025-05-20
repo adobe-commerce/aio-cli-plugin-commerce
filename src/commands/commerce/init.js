@@ -75,10 +75,12 @@ export class InitCommand extends Command {
         await codeSyncComplete(githubOrg, githubRepo)
       }
       const filePaths = await uploadStarterContent()
+      // Certain files are specific to da, and should not be previewed/published.
+      const filePathsWithoutPrivate = filePaths.filter(file => !file.startsWith('/.da/'))
       console.log('⏳ Previewing your content files...')
-      await previewContent(filePaths)
+      await previewContent(filePathsWithoutPrivate)
       console.log('⏳ Publishing your content files...')
-      await publishContent(filePaths)
+      await publishContent(filePathsWithoutPrivate)
 
       const meshUrl = config.get('commerce.datasource.meshUrl')
       const adminUrl = config.get('commerce.datasource.admin')

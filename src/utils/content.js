@@ -1,5 +1,5 @@
 import { getAemHtml } from './importer.js'
-import { modifyConfig } from './configs.js'
+import { modifyConfig, modifyDaConfig } from './configs.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import config from '@adobe/aio-lib-core-config'
@@ -57,6 +57,8 @@ async function getBlob (text, pathname) {
   let content = text
   if (ext !== 'json') {
     content = await getAemHtml(text)
+  } else if (pathname.includes('/.da/config')) {
+    content = modifyDaConfig(text)
   } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
     // conditional specifically for helix 4 storefront config file (adobe-demo-store, ccdm-demo-store)
     content = modifyConfig(text)

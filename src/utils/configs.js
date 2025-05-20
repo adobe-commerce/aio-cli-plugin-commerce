@@ -50,3 +50,20 @@ export function modifyConfig (configSource) {
   aioLogger.debug('modified config:', JSON.stringify(configJson, null, 2))
   return JSON.stringify(configJson)
 }
+
+export function modifyDaConfig (configSource) {
+  // get dest org/site
+  const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
+  let configJson = configSource
+  if (typeof configSource === 'string') {
+    configJson = JSON.parse(configSource)
+  }
+
+  configJson.data = configJson?.data.map((item) => {
+    item.value.replace('adobe-commerce/boilerplate', `${gitOrg}/${gitRepo}`)
+    return item
+  })
+
+  aioLogger.debug('modified .da/config:', JSON.stringify(configJson, null, 2))
+  return JSON.stringify(configJson)
+}
