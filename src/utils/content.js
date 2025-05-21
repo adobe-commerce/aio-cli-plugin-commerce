@@ -17,13 +17,13 @@ export async function uploadStarterContent () {
   const filePaths = await getFilePathsFromAem()
   console.log(`⏳ Cloning ${filePaths.length} content documents from source boilerplate`)
   await uploadFilesToDA(filePaths)
-  await uploadDaLibraryConfig()
+  await uploadDaSiteConfig()
   // TODO: Trim out failed uploads. Context: If files fail to upload, then we
   // don't want to preview them later (this return array is iterated over for previews)
   return filePaths
 }
 
-async function uploadDaLibraryConfig () {
+async function uploadDaSiteConfig () {
   const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
   const content = createDaSiteConfig()
   const formData = new FormData()
@@ -31,10 +31,7 @@ async function uploadDaLibraryConfig () {
   const fileDaUrl = `https://admin.da.live/config/${gitOrg}/${gitRepo}`
   await fetchWithRetry(fileDaUrl, {
     method: 'PUT',
-    body: formData,
-    headers: {
-      'cache-control': 'no-cache'
-    }
+    body: formData
   })
 }
 /**
