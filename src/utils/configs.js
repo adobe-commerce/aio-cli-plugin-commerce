@@ -105,6 +105,6 @@ export function createDaSiteConfig () {
     return item
   })
 
-  aioLogger.debug('modified .da/config:', JSON.stringify(configJson, null, 2))
+  aioLogger.debug('created da site config:', JSON.stringify(configJson, null, 2))
   return JSON.stringify(configJson)
 }
