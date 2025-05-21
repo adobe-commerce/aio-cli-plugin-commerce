@@ -1,5 +1,5 @@
 import { getAemHtml } from './importer.js'
-import { modifyConfig, modifyDaConfig } from './configs.js'
+import { modifyConfig, createDaSiteConfig } from './configs.js'
 import { fetchWithRetry } from './fetchWithRetry.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import config from '@adobe/aio-lib-core-config'
@@ -17,12 +17,26 @@ export async function uploadStarterContent () {
   const filePaths = await getFilePathsFromAem()
   console.log(`⏳ Cloning ${filePaths.length} content documents from source boilerplate`)
   await uploadFilesToDA(filePaths)
-
+  await uploadDaLibraryConfig()
   // TODO: Trim out failed uploads. Context: If files fail to upload, then we
   // don't want to preview them later (this return array is iterated over for previews)
   return filePaths
 }
 
+async function uploadDaLibraryConfig () {
+  const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
+  const content = createDaSiteConfig()
+  const formData = new FormData()
+  formData.append('config', content)
+  const fileDaUrl = `https://admin.da.live/config/${gitOrg}/${gitRepo}`
+  await fetchWithRetry(fileDaUrl, {
+    method: 'PUT',
+    body: formData,
+    headers: {
+      'cache-control': 'no-cache'
+    }
+  })
+}
 /**
  *
  */
@@ -57,8 +71,6 @@ async function getBlob (text, pathname) {
   let content = text
   if (ext !== 'json') {
     content = await getAemHtml(text)
-  } else if (pathname.includes('/.da/config')) {
-    content = modifyDaConfig(text)
   } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
     // conditional specifically for helix 4 storefront config file (adobe-demo-store, ccdm-demo-store)
     content = modifyConfig(text)

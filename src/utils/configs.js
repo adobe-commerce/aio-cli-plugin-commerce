@@ -51,16 +51,57 @@ export function modifyConfig (configSource) {
   return JSON.stringify(configJson)
 }
 
-export function modifyDaConfig (configSource) {
+const DA_SITE_CONFIG = {
+  data: {
+    total: 1,
+    limit: 1,
+    offset: 0,
+    data: [
+      {}
+    ],
+    ':colWidths': []
+  },
+  library: {
+    total: 2,
+    limit: 2,
+    offset: 0,
+    data: [
+      {
+        title: 'Blocks',
+        path: 'https://content.da.live/adobe-commerce/boilerplate/.da/library/blocks.json',
+        format: ''
+      },
+      {
+        title: 'Icons',
+        path: 'https://content.da.live/adobe-commerce/boilerplate/.da/library/icons.json',
+        format: ':<content>:'
+      }
+    ],
+    ':colWidths': [
+      75,
+      500,
+      100
+    ]
+  },
+  ':names': [
+    'data',
+    'library'
+  ],
+  ':version': 3,
+  ':type': 'multi-sheet'
+}
+
+/**
+ * Creates a da site config for DA library
+ *
+ */
+export function createDaSiteConfig () {
   // get dest org/site
   const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
-  let configJson = configSource
-  if (typeof configSource === 'string') {
-    configJson = JSON.parse(configSource)
-  }
 
-  configJson.data = configJson?.data.map((item) => {
-    item.value.replace('adobe-commerce/boilerplate', `${gitOrg}/${gitRepo}`)
+  const configJson = DA_SITE_CONFIG
+  configJson.library.data = configJson.library.data.map((item) => {
+    item.path = item.path.replace('adobe-commerce/boilerplate', `${gitOrg}/${gitRepo}`)
     return item
   })
 
