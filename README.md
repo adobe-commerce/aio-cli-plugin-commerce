@@ -29,7 +29,7 @@ brew install gh
 gh auth login
 ```
 
-❗ The Github account used by the CLI must have permission to create repositories and install Github Applications on that repository.
+❗ The Github account used by the CLI must have permission to create repositories (_write access_) and install Github Applications on that repository.
 
 ### Mesh Prerequisites
 
