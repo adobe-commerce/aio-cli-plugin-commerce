@@ -51,11 +51,35 @@ export function modifyConfig (configSource) {
   return JSON.stringify(configJson)
 }
 
-const generateDaSiteConfig = () => {
+/**
+ * Modifies block library config and replaces references with new org/site
+ * @param configSource
+ */
+export function modifyDaBlockLibraryConfig (configSource) {
+  const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
+  // convert source to json if a string
+  let configJson = configSource
+  if (typeof configSource === 'string') {
+    configJson = JSON.parse(configSource)
+  }
+  aioLogger.debug('pre-modificaiton block config:', JSON.stringify(configJson, null, 2))
+  configJson.data.data = configJson.data.data.map(item => {
+    item.path = item.path.replace('adobe-commerce/boilerplate', `${gitOrg}/${gitRepo}`)
+    return item
+  })
+
+  aioLogger.debug('modified block config:', JSON.stringify(configJson, null, 2))
+  return JSON.stringify(configJson)
+}
+
+/**
+ * Creates a da site config for DA library
+ */
+export function createDaSiteConfig () {
   const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
   const basePath = `https://content.da.live/${gitOrg}/${gitRepo}/.da/library`
 
-  return {
+  const configJson = {
     data: {
       total: 1,
       limit: 1,
@@ -85,13 +109,6 @@ const generateDaSiteConfig = () => {
     ':version': 3,
     ':type': 'multi-sheet'
   }
-}
-
-/**
- * Creates a da site config for DA library
- */
-export function createDaSiteConfig () {
-  const configJson = generateDaSiteConfig()
   aioLogger.debug('created da site config:', JSON.stringify(configJson, null, 2))
   return JSON.stringify(configJson)
 }
