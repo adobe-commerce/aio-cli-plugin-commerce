@@ -51,60 +51,47 @@ export function modifyConfig (configSource) {
   return JSON.stringify(configJson)
 }
 
-const DA_SITE_CONFIG = {
-  data: {
-    total: 1,
-    limit: 1,
-    offset: 0,
-    data: [
-      {}
-    ],
-    ':colWidths': []
-  },
-  library: {
-    total: 2,
-    limit: 2,
-    offset: 0,
-    data: [
-      {
-        title: 'Blocks',
-        path: 'https://content.da.live/adobe-commerce/boilerplate/.da/library/blocks.json',
-        format: ''
-      },
-      {
-        title: 'Icons',
-        path: 'https://content.da.live/adobe-commerce/boilerplate/.da/library/icons.json',
-        format: ':<content>:'
-      }
-    ],
-    ':colWidths': [
-      75,
-      500,
-      100
-    ]
-  },
-  ':names': [
-    'data',
-    'library'
-  ],
-  ':version': 3,
-  ':type': 'multi-sheet'
+const generateDaSiteConfig = () => {
+  const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
+  const basePath = `https://content.da.live/${gitOrg}/${gitRepo}/.da/library`
+
+  return {
+    data: {
+      total: 1,
+      limit: 1,
+      offset: 0,
+      data: [{}],
+      ':colWidths': []
+    },
+    library: {
+      total: 2,
+      limit: 2,
+      offset: 0,
+      data: [
+        {
+          title: 'Blocks',
+          path: `${basePath}/blocks.json`,
+          format: ''
+        },
+        {
+          title: 'Icons',
+          path: `${basePath}/icons.json`,
+          format: ':<content>:'
+        }
+      ],
+      ':colWidths': [75, 500, 100]
+    },
+    ':names': ['data', 'library'],
+    ':version': 3,
+    ':type': 'multi-sheet'
+  }
 }
 
 /**
  * Creates a da site config for DA library
- *
  */
 export function createDaSiteConfig () {
-  // get dest org/site
-  const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
-
-  const configJson = DA_SITE_CONFIG
-  configJson.library.data = configJson.library.data.map((item) => {
-    item.path = item.path.replace('adobe-commerce/boilerplate', `${gitOrg}/${gitRepo}`)
-    return item
-  })
-
+  const configJson = generateDaSiteConfig()
   aioLogger.debug('created da site config:', JSON.stringify(configJson, null, 2))
   return JSON.stringify(configJson)
 }
