@@ -137,6 +137,7 @@ async function modifyFstab (githubOrg, githubRepo, templateRepo) {
 folders:
   /products/: /products/default
 `
+  // TODO delete when helix 4 boilerplate (ccdm-demo-store/adobe-demo-store) are gone
   const adobeStoreFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/

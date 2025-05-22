@@ -9,6 +9,7 @@ const aioLogger = Logger('commerce:configs.js')
  * defined (mesh or saas) we use the default value from the
  * source config.
  *
+ * TODO delete when helix 4 boilerplate (ccdm-demo-store/adobe-demo-store) are gone
  * @param configSource  the config source as string or json
  * @returns modified config, with values desired by user
  */
@@ -22,7 +23,6 @@ export function modifyConfig (configSource) {
     configJson = JSON.parse(configSource)
   }
 
-  // TODO: USF-1882: Query backend (commerce-endpoint + commerce-core-endpoint) for the values needed here.
   configJson.data = configJson.data.map((item) => {
     switch (item.key) {
       case 'commerce-endpoint':
@@ -63,7 +63,7 @@ export function modifyDaBlockLibraryConfig (configSource) {
   if (typeof configSource === 'string') {
     configJson = JSON.parse(configSource)
   }
-  aioLogger.debug('pre-modificaiton block config:', JSON.stringify(configJson, null, 2))
+
   configJson.data.data = configJson.data.data.map(item => {
     item.path = item.path.replace('adobe-commerce/boilerplate', `${gitOrg}/${gitRepo}`)
     return item

@@ -71,7 +71,7 @@ async function getBlob (text, pathname) {
   } else if (pathname === '/.da/library/blocks.json') {
     content = modifyDaBlockLibraryConfig(text)
   } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
-    // conditional specifically for helix 4 storefront config file (adobe-demo-store, ccdm-demo-store)
+    // TODO delete when helix 4 boilerplate (ccdm-demo-store/adobe-demo-store) are gone
     content = modifyConfig(text)
   }
   return new Blob([content], { type })
