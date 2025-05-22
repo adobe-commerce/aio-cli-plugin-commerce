@@ -75,10 +75,12 @@ export class InitCommand extends Command {
         await codeSyncComplete(githubOrg, githubRepo)
       }
       const filePaths = await uploadStarterContent()
+      // Certain files are specific to da, and should not be previewed/published.
+      const filePathsWithoutPrivate = filePaths.filter(file => !file.startsWith('/.da/'))
       console.log('⏳ Previewing your content files...')
-      await previewContent(filePaths)
+      await previewContent(filePathsWithoutPrivate)
       console.log('⏳ Publishing your content files...')
-      await publishContent(filePaths)
+      await publishContent(filePathsWithoutPrivate)
 
       const meshUrl = config.get('commerce.datasource.meshUrl')
       const adminUrl = config.get('commerce.datasource.admin')
@@ -86,8 +88,8 @@ export class InitCommand extends Command {
       console.log('\n************************************************')
       console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉\n`)
       console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
+      console.log(`${boldWhite}Manage your Commerce config:${reset} https://github.com/${githubOrg}/${githubRepo}/blob/main/config.json`)
       console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
-      console.log(`${boldWhite}Manage your config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
       console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
       if (adminUrl) {
         console.log(`${boldWhite}Access your Commerce Admin:${reset} ${adminUrl}`)

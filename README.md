@@ -149,10 +149,6 @@ EXAMPLES
 ```
 <!-- commandsstop -->
 
-## Contributing
-
-Contributions are welcomed! Read the [Contributing Guide](CONTRIBUTING.md) for more information.
-
 ## Local Development
 
 ```sh
@@ -161,6 +157,13 @@ cd aio-cli-plugin-commerce
 npm install
 aio plugins:link commerce
 ```
+
+## Templates
+
+The requirements for adding or using a template (source site) are:
+
+* The source site github repo is a "template" repo.
+* The source site produces a `full-index.json` (see [this](https://admin.hlx.page/config/adobe-commerce/sites/boilerplate/content/query.yaml) for example).
 
 ## Logging
 
@@ -171,6 +174,10 @@ Use `AIO_LOG_LEVEL=debug|verbose|info|warn|error <command>` to see full logs.
 ```sh
 AIO_LOG_LEVEL=debug aio commerce:init
 ```
+
+## Contributing
+
+Contributions are welcomed! Read the [Contributing Guide](CONTRIBUTING.md) for more information.
 
 ## Licensing
 
