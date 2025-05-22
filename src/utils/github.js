@@ -15,13 +15,6 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
   console.log(`⏳ Attempting to create code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
 
   try {
-    // First check if the user has access to the org.
-    // TODO: This requires admin:org scope on gh token, so skip this for now
-    // const orgCheck = await runCommand(`gh api orgs/${githubOrg}`)
-    // if (!orgCheck?.stdout) {
-    //   throw new Error(`You don't have access to the organization ${githubOrg}. Please ensure you have the necessary permissions.`)
-    // }
-
     // Check if the repository already exists
     try {
       const repoCheck = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
@@ -38,9 +31,7 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     // If we get here, we have access to the org and the repo doesn't exist
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
 
-    // without timeout the commits are all out of order for some reason, and "initial commit" is the last, so fstab and other things are wiped although the appear in commit history
-    // TODO figure out how to create the commits in proper order without having a timeout or delay.
-    // Wait for repo creation to complete
+    // Wait for repo creation to complete, otherwise commits are out of order.
     await new Promise(resolve => {
       setTimeout(() => resolve(), 5000)
     })
@@ -54,11 +45,7 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
     await modifyFstab(githubOrg, githubRepo, templateRepo)
     await modifySidekickConfig(githubOrg, githubRepo)
-
-    // aem-boilerplate-commerce is on config service, so for scaffolded repos we need to create a local config.json
-    if (templateRepo === 'aem-boilerplate-commerce') {
-      await createLocalCommerceConfig(githubOrg, githubRepo, templateOrg, templateRepo)
-    }
+    await createLocalCommerceConfig(githubOrg, githubRepo, templateOrg, templateRepo)
   } catch (error) {
     console.error(`❌ ${error.message}`)
     throw error
@@ -258,7 +245,6 @@ export async function codeSyncComplete (org, repo) {
   const retries = 100
   const delayMs = 1000
   let attempts = 0
-  // TODO: get url to check from code source, rather than assume scripts/scripts.js exists.
   const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/scripts.js`
   aioLogger.debug(`Checking code resource is uploaded at ${resourceUrl}`)
   while (attempts < retries) {

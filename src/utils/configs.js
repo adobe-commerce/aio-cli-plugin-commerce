@@ -54,6 +54,7 @@ export function modifyConfig (configSource) {
 /**
  * Modifies block library config and replaces references with new org/site
  * @param configSource
+ * @returns stringified config
  */
 export function modifyDaBlockLibraryConfig (configSource) {
   const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')
@@ -74,6 +75,7 @@ export function modifyDaBlockLibraryConfig (configSource) {
 
 /**
  * Creates a da site config for DA library
+ * @returns stringified config
  */
 export function createDaSiteConfig () {
   const { org: gitOrg, repo: gitRepo } = config.get('commerce.github')

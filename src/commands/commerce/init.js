@@ -145,7 +145,7 @@ InitCommand.flags = {
   }),
   template: Flags.string({
     char: 't',
-    description: 'Template to use for storefront code and content, ie "adobe-commerce/adobe-demo-store"'
+    description: 'Template to use for storefront code and content, ie "hlxsites/aem-boilerplate-commerce"'
   })
 }
 
@@ -154,5 +154,5 @@ InitCommand.args = {
 
 InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
 InitCommand.examples = [
-  '$ aio commerce:init --template adobe-commerce/adobe-demo-store --skipMesh --repo my-git-user/my-site'
+  '$ aio commerce:init --template hlxsites/aem-boilerplate-commerce --skipMesh --repo my-git-user/my-site'
 ]

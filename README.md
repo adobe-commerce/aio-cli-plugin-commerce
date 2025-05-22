@@ -124,14 +124,14 @@ FLAGS
   -d, --datasource=<value>  your datasource, ie "https://my-commerce-api.com/graphql
   -r, --repo=<value>        your github repo, ie "my-git-user/my-test-storefront"
   --skipMesh                skip creating API Mesh
-  -t, --template=<value>    the template to use, ie "adobe-commerce/adobe-demo-store
+  -t, --template=<value>    the template to use, ie "hlxsites/aem-boilerplate-commerce
 
 DESCRIPTION
   Scaffold your own Adobe Commerce on EDS storefront
 
 EXAMPLES
   $  aio commerce:init
-  $  aio commerce:init --template "adobe-commerce/adobe-demo-store" --skipMesh --repo "my-git-user/my-site"
+  $  aio commerce:init --template "hlxsites/aem-boilerplate-commerce" --skipMesh --repo "my-git-user/my-site"
 
 ```
 

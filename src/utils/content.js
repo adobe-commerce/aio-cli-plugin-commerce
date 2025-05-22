@@ -98,7 +98,6 @@ async function uploadFilesToDA (files) {
           const { pathname } = new URL(contentFilePath)
           let blob
           if (contentFilePath.endsWith('.png') || contentFilePath.endsWith('.jpg')) {
-            // TODO: Handle other image types
             blob = await resp.blob()
           } else {
             blob = await getBlob(await resp.text(), pathname)
