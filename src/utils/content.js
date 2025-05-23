@@ -18,8 +18,6 @@ export async function uploadStarterContent () {
   console.log(`⏳ Cloning ${filePaths.length} content documents from source boilerplate`)
   await uploadFilesToDA(filePaths)
   await uploadDaSiteConfig()
-  // TODO: Trim out failed uploads. Context: If files fail to upload, then we
-  // don't want to preview them later (this return array is iterated over for previews)
   return filePaths
 }
 
