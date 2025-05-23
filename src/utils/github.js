@@ -44,7 +44,11 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     console.log(`✅ Created code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
     await modifyFstab(githubOrg, githubRepo, templateRepo)
     await modifySidekickConfig(githubOrg, githubRepo)
-    await createLocalCommerceConfig(githubOrg, githubRepo, templateOrg, templateRepo)
+
+    // aem-boilerplate-commerce is on config service, so for scaffolded repos we need to create a local config.json
+    if (templateRepo === 'aem-boilerplate-commerce') {
+      await createLocalCommerceConfig(githubOrg, githubRepo, templateOrg, templateRepo)
+    }
   } catch (error) {
     console.error(`❌ ${error.message}`)
     throw error
