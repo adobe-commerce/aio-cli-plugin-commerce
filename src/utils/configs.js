@@ -90,19 +90,14 @@ export function createDaSiteConfig () {
       ':colWidths': []
     },
     library: {
-      total: 2,
-      limit: 2,
+      total: 1,
+      limit: 1,
       offset: 0,
       data: [
         {
           title: 'Blocks',
           path: `${basePath}/blocks.json`,
           format: ''
-        },
-        {
-          title: 'Icons',
-          path: `${basePath}/icons.json`,
-          format: ':<content>:'
         }
       ],
       ':colWidths': [75, 500, 100]
