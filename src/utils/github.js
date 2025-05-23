@@ -136,8 +136,6 @@ async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, te
 async function modifyFstab (githubOrg, githubRepo, templateRepo) {
   let repoReady = false
   let attempts = 0
-  // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
-  // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
   const standardFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/

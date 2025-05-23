@@ -33,7 +33,7 @@ Now, let's get started!\n`)
   let org
   if (!skipGit) {
     try {
-      const { stdout } = await runCommand('gh api user --jq .login')
+      const { stdout } = await runCommand('gh api user --jq .login | tr -d "\n"')
       org = stdout
     } catch (e) {
       aioLogger.debug(e)
@@ -44,7 +44,7 @@ Now, let's get started!\n`)
   }
   let answer
   if (org) {
-    answer = await promptConfirm(`Would you like to create the code and content under your github username, "${org.trim()}"?`)
+    answer = await promptConfirm(`Would you like to create the code and content under your github username, "${org}"?`)
   }
   if (!answer) {
     org = await promptInput('Enter the organization under which to create the code and content:')
@@ -65,7 +65,7 @@ Now, let's get started!\n`)
     throw new Error('❌ Github repo name (site name) too long. Use shorter name.\nhttps://www.aem.live/docs/faq#what-is-the-character-limit-for-a-branchsubdomain')
   }
 
-  config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
+  config.set('commerce.github.org', org)
   config.set('commerce.github.repo', repo)
 
   // TEMPLATE SELECTION
