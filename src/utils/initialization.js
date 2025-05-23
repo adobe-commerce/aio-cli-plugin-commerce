@@ -33,7 +33,7 @@ Now, let's get started!\n`)
   let org
   if (!skipGit) {
     try {
-      const { stdout } = await runCommand('gh api user --jq .login')
+      const { stdout } = await runCommand('gh api user --jq .login | tr -d "\n"')
       org = stdout
     } catch (e) {
       aioLogger.debug(e)
@@ -44,7 +44,7 @@ Now, let's get started!\n`)
   }
   let answer
   if (org) {
-    answer = await promptConfirm(`Would you like to create the code and content under your github username, "${org.trim()}"?`)
+    answer = await promptConfirm(`Would you like to create the code and content under your github username, "${org}"?`)
   }
   if (!answer) {
     org = await promptInput('Enter the organization under which to create the code and content:')
@@ -65,19 +65,12 @@ Now, let's get started!\n`)
     throw new Error('❌ Github repo name (site name) too long. Use shorter name.\nhttps://www.aem.live/docs/faq#what-is-the-character-limit-for-a-branchsubdomain')
   }
 
-  config.set('commerce.github.org', org.trim()) // TODO: without .trim, this fails for some reason when using the gh authed username
+  config.set('commerce.github.org', org)
   config.set('commerce.github.repo', repo)
 
   // TEMPLATE SELECTION
   // Allow user to pass template flag, or default to boilerplate
   template = template || 'hlxsites/aem-boilerplate-commerce'
-  // template = template || await promptSelect('Which template would you like to use?', [
-  //   'adobe-commerce/adobe-demo-store', // ACCS template
-  //   'adobe-commerce/ccdm-demo-store', // ACO template
-  //   'hlxsites/aem-boilerplate-commerce' // template
-  //   // 'adobe-rnd/aem-boilerplate-xcom' // UE Template
-  //   // 'aabsites/citisignal' // TODO: Cannot use citisignal until we resolve how to use templates that use config service as some core files are missing https://magento.slack.com/archives/C085R48U3R7/p1738785011567519
-  // ])
   config.set('commerce.template.org', template.split('/')[0])
   config.set('commerce.template.repo', template.split('/')[1])
 

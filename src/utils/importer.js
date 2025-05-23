@@ -21,7 +21,6 @@ export async function getAemHtml (text) {
   if (!org || !repo) throw new Error('Missing Github Org and Repo')
   const dom = mdToDocDom(text)
   const aemHtml = docDomToAemHtml(dom)
-  // TODO - do we need fragment finding?
   // await findFragments(aemHtml)
   const fromOrigin = `https://main--${repo}--${org}.aem.live`
   const inner = aemHtml
