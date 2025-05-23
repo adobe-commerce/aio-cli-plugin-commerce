@@ -1,7 +1,6 @@
 import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
-// import { promptConfirm } from './prompt.js'
 const aioLogger = Logger('commerce:github.js')
 
 /**
@@ -54,6 +53,8 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
 
 /**
  * Creates a local config.json based on the demo-config.json structure
+ * Note: Assumes you use CODE /config.json, rather than CONTENT /configs-[ENV].json
+ *
  * @param githubOrg
  * @param githubRepo
  * @param templateOrg
@@ -62,19 +63,17 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
 async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, templateRepo) {
   const { saas, meshUrl } = config.get('commerce.datasource')
 
-  const cfg = await fetch(`https://main--${templateRepo}--${templateOrg}.aem.live/config.json`).then(res => res.json())
+  const cfg = await fetch(`https://main--${templateRepo}--${templateOrg}.aem.live/config.json`).then(res => res.json()).catch(e => {
+    aioLogger.debug(e)
+    console.log('⚠️ Template source has no config - you may need to update your storefront config after provisioning!')
+  })
 
-  const coreEndpoint = meshUrl || saas || cfg.public.default['commerce-core-endpoint']
-  const catalogEndpoint = meshUrl || saas || cfg.public.default['commerce-endpoint']
-  const apiKey = config.get('commerce.apiKey') || cfg.public.default.headers.cs['x-api-key']
-  const environmentId = config.get('commerce.environmentId') || cfg.public.default.headers.cs['Magento-Environment-Id']
+  const coreEndpoint = meshUrl || saas || cfg?.public?.default['commerce-core-endpoint'] || ''
+  const catalogEndpoint = meshUrl || saas || cfg?.public?.default['commerce-endpoint'] || ''
+  const apiKey = config.get('commerce.apiKey') || cfg?.public?.default.headers.cs['x-api-key'] || ''
+  const environmentId = config.get('commerce.environmentId') || cfg?.public?.default?.headers?.cs['Magento-Environment-Id'] || ''
 
-  let repoReady = false
-  let attempts = 0
-  while (!repoReady && attempts++ <= 10) {
-    aioLogger.debug('writing config.json, attempt #', attempts)
-    try {
-      const CONTENT = `{
+  const CONTENT = `{
   "public": {
     "default": {
       "commerce-core-endpoint": "${coreEndpoint}",
@@ -104,8 +103,14 @@ async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, te
   }
 }
 `
-      aioLogger.debug(CONTENT)
-      const ENCODED_CONTENT = Buffer.from(CONTENT, 'utf8').toString('base64')
+  aioLogger.debug(CONTENT)
+  const ENCODED_CONTENT = Buffer.from(CONTENT, 'utf8').toString('base64')
+
+  let repoReady = false
+  let attempts = 0
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing config.json, attempt #', attempts)
+    try {
       await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/config.json -f message="create local commerce config" -f content="${ENCODED_CONTENT.trim()}"`)
 
       repoReady = true
