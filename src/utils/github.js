@@ -250,10 +250,10 @@ async function modifySidekickConfig (githubOrg, githubRepo) {
  * @param repo
  */
 export async function codeSyncComplete (org, repo) {
-  const retries = 100
+  const retries = 150 // The longest I've seen this take is 133 seconds.
   const delayMs = 1000
   let attempts = 0
-  const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/scripts.js`
+  const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/aem.js`
   aioLogger.debug(`Checking code resource is uploaded at ${resourceUrl}`)
   while (attempts < retries) {
     try {
