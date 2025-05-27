@@ -44,12 +44,12 @@ Now, let's get started!\n`)
   }
   let answer
   if (org) {
-    answer = await promptConfirm(`Would you like to create the code and content under your github username, "${org}"?`)
+    answer = await promptConfirm(`Would you like to create the code and content repository under your GitHub username, "${org}"?`)
   }
   if (!answer) {
     org = await promptInput('Enter the organization name (e.g my-company) under which to create the code and content:')
   }
-  repo = repo?.split('/')[1] || await promptInput('Enter a unique storefront name (e.g. company-storefront). The value is used as the GitHub repository name for storefront template code and the site name:')
+  repo = repo?.split('/')[1] || await promptInput('Enter a unique storefront name (e.g. company-storefront). The value is used as the name for the content and code repository and the site name in the storefront URL:')
 
   if (!org || !repo) {
     throw new Error('❌ Please provide both the github org/name and repo (site) name.')
