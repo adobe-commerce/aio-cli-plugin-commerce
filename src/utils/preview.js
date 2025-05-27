@@ -3,8 +3,6 @@ import Logger from '@adobe/aio-lib-core-logging'
 import { fetchWithRetry } from './fetchWithRetry.js'
 const aioLogger = Logger('commerce:preview.js')
 
-// TODO: DRY - only diff for the preview/publish functions is the API url and log detail (use of term preview vs publish).
-// we should refactor
 /**
  * https://www.aem.live/docs/admin.html#tag/preview/operation/bulkPreview
  * @param previewFiles urls whose paths we will preview

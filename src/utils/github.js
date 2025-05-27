@@ -1,7 +1,6 @@
 import { runCommand } from './runCommand.js'
 import config from '@adobe/aio-lib-core-config'
 import Logger from '@adobe/aio-lib-core-logging'
-// import { promptConfirm } from './prompt.js'
 const aioLogger = Logger('commerce:github.js')
 
 /**
@@ -15,13 +14,6 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
   console.log(`⏳ Attempting to create code repository at https://github.com/${githubOrg}/${githubRepo} from template ${templateOrg}/${templateRepo}`)
 
   try {
-    // First check if the user has access to the org.
-    // TODO: This requires admin:org scope on gh token, so skip this for now
-    // const orgCheck = await runCommand(`gh api orgs/${githubOrg}`)
-    // if (!orgCheck?.stdout) {
-    //   throw new Error(`You don't have access to the organization ${githubOrg}. Please ensure you have the necessary permissions.`)
-    // }
-
     // Check if the repository already exists
     try {
       const repoCheck = await runCommand(`gh api repos/${githubOrg}/${githubRepo}`)
@@ -38,9 +30,7 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
     // If we get here, we have access to the org and the repo doesn't exist
     await runCommand(`gh repo create ${githubOrg}/${githubRepo} --template ${templateOrg}/${templateRepo} --public`)
 
-    // without timeout the commits are all out of order for some reason, and "initial commit" is the last, so fstab and other things are wiped although the appear in commit history
-    // TODO figure out how to create the commits in proper order without having a timeout or delay.
-    // Wait for repo creation to complete
+    // Wait for repo creation to complete, otherwise commits are out of order.
     await new Promise(resolve => {
       setTimeout(() => resolve(), 5000)
     })
@@ -67,6 +57,8 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
 
 /**
  * Creates a local config.json based on the demo-config.json structure
+ * Note: Assumes you use CODE /config.json, rather than CONTENT /configs-[ENV].json
+ *
  * @param githubOrg
  * @param githubRepo
  * @param templateOrg
@@ -75,19 +67,17 @@ export async function createRepo (githubOrg, githubRepo, templateOrg, templateRe
 async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, templateRepo) {
   const { saas, meshUrl } = config.get('commerce.datasource')
 
-  const cfg = await fetch(`https://main--${templateRepo}--${templateOrg}.aem.live/config.json`).then(res => res.json())
+  const cfg = await fetch(`https://main--${templateRepo}--${templateOrg}.aem.live/config.json`).then(res => res.json()).catch(e => {
+    aioLogger.debug(e)
+    console.log('⚠️ Template source has no config - you may need to update your storefront config after provisioning!')
+  })
 
-  const coreEndpoint = meshUrl || saas || cfg.public.default['commerce-core-endpoint']
-  const catalogEndpoint = meshUrl || saas || cfg.public.default['commerce-endpoint']
-  const apiKey = config.get('commerce.apiKey') || cfg.public.default.headers.cs['x-api-key']
-  const environmentId = config.get('commerce.environmentId') || cfg.public.default.headers.cs['Magento-Environment-Id']
+  const coreEndpoint = meshUrl || saas || cfg?.public?.default['commerce-core-endpoint'] || ''
+  const catalogEndpoint = meshUrl || saas || cfg?.public?.default['commerce-endpoint'] || ''
+  const apiKey = config.get('commerce.apiKey') || cfg?.public?.default.headers.cs['x-api-key'] || ''
+  const environmentId = config.get('commerce.environmentId') || cfg?.public?.default?.headers?.cs['Magento-Environment-Id'] || ''
 
-  let repoReady = false
-  let attempts = 0
-  while (!repoReady && attempts++ <= 10) {
-    aioLogger.debug('writing config.json, attempt #', attempts)
-    try {
-      const CONTENT = `{
+  const CONTENT = `{
   "public": {
     "default": {
       "commerce-core-endpoint": "${coreEndpoint}",
@@ -117,8 +107,14 @@ async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, te
   }
 }
 `
-      aioLogger.debug(CONTENT)
-      const ENCODED_CONTENT = Buffer.from(CONTENT, 'utf8').toString('base64')
+  aioLogger.debug(CONTENT)
+  const ENCODED_CONTENT = Buffer.from(CONTENT, 'utf8').toString('base64')
+
+  let repoReady = false
+  let attempts = 0
+  while (!repoReady && attempts++ <= 10) {
+    aioLogger.debug('writing config.json, attempt #', attempts)
+    try {
       await runCommand(`gh api -X PUT repos/${githubOrg}/${githubRepo}/contents/config.json -f message="create local commerce config" -f content="${ENCODED_CONTENT.trim()}"`)
 
       repoReady = true
@@ -140,8 +136,6 @@ async function createLocalCommerceConfig (githubOrg, githubRepo, templateOrg, te
 async function modifyFstab (githubOrg, githubRepo, templateRepo) {
   let repoReady = false
   let attempts = 0
-  // TODO: adobe-demo-store uses folder mapping for categories so need to add conditional. Long view, should not matter
-  // if using config service, or if we can update to only modify the root mountpoint and copy "folders:" in full from source fstab.
   const standardFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/
@@ -150,6 +144,7 @@ async function modifyFstab (githubOrg, githubRepo, templateRepo) {
 folders:
   /products/: /products/default
 `
+  // TODO delete when helix 4 boilerplate (ccdm-demo-store/adobe-demo-store) are gone
   const adobeStoreFstab = `mountpoints:
   /:
     url: https://content.da.live/${githubOrg}/${githubRepo}/
@@ -255,11 +250,10 @@ async function modifySidekickConfig (githubOrg, githubRepo) {
  * @param repo
  */
 export async function codeSyncComplete (org, repo) {
-  const retries = 100
+  const retries = 150 // The longest I've seen this take is 133 seconds.
   const delayMs = 1000
   let attempts = 0
-  // TODO: get url to check from code source, rather than assume scripts/scripts.js exists.
-  const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/scripts.js`
+  const resourceUrl = `https://main--${repo}--${org}.aem.page/scripts/aem.js`
   aioLogger.debug(`Checking code resource is uploaded at ${resourceUrl}`)
   while (attempts < retries) {
     try {

@@ -18,8 +18,6 @@ export async function uploadStarterContent () {
   console.log(`⏳ Cloning ${filePaths.length} content documents from source boilerplate`)
   await uploadFilesToDA(filePaths)
   await uploadDaSiteConfig()
-  // TODO: Trim out failed uploads. Context: If files fail to upload, then we
-  // don't want to preview them later (this return array is iterated over for previews)
   return filePaths
 }
 
@@ -71,7 +69,7 @@ async function getBlob (text, pathname) {
   } else if (pathname === '/.da/library/blocks.json') {
     content = modifyDaBlockLibraryConfig(text)
   } else if (['/configs.json', '/configs-stage.json', '/configs-dev.json'].includes(pathname)) {
-    // conditional specifically for helix 4 storefront config file (adobe-demo-store, ccdm-demo-store)
+    // TODO delete when helix 4 boilerplate (ccdm-demo-store/adobe-demo-store) are gone
     content = modifyConfig(text)
   }
   return new Blob([content], { type })
@@ -98,7 +96,6 @@ async function uploadFilesToDA (files) {
           const { pathname } = new URL(contentFilePath)
           let blob
           if (contentFilePath.endsWith('.png') || contentFilePath.endsWith('.jpg')) {
-            // TODO: Handle other image types
             blob = await resp.blob()
           } else {
             blob = await getBlob(await resp.text(), pathname)
