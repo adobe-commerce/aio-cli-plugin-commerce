@@ -104,9 +104,8 @@ Additionally, please:
 
 ```sh-session
 $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce
-$ # OR
-$ aio discover -i
-$ aio commerce --help
+$ # OR to install a specific tag
+$ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#semverX.Y.Z
 ```
 
 # Commands
