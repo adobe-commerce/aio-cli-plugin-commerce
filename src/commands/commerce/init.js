@@ -71,7 +71,7 @@ export class InitCommand extends Command {
         if (!res) {
           throw new Error('❌ You must install the AEM Code Sync bot before continuing. Install before running the command again. https://github.com/apps/aem-code-sync/installations/select_target')
         }
-        console.log('⏳ Validating code sync...')
+        console.log('⏳ Validating code sync. This can take a while..')
         await codeSyncComplete(githubOrg, githubRepo)
       }
       const filePaths = await uploadStarterContent()
