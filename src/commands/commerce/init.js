@@ -88,7 +88,11 @@ export class InitCommand extends Command {
       console.log('\n************************************************')
       console.log(`🎉 ${boldWhite}Setup complete!${reset} 🎉\n`)
       console.log(`${boldWhite}Customize your code:${reset} https://github.com/${githubOrg}/${githubRepo}`)
-      console.log(`${boldWhite}Manage your Commerce config:${reset} https://github.com/${githubOrg}/${githubRepo}/blob/main/config.json`)
+      if (templateRepo === 'adobe-demo-store' || templateRepo === 'ccdm-demo-store') {
+        console.log(`${boldWhite}Manage your Commerce config:${reset} https://da.live/sheet#/${githubOrg}/${githubRepo}/configs-stage`)
+      } else {
+        console.log(`${boldWhite}Manage your Commerce config:${reset} https://github.com/${githubOrg}/${githubRepo}/blob/main/config.json`)
+      }
       console.log(`${boldWhite}Edit your content:${reset} https://da.live/#/${githubOrg}/${githubRepo}`)
       console.log(`${boldWhite}Preview your storefront:${reset} https://main--${githubRepo}--${githubOrg}.aem.page/`)
       if (adminUrl) {
