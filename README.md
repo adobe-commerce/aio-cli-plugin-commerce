@@ -117,11 +117,12 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 
 ```
 USAGE
-  $ aio commerce init [-d <value>] [-r <value>] [--skipMesh] [-t <value>]
+  $ aio commerce init [-d <value>] [-r <value>] [--skipGit] [--skipMesh] [-t <value>]
 
 FLAGS
   -d, --datasource=<value>  your datasource, ie "https://my-commerce-api.com/graphql
   -r, --repo=<value>        your github repo, ie "my-git-user/my-test-storefront"
+  --skipGit                 skip creating Git Repo
   --skipMesh                skip creating API Mesh
   -t, --template=<value>    the template to use, ie "hlxsites/aem-boilerplate-commerce
 
