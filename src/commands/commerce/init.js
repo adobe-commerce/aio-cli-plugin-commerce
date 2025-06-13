@@ -108,6 +108,11 @@ export class InitCommand extends Command {
         }
       }
       console.log('For next steps, including how to customize your storefront and make it your own, check out our docs:\nhttps://experienceleague.adobe.com/developer/commerce/storefront/')
+      console.log('\n⚠️  IMPORTANT SECURITY NOTICE:')
+      console.log('Your site is NOT protected by default. To secure your content and site:')
+      console.log('• Content in DA: Configure permissions at https://da.live/docs/administration/permissions')
+      console.log('• EDS site authentication: Follow guide at https://www.aem.live/docs/authentication-setup-authoring')
+      console.log('• Git repository: Change your repository to private in GitHub settings')
       console.log('************************************************\n')
       // cleanup
       config.delete('commerce')
