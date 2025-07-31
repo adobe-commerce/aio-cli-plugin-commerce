@@ -45,7 +45,22 @@ async function getFilePathsFromAem () {
     aioLogger.debug(`No paths - does this exist? ${idxUrl}`)
   }
 
-  return paths
+  // Filter out items that match "*/products/*" but keep "*/products/default"
+  // and "*/products/default/*"
+  // This is necessary due source content having "overlay" documents, which should not be copied.
+  const filteredPaths = paths.filter((path) => {
+    // Skip paths that contain "/products/" anywhere in the path
+    if (path.includes('/products/')) {
+      // But keep paths that end with "/products/default" or contain "/products/default/"
+      if (path.endsWith('/products/default') || path.includes('/products/default/')) {
+        return true
+      }
+      return false
+    }
+    return true
+  })
+
+  return filteredPaths
 }
 
 /**
