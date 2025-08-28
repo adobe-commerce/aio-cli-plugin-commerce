@@ -164,7 +164,7 @@ EXAMPLES
 
 This command sets up Commerce Extensibility Tools for use with Cursor IDE. It will:
 
-- Install the `temp-commerce-extensibility-tooling` package as a dev dependency
+- Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
 - Create MCP (Model Context Protocol) configuration for Cursor
 - Set up rules and tooling for Commerce App Builder development
 - Configure the environment for enhanced development experience
