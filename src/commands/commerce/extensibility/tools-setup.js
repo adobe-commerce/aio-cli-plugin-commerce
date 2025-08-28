@@ -72,11 +72,11 @@ export class ToolsSetupCommand extends Command {
 
       // Install the npm package
       console.log(
-        `📦 Installing temp-commerce-extensibility-tooling package using ${packageManager}...`
+        `📦 Installing @adobe-commerce/commerce-extensibility-tools package using ${packageManager}...`
       )
       const installCommand = packageManager === 'yarn'
-        ? 'yarn add -D temp-commerce-extensibility-tooling@latest'
-        : 'npm install --save-dev temp-commerce-extensibility-tooling@latest'
+        ? 'yarn add -D @adobe-commerce/commerce-extensibility-tools@latest'
+        : 'npm install --save-dev @adobe-commerce/commerce-extensibility-tools@latest'
       await runCommand(installCommand)
       console.log('✅ Package installed successfully')
 
@@ -92,7 +92,7 @@ export class ToolsSetupCommand extends Command {
         mcpServers: {
           'commerce-extensibility': {
             command: 'node',
-            args: ['node_modules/temp-commerce-extensibility-tooling/index.js'],
+            args: ['node_modules/@adobe-commerce/commerce-extensibility-tools/index.js'],
             env: {}
           }
         }
@@ -112,7 +112,8 @@ export class ToolsSetupCommand extends Command {
       const packageRulesDir = path.join(
         targetDir,
         'node_modules',
-        'temp-commerce-extensibility-tooling',
+        '@adobe-commerce',
+        'commerce-extensibility-tools',
         'rules',
         'cursor'
       )
