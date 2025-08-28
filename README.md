@@ -112,6 +112,7 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 <!-- commands -->
 * [`aio commerce init`](#aio-commerce-init)
 * [`aio commerce dev`](#aio-pluginname)
+* [`aio commerce extensibility tools-setup`](#aio-commerce-extensibility-tools-setup)
 
 ## `aio commerce init`
 
@@ -147,6 +148,33 @@ DESCRIPTION
 EXAMPLES
   $ aio commerce:dev
 ```
+
+## `aio commerce extensibility tools-setup`
+
+```
+USAGE
+  $ aio commerce extensibility tools-setup
+
+DESCRIPTION
+  Setup Commerce Extensibility Tools for Cursor IDE
+
+EXAMPLES
+  $ aio commerce:extensibility:tools-setup
+```
+
+This command sets up Commerce Extensibility Tools for use with Cursor IDE. It will:
+
+- Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
+- Create MCP (Model Context Protocol) configuration for Cursor
+- Set up rules and tooling for Commerce App Builder development
+- Configure the environment for enhanced development experience
+
+The setup process will prompt you to:
+- Choose between current directory or a new directory for setup
+- Select your preferred package manager (npm or yarn)
+- Confirm if you want to override existing MCP configuration
+
+After setup, restart Cursor to load the new MCP tools and start using the Commerce App Builder extensions.
 <!-- commandsstop -->
 
 ## Local Development
