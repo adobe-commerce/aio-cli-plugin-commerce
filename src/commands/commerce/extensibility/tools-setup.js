@@ -70,6 +70,13 @@ export class ToolsSetupCommand extends Command {
         ['npm', 'yarn']
       )
 
+      // Check if @adobe/aio-cli-plugin-app-dev is installed, if not, install it using aio plugins:install @adobe/aio-cli-plugin-app-dev
+      const appDevPlugin = await runCommand('aio plugins:inspect @adobe/aio-cli-plugin-app-dev')
+      if (!appDevPlugin) {
+        console.log('Installing @adobe/aio-cli-plugin-app-dev plugin...')
+        await runCommand('aio plugins:install @adobe/aio-cli-plugin-app-dev')
+      }
+
       // Install the npm package
       console.log(
         `📦 Installing @adobe-commerce/commerce-extensibility-tools package using ${packageManager}...`
