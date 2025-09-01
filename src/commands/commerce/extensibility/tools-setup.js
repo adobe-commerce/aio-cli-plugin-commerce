@@ -71,10 +71,13 @@ export class ToolsSetupCommand extends Command {
       )
 
       // Check if @adobe/aio-cli-plugin-app-dev is installed, if not, install it using aio plugins:install @adobe/aio-cli-plugin-app-dev
-      const appDevPlugin = await runCommand('aio plugins:inspect @adobe/aio-cli-plugin-app-dev')
-      if (!appDevPlugin) {
-        console.log('Installing @adobe/aio-cli-plugin-app-dev plugin...')
+      try {
+        await runCommand('aio plugins:inspect @adobe/aio-cli-plugin-app-dev')
+        console.log('✅ @adobe/aio-cli-plugin-app-dev plugin installed')
+      } catch (error) {
+        console.log('⚠️  @adobe/aio-cli-plugin-app-dev plugin not installed, installing...')
         await runCommand('aio plugins:install @adobe/aio-cli-plugin-app-dev')
+        console.log('✅ @adobe/aio-cli-plugin-app-dev plugin installed')
       }
 
       // Install the npm package
@@ -131,6 +134,11 @@ export class ToolsSetupCommand extends Command {
           for (const file of files) {
             const sourcePath = path.join(packageRulesDir, file)
             const destPath = path.join(rulesDir, file)
+
+            // ignore README.md
+            if (file === 'README.md') {
+              continue
+            }
 
             if (fs.statSync(sourcePath).isFile()) {
               fs.copyFileSync(sourcePath, destPath)
