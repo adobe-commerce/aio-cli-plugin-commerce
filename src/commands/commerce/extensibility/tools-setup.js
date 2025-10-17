@@ -91,10 +91,14 @@ class CursorAgent {
 
   async setupMCP () {
     // Check if mcp already exists in target directory
-    const shouldOverride = await this.checkIfMCPExists()
+    const exists = await this.checkIfMCPExists()
 
-    if (!shouldOverride) {
-      throw new Error('Setup cancelled. MCP config was not overridden.')
+    if (exists) {
+      const shouldOverride = await promptConfirm('mcp.json already exists in the target directory. Do you want to override it?')
+
+      if (!shouldOverride) {
+        throw new Error('Setup cancelled. MCP config was not overridden.')
+      }
     }
 
     const mcpConfig = {
