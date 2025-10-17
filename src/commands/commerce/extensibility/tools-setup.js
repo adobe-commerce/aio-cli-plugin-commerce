@@ -11,7 +11,6 @@ governing permissions and limitations under the License.
 */
 import { Command } from '@oclif/core'
 import {
-  promptConfirm,
   promptInput,
   promptSelect
 } from '../../../utils/prompt.js'
@@ -20,8 +19,12 @@ import fs from 'fs'
 import path from 'path'
 import Logger from '@adobe/aio-lib-core-logging'
 
-const aioLogger = Logger('commerce:tools-setup.js')
+import { CursorAgent } from '../../../utils/extensibility/tools-setup/agents/CursorAgent.js'
+import { CopilotAgent } from '../../../utils/extensibility/tools-setup/agents/CopilotAgent.js'
+import { GeminiCLIAgent } from '../../../utils/extensibility/tools-setup/agents/GeminiCLIAgent.js'
+import { ClaudeCodeAgent } from '../../../utils/extensibility/tools-setup/agents/ClaudeCodeAgent.js'
 
+const aioLogger = Logger('commerce:tools-setup.js')
 export class ToolsSetupCommand extends Command {
   async run () {
     try {
@@ -48,21 +51,22 @@ export class ToolsSetupCommand extends Command {
         }
       }
 
-      // Check if mcp.json already exists in target directory
-      const mcpJsonPath = path.join(targetDir, '.cursor', 'mcp.json')
-      if (fs.existsSync(mcpJsonPath)) {
-        const override = await promptConfirm(
-          'mcp.json already exists in the target directory. Do you want to override it?'
-        )
-        if (!override) {
-          console.log('❌ Setup cancelled. mcp.json was not overridden.')
-          return
-        }
-      }
-
       // Change to target directory
       process.chdir(targetDir)
       console.log(`📁 Working in directory: ${targetDir}`)
+
+      const selectedAgent = await promptSelect('Which coding agent would you like to use?', ['Cursor', 'Copilot', 'Gemini CLI', 'Claude Code'])
+      let codingAgent = null
+
+      if (selectedAgent === 'Copilot') {
+        codingAgent = new CopilotAgent(targetDir)
+      } else if (selectedAgent === 'Gemini CLI') {
+        codingAgent = new GeminiCLIAgent(targetDir)
+      } else if (selectedAgent === 'Claude Code') {
+        codingAgent = new ClaudeCodeAgent(targetDir)
+      } else {
+        codingAgent = new CursorAgent(targetDir)
+      }
 
       // Ask user for package manager preference
       const packageManager = await promptSelect(
@@ -87,80 +91,16 @@ export class ToolsSetupCommand extends Command {
       const installCommand = packageManager === 'yarn'
         ? 'yarn add -D @adobe-commerce/commerce-extensibility-tools@latest'
         : 'npm install --save-dev @adobe-commerce/commerce-extensibility-tools@latest'
-      await runCommand(installCommand)
-      console.log('✅ Package installed successfully')
 
-      // Create .cursor directory if it doesn't exist
-      const cursorDir = path.join(targetDir, '.cursor')
-      if (!fs.existsSync(cursorDir)) {
-        fs.mkdirSync(cursorDir, { recursive: true })
-        console.log('✅ Created .cursor directory')
+      try {
+        await runCommand(installCommand)
+        console.log('✅ Package installed successfully')
+      } catch (error) {
+        console.error('❌ Package installation failed:', error.message)
+        throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
-      // Create mcp.json
-      const mcpConfig = {
-        mcpServers: {
-          'commerce-extensibility': {
-            command: 'node',
-            args: ['node_modules/@adobe-commerce/commerce-extensibility-tools/index.js'],
-            env: {}
-          }
-        }
-      }
-
-      fs.writeFileSync(mcpJsonPath, JSON.stringify(mcpConfig, null, 2))
-      console.log('✅ Created mcp.json configuration')
-
-      // Create rules directory if it doesn't exist
-      const rulesDir = path.join(cursorDir, 'rules')
-      if (!fs.existsSync(rulesDir)) {
-        fs.mkdirSync(rulesDir, { recursive: true })
-        console.log('✅ Created rules directory')
-      }
-
-      // Copy rules from the package
-      const packageRulesDir = path.join(
-        targetDir,
-        'node_modules',
-        '@adobe-commerce',
-        'commerce-extensibility-tools',
-        'rules',
-        'cursor'
-      )
-      if (fs.existsSync(packageRulesDir)) {
-        // Copy all files from package rules to .cursor/rules
-        const copyRules = async () => {
-          const files = fs.readdirSync(packageRulesDir)
-          for (const file of files) {
-            const sourcePath = path.join(packageRulesDir, file)
-            const destPath = path.join(rulesDir, file)
-
-            // ignore README.md
-            if (file === 'README.md') {
-              continue
-            }
-
-            if (fs.statSync(sourcePath).isFile()) {
-              fs.copyFileSync(sourcePath, destPath)
-              console.log(`📋 Copied rule: ${file}`)
-            }
-          }
-        }
-
-        await copyRules()
-        console.log('✅ Rules copied successfully')
-      } else {
-        console.log('⚠️  No rules found in the package')
-      }
-      console.log('\n🎉 Commerce Extensibility Tools setup complete!')
-      console.log(`📁 Configuration location: ${targetDir}`)
-      console.log('📋 MCP configuration: .cursor/mcp.json')
-      console.log('📋 Rules location: .cursor/rules/')
-      console.log('\nNext steps:')
-      console.log('1. Restart Cursor to load the new MCP tools')
-      console.log(
-        '2. The Commerce App Builder tools should now be available in your Cursor environment'
-      )
+      await codingAgent.setup()
     } catch (error) {
       aioLogger.error(error)
       console.error('❌ Setup failed:', error.message)
