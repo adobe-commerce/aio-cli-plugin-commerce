@@ -12,16 +12,73 @@ governing permissions and limitations under the License.
 
 import React, { useState, useEffect } from 'react';
 import { Box, Text } from 'ink';
+import Gradient from 'ink-gradient';
 import { ADOBE_LOGO, COMMERCE_TEXT } from '../constants/index.js';
+
+// Adobe Red gradient - from deep red to lighter red/coral
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const ADOBE_GRADIENT = ['#ED1C24', '#FF4D4D', '#ED1C24'];
+// Commerce gradient - subtle red to magenta
+const COMMERCE_GRADIENT = ['#ED1C24', '#CC0066'];
+
+// Helper to get logo lines
+const getAdobeLines = () => ADOBE_LOGO.split('\n').filter(line => line.trim());
+const getCommerceLines = () => COMMERCE_TEXT.split('\n').filter(line => line.trim());
+
+// Static logo component (shown after animation or as header)
+export function Logo({
+  compact = false
+}) {
+  const adobeLines = getAdobeLines();
+  const commerceLines = getCommerceLines();
+  if (compact) {
+    // Compact version for header - just show first line
+    return /*#__PURE__*/_jsx(Box, {
+      flexDirection: "column",
+      alignItems: "center",
+      children: /*#__PURE__*/_jsx(Gradient, {
+        colors: ADOBE_GRADIENT,
+        children: adobeLines[0]
+      })
+    });
+  }
+
+  // Join lines with newlines for Gradient (which wraps in Text)
+  const adobeText = adobeLines.join('\n');
+  const commerceText = commerceLines.join('\n');
+  return /*#__PURE__*/_jsxs(Box, {
+    flexDirection: "column",
+    alignItems: "center",
+    paddingY: 1,
+    children: [/*#__PURE__*/_jsx(Gradient, {
+      colors: ADOBE_GRADIENT,
+      children: adobeText
+    }), /*#__PURE__*/_jsx(Box, {
+      marginTop: 1,
+      children: /*#__PURE__*/_jsx(Gradient, {
+        colors: COMMERCE_GRADIENT,
+        children: commerceText
+      })
+    }), /*#__PURE__*/_jsx(Box, {
+      marginTop: 1,
+      children: /*#__PURE__*/_jsx(Text, {
+        color: "gray",
+        italic: true,
+        children: "Docs Chat - Powered by AI"
+      })
+    })]
+  });
+}
+
+// Animated logo component (shown on startup)
 export function AnimatedLogo({
   onComplete
 }) {
   const [frame, setFrame] = useState(0);
   const [showCommerce, setShowCommerce] = useState(false);
   const [fadeIn, setFadeIn] = useState(0);
-  const adobeLines = ADOBE_LOGO.split('\n').filter(line => line.trim());
-  const commerceLines = COMMERCE_TEXT.split('\n').filter(line => line.trim());
+  const adobeLines = getAdobeLines();
+  const commerceLines = getCommerceLines();
   useEffect(() => {
     const timer = setInterval(() => {
       setFrame(prev => {
@@ -58,24 +115,23 @@ export function AnimatedLogo({
       return () => clearTimeout(timer);
     }
   }, [fadeIn, commerceLines.length, showCommerce, onComplete]);
+
+  // Join visible lines with newlines for Gradient
+  const visibleAdobeText = adobeLines.slice(0, frame).join('\n');
+  const visibleCommerceText = commerceLines.slice(0, fadeIn).join('\n');
   return /*#__PURE__*/_jsxs(Box, {
     flexDirection: "column",
     alignItems: "center",
     paddingY: 1,
-    children: [/*#__PURE__*/_jsx(Box, {
-      flexDirection: "column",
-      children: adobeLines.slice(0, frame).map((line, i) => /*#__PURE__*/_jsx(Text, {
-        color: "red",
-        bold: true,
-        children: line
-      }, i))
-    }), showCommerce && /*#__PURE__*/_jsx(Box, {
-      flexDirection: "column",
+    children: [frame > 0 && /*#__PURE__*/_jsx(Gradient, {
+      colors: ADOBE_GRADIENT,
+      children: visibleAdobeText
+    }), showCommerce && fadeIn > 0 && /*#__PURE__*/_jsx(Box, {
       marginTop: 1,
-      children: commerceLines.slice(0, fadeIn).map((line, i) => /*#__PURE__*/_jsx(Text, {
-        color: "magenta",
-        children: line
-      }, i))
+      children: /*#__PURE__*/_jsx(Gradient, {
+        colors: COMMERCE_GRADIENT,
+        children: visibleCommerceText
+      })
     }), fadeIn >= commerceLines.length && /*#__PURE__*/_jsx(Box, {
       marginTop: 1,
       children: /*#__PURE__*/_jsx(Text, {

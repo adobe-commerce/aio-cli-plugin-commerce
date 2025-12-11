@@ -12,6 +12,7 @@
     "@oclif/plugin-help": "^6",
     "chalk": "^5.3.0",
     "ink": "^5.1.0",
+    "ink-gradient": "^3.0.0",
     "ink-text-input": "^6.0.0",
     "jsdom": "^25.0.1",
     "marked": "^15.0.4",

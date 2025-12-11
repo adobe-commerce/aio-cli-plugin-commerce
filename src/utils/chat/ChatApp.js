@@ -16,7 +16,7 @@ import { render, Box, Text, useInput, useApp, useStdout } from 'ink';
 // Local imports
 import { SLASH_COMMANDS } from './constants/index.js';
 import { updateMarkdownOptions, formatTimestamp, formatDuration, estimateTokens, exportToMarkdown, exportToJson } from './utils/index.js';
-import { AnimatedLogo, Message, ChatInput, StreamingIndicator, CompactingIndicator, StatsDisplay, HistoryDisplay, ExportSuccess, HelpDisplay } from './components/index.js';
+import { AnimatedLogo, Logo, Message, ChatInput, StreamingIndicator, CompactingIndicator, StatsDisplay, HistoryDisplay, ExportSuccess, HelpDisplay } from './components/index.js';
 import { useCommandHistory, useContextWindow, useStreamResponse } from './hooks/index.js';
 
 /* eslint-disable react/react-in-jsx-scope */
@@ -30,7 +30,7 @@ function ChatApp() {
   } = useStdout();
 
   // UI state
-  const [showLogo, setShowLogo] = useState(true);
+  const [animationComplete, setAnimationComplete] = useState(false);
   const [messages, setMessages] = useState([]);
   const [showStats, setShowStats] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -226,41 +226,20 @@ function ChatApp() {
     }
   });
 
-  // Show animated logo on startup
-  if (showLogo) {
+  // Show animated logo on startup, then transition to main UI with static logo
+  if (!animationComplete) {
     return /*#__PURE__*/_jsx(Box, {
       flexDirection: "column",
       padding: 1,
       children: /*#__PURE__*/_jsx(AnimatedLogo, {
-        onComplete: () => setShowLogo(false)
+        onComplete: () => setAnimationComplete(true)
       })
     });
   }
   return /*#__PURE__*/_jsxs(Box, {
     flexDirection: "column",
     padding: 1,
-    children: [/*#__PURE__*/_jsxs(Box, {
-      borderStyle: "double",
-      borderColor: "red",
-      paddingX: 2,
-      justifyContent: "center",
-      children: [/*#__PURE__*/_jsx(Text, {
-        color: "red",
-        bold: true,
-        children: "ADOBE"
-      }), /*#__PURE__*/_jsx(Text, {
-        children: " "
-      }), /*#__PURE__*/_jsx(Text, {
-        color: "magenta",
-        bold: true,
-        children: "COMMERCE"
-      }), /*#__PURE__*/_jsx(Text, {
-        children: " "
-      }), /*#__PURE__*/_jsx(Text, {
-        color: "gray",
-        children: "Docs Chat"
-      })]
-    }), /*#__PURE__*/_jsxs(Box, {
+    children: [/*#__PURE__*/_jsx(Logo, {}), /*#__PURE__*/_jsxs(Box, {
       flexDirection: "column",
       flexGrow: 1,
       marginY: 1,

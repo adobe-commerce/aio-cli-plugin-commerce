@@ -12,15 +12,63 @@ governing permissions and limitations under the License.
 
 import React, { useState, useEffect } from 'react'
 import { Box, Text } from 'ink'
+import Gradient from 'ink-gradient'
 import { ADOBE_LOGO, COMMERCE_TEXT } from '../constants/index.js'
 
+// Adobe Red gradient - from deep red to lighter red/coral
+const ADOBE_GRADIENT = ['#ED1C24', '#FF4D4D', '#ED1C24']
+// Commerce gradient - subtle red to magenta
+const COMMERCE_GRADIENT = ['#ED1C24', '#CC0066']
+
+// Helper to get logo lines
+const getAdobeLines = () => ADOBE_LOGO.split('\n').filter(line => line.trim())
+const getCommerceLines = () => COMMERCE_TEXT.split('\n').filter(line => line.trim())
+
+// Static logo component (shown after animation or as header)
+export function Logo ({ compact = false }) {
+  const adobeLines = getAdobeLines()
+  const commerceLines = getCommerceLines()
+
+  if (compact) {
+    // Compact version for header - just show first line
+    return (
+      <Box flexDirection="column" alignItems="center">
+        <Gradient colors={ADOBE_GRADIENT}>
+          {adobeLines[0]}
+        </Gradient>
+      </Box>
+    )
+  }
+
+  // Join lines with newlines for Gradient (which wraps in Text)
+  const adobeText = adobeLines.join('\n')
+  const commerceText = commerceLines.join('\n')
+
+  return (
+    <Box flexDirection="column" alignItems="center" paddingY={1}>
+      <Gradient colors={ADOBE_GRADIENT}>
+        {adobeText}
+      </Gradient>
+      <Box marginTop={1}>
+        <Gradient colors={COMMERCE_GRADIENT}>
+          {commerceText}
+        </Gradient>
+      </Box>
+      <Box marginTop={1}>
+        <Text color="gray" italic>Docs Chat - Powered by AI</Text>
+      </Box>
+    </Box>
+  )
+}
+
+// Animated logo component (shown on startup)
 export function AnimatedLogo ({ onComplete }) {
   const [frame, setFrame] = useState(0)
   const [showCommerce, setShowCommerce] = useState(false)
   const [fadeIn, setFadeIn] = useState(0)
 
-  const adobeLines = ADOBE_LOGO.split('\n').filter(line => line.trim())
-  const commerceLines = COMMERCE_TEXT.split('\n').filter(line => line.trim())
+  const adobeLines = getAdobeLines()
+  const commerceLines = getCommerceLines()
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -64,18 +112,22 @@ export function AnimatedLogo ({ onComplete }) {
     }
   }, [fadeIn, commerceLines.length, showCommerce, onComplete])
 
+  // Join visible lines with newlines for Gradient
+  const visibleAdobeText = adobeLines.slice(0, frame).join('\n')
+  const visibleCommerceText = commerceLines.slice(0, fadeIn).join('\n')
+
   return (
     <Box flexDirection="column" alignItems="center" paddingY={1}>
-      <Box flexDirection="column">
-        {adobeLines.slice(0, frame).map((line, i) => (
-          <Text key={i} color="red" bold>{line}</Text>
-        ))}
-      </Box>
-      {showCommerce && (
-        <Box flexDirection="column" marginTop={1}>
-          {commerceLines.slice(0, fadeIn).map((line, i) => (
-            <Text key={i} color="magenta">{line}</Text>
-          ))}
+      {frame > 0 && (
+        <Gradient colors={ADOBE_GRADIENT}>
+          {visibleAdobeText}
+        </Gradient>
+      )}
+      {showCommerce && fadeIn > 0 && (
+        <Box marginTop={1}>
+          <Gradient colors={COMMERCE_GRADIENT}>
+            {visibleCommerceText}
+          </Gradient>
         </Box>
       )}
       {fadeIn >= commerceLines.length && (

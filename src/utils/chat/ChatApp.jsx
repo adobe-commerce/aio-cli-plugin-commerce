@@ -18,6 +18,7 @@ import { SLASH_COMMANDS } from './constants/index.js'
 import { updateMarkdownOptions, formatTimestamp, formatDuration, estimateTokens, exportToMarkdown, exportToJson } from './utils/index.js'
 import {
   AnimatedLogo,
+  Logo,
   Message,
   ChatInput,
   StreamingIndicator,
@@ -36,7 +37,7 @@ function ChatApp () {
   const { stdout } = useStdout()
 
   // UI state
-  const [showLogo, setShowLogo] = useState(true)
+  const [animationComplete, setAnimationComplete] = useState(false)
   const [messages, setMessages] = useState([])
   const [showStats, setShowStats] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
@@ -250,30 +251,19 @@ function ChatApp () {
     }
   })
 
-  // Show animated logo on startup
-  if (showLogo) {
+  // Show animated logo on startup, then transition to main UI with static logo
+  if (!animationComplete) {
     return (
       <Box flexDirection="column" padding={1}>
-        <AnimatedLogo onComplete={() => setShowLogo(false)} />
+        <AnimatedLogo onComplete={() => setAnimationComplete(true)} />
       </Box>
     )
   }
 
   return (
     <Box flexDirection="column" padding={1}>
-      {/* Header */}
-      <Box
-        borderStyle="double"
-        borderColor="red"
-        paddingX={2}
-        justifyContent="center"
-      >
-        <Text color="red" bold>ADOBE</Text>
-        <Text> </Text>
-        <Text color="magenta" bold>COMMERCE</Text>
-        <Text> </Text>
-        <Text color="gray">Docs Chat</Text>
-      </Box>
+      {/* Logo Header */}
+      <Logo />
 
       {/* Messages area */}
       <Box flexDirection="column" flexGrow={1} marginY={1}>
