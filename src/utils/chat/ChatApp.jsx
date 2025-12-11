@@ -30,8 +30,8 @@ const marked = new Marked(markedTerminal({
 const ADOBE_LOGO = `
    █████╗ ██████╗  ██████╗ ██████╗ ███████╗
   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝
-  ███████║██║  ██║██║   ██║██████╔╝█████╗  
-  ██╔══██║██║  ██║██║   ██║██╔══██╗██╔══╝  
+  ███████║██║  ██║██║   ██║██████╔╝█████╗
+  ██╔══██║██║  ██║██║   ██║██╔══██╗██╔══╝
   ██║  ██║██████╔╝╚██████╔╝██████╔╝███████╗
   ╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝
 `
@@ -39,24 +39,34 @@ const ADOBE_LOGO = `
 const COMMERCE_TEXT = `
    ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗██████╗  ██████╗███████╗
   ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝██╔══██╗██╔════╝██╔════╝
-  ██║     ██║   ██║██╔████╔██║██╔████╔██║█████╗  ██████╔╝██║     █████╗  
-  ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║     ██╔══╝  
+  ██║     ██║   ██║██╔████╔██║██╔████╔██║█████╗  ██████╔╝██║     █████╗
+  ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║     ██╔══╝
   ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████╗██║  ██║╚██████╗███████╗
    ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝
 `
 
+// Context window configuration
+const MAX_CONTEXT_TOKENS = 5000
+const AUTO_COMPACT_THRESHOLD = 0.9 // Compact at 90% of max tokens
+const COMPACT_API_URL = 'https://extensibility-docs.apimesh-adobe-test.workers.dev/compact'
+
+// Approximate token count (rough estimate: 1 token ≈ 4 characters)
+function estimateTokens (text) {
+  return Math.ceil(text.length / 4)
+}
+
 // Slash commands configuration
 const SLASH_COMMANDS = {
   '/clear': {
-    description: 'Clear chat history',
+    description: 'Clear chat history and context',
     action: 'clear'
   },
   '/compact': {
-    description: 'Toggle compact mode (less spacing)',
+    description: 'Summarize conversation context to save tokens',
     action: 'compact'
   },
   '/stats': {
-    description: 'Show session statistics',
+    description: 'Show session and context statistics',
     action: 'stats'
   },
   '/export': {
@@ -165,13 +175,13 @@ function renderMarkdown (text) {
 }
 
 // Message component
-function Message ({ role, content, compact, timestamp }) {
+function Message ({ role, content, timestamp }) {
   const isUser = role === 'user'
   const isSystem = role === 'system'
 
   if (isSystem) {
     return (
-      <Box marginY={compact ? 0 : 1} paddingX={2}>
+      <Box marginY={1} paddingX={2}>
         <Text color="yellow" italic>{content}</Text>
       </Box>
     )
@@ -182,7 +192,7 @@ function Message ({ role, content, compact, timestamp }) {
       <Box
         flexDirection="row"
         justifyContent="flex-end"
-        marginY={compact ? 0 : 1}
+        marginY={1}
         paddingX={1}
       >
         <Box
@@ -197,7 +207,7 @@ function Message ({ role, content, compact, timestamp }) {
             borderStyle="round"
             borderColor="cyan"
             paddingX={2}
-            paddingY={compact ? 0 : 1}
+            paddingY={1}
             justifyContent="flex-end"
           >
             <Text align="right">{content}</Text>
@@ -214,7 +224,7 @@ function Message ({ role, content, compact, timestamp }) {
     <Box
       flexDirection="row"
       justifyContent="flex-start"
-      marginY={compact ? 0 : 1}
+      marginY={1}
       paddingX={1}
     >
       <Box
@@ -230,7 +240,7 @@ function Message ({ role, content, compact, timestamp }) {
           borderStyle="round"
           borderColor="magenta"
           paddingX={2}
-          paddingY={compact ? 0 : 1}
+          paddingY={1}
         >
           <Text>{renderedContent}</Text>
         </Box>
@@ -254,6 +264,24 @@ function StreamingIndicator () {
     <Box paddingLeft={2} marginY={1}>
       <Text color="magenta" bold>Adobe Commerce Docs</Text>
       <Text color="gray"> is thinking{dots}</Text>
+    </Box>
+  )
+}
+
+// Compacting indicator
+function CompactingIndicator () {
+  const [dots, setDots] = useState('')
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.')
+    }, 200)
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <Box paddingLeft={2} marginY={1}>
+      <Text color="yellow" bold>🔄 Compacting context{dots}</Text>
     </Box>
   )
 }
@@ -348,6 +376,8 @@ function StatsDisplay ({ stats, onDismiss }) {
     }
   })
 
+  const usageColor = stats.contextUsagePercent >= 90 ? 'red' : stats.contextUsagePercent >= 70 ? 'yellow' : 'green'
+
   return (
     <Box
       flexDirection="column"
@@ -361,8 +391,15 @@ function StatsDisplay ({ stats, onDismiss }) {
         <Text>Messages sent: <Text color="green" bold>{stats.messagesSent}</Text></Text>
         <Text>Responses received: <Text color="green" bold>{stats.responsesReceived}</Text></Text>
         <Text>Session duration: <Text color="green" bold>{stats.duration}</Text></Text>
-        <Text>Total tokens (approx): <Text color="green" bold>{stats.approxTokens}</Text></Text>
+        <Text>Total tokens used: <Text color="green" bold>{stats.totalTokensUsed}</Text></Text>
         <Text>Commands in history: <Text color="green" bold>{stats.historyCount}</Text></Text>
+      </Box>
+      <Box marginTop={1} flexDirection="column">
+        <Text color="cyan" bold>📦 Context Window</Text>
+        <Text>Current tokens: <Text color={usageColor} bold>{stats.contextTokens}/{MAX_CONTEXT_TOKENS}</Text> (<Text color={usageColor}>{stats.contextUsagePercent}%</Text>)</Text>
+        <Text>Messages in context: <Text color="green" bold>{stats.contextMessageCount}</Text></Text>
+        <Text>Times compacted: <Text color="green" bold>{stats.compactionCount}</Text></Text>
+        {stats.hasSummary && <Text>Has summary: <Text color="yellow" bold>Yes</Text></Text>}
       </Box>
       <Box marginTop={1}>
         <Text color="gray" italic>Press Enter to dismiss</Text>
@@ -483,20 +520,26 @@ function ChatApp () {
   const { stdout } = useStdout()
 
   const [showLogo, setShowLogo] = useState(true)
-  const [messages, setMessages] = useState([])
+  const [messages, setMessages] = useState([]) // Full chat history for display and export
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamContent, setStreamContent] = useState('')
-  const [compactMode, setCompactMode] = useState(false)
+  const [isCompacting, setIsCompacting] = useState(false)
   const [showStats, setShowStats] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showExportSuccess, setShowExportSuccess] = useState(false)
   const [exportedFilePath, setExportedFilePath] = useState('')
   const [sessionStart] = useState(Date.now())
+
+  // Context window state - this is what gets sent to the AI
+  const [contextWindow, setContextWindow] = useState([]) // Current unsummarized messages
+  const [contextSummary, setContextSummary] = useState('') // Summary of previous conversations
+  const [compactionCount, setCompactionCount] = useState(0) // Number of times context was compacted
+
   const [stats, setStats] = useState({
     messagesSent: 0,
     responsesReceived: 0,
-    approxTokens: 0,
+    totalTokensUsed: 0,
     historyCount: 0
   })
 
@@ -505,6 +548,23 @@ function ChatApp () {
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [inputValue, setInputValue] = useState('')
   const [tempInput, setTempInput] = useState('')
+
+  // Calculate current context token usage
+  const calculateContextTokens = useCallback(() => {
+    let tokens = 0
+    if (contextSummary) {
+      tokens += estimateTokens(contextSummary)
+    }
+    for (const msg of contextWindow) {
+      tokens += estimateTokens(msg.content)
+    }
+    return tokens
+  }, [contextSummary, contextWindow])
+
+  // Get context usage percentage
+  const getContextUsagePercent = useCallback(() => {
+    return Math.round((calculateContextTokens() / MAX_CONTEXT_TOKENS) * 100)
+  }, [calculateContextTokens])
 
   // Calculate terminal width for markdown
   useEffect(() => {
@@ -567,7 +627,8 @@ function ChatApp () {
       stats: {
         messagesSent: stats.messagesSent,
         responsesReceived: stats.responsesReceived,
-        approxTokens: stats.approxTokens
+        totalTokensUsed: stats.totalTokensUsed,
+        compactionCount
       },
       messages: messages.filter(m => m.role !== 'system').map(m => ({
         role: m.role,
@@ -579,22 +640,99 @@ function ChatApp () {
 
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8')
     return filePath
-  }, [messages, formatDuration, stats, commandHistory])
+  }, [messages, formatDuration, stats, commandHistory, compactionCount])
+
+  // Compact the context window by summarizing messages
+  const compactContextWindow = useCallback(async (isAutomatic = false) => {
+    if (contextWindow.length === 0) {
+      if (!isAutomatic) {
+        setMessages(prev => [...prev, {
+          role: 'system',
+          content: 'Nothing to compact - context window is empty.'
+        }])
+      }
+      return false
+    }
+
+    setIsCompacting(true)
+    const beforeTokens = calculateContextTokens()
+
+    try {
+      // Prepare messages for summarization (include existing summary if any)
+      const messagesToSummarize = []
+      if (contextSummary) {
+        messagesToSummarize.push({
+          role: 'system',
+          content: `Previous conversation summary: ${contextSummary}`
+        })
+      }
+      messagesToSummarize.push(...contextWindow.map(m => ({
+        role: m.role,
+        content: m.content
+      })))
+
+      const response = await fetch(COMPACT_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: messagesToSummarize })
+      })
+
+      if (!response.ok) {
+        throw new Error(`Compact API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const newSummary = data.summary || data.content || ''
+
+      if (!newSummary) {
+        throw new Error('No summary returned from API')
+      }
+
+      // Update context with new summary and clear the window
+      setContextSummary(newSummary)
+      setContextWindow([])
+      setCompactionCount(prev => prev + 1)
+
+      const afterTokens = estimateTokens(newSummary)
+      const savedTokens = beforeTokens - afterTokens
+
+      setMessages(prev => [...prev, {
+        role: 'system',
+        content: `${isAutomatic ? '🔄 Auto-compacted' : '✅ Compacted'} context: ${beforeTokens} → ${afterTokens} tokens (saved ${savedTokens} tokens)`
+      }])
+
+      return true
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        role: 'system',
+        content: `Compaction failed: ${error.message}`
+      }])
+      return false
+    } finally {
+      setIsCompacting(false)
+    }
+  }, [contextWindow, contextSummary, calculateContextTokens])
+
+  // Check if auto-compaction is needed
+  const checkAutoCompaction = useCallback(async () => {
+    const usagePercent = getContextUsagePercent()
+    if (usagePercent >= AUTO_COMPACT_THRESHOLD * 100) {
+      await compactContextWindow(true)
+    }
+  }, [getContextUsagePercent, compactContextWindow])
 
   const handleSlashCommand = useCallback(async (command) => {
     const cmd = command.toLowerCase().trim()
 
     if (cmd === '/clear') {
-      setMessages([{ role: 'system', content: 'Chat history cleared.' }])
+      setMessages([{ role: 'system', content: 'Chat history and context cleared.' }])
+      setContextWindow([])
+      setContextSummary('')
       return true
     }
 
     if (cmd === '/compact') {
-      setCompactMode(prev => !prev)
-      setMessages(prev => [...prev, {
-        role: 'system',
-        content: `Compact mode ${!compactMode ? 'enabled' : 'disabled'}.`
-      }])
+      await compactContextWindow(false)
       return true
     }
 
@@ -602,7 +740,12 @@ function ChatApp () {
       setStats(prev => ({
         ...prev,
         duration: formatDuration(),
-        historyCount: commandHistory.length
+        historyCount: commandHistory.length,
+        contextTokens: calculateContextTokens(),
+        contextUsagePercent: getContextUsagePercent(),
+        contextMessageCount: contextWindow.length,
+        compactionCount,
+        hasSummary: !!contextSummary
       }))
       setShowStats(true)
       return true
@@ -652,17 +795,50 @@ function ChatApp () {
     }
 
     return false
-  }, [compactMode, exit, formatDuration, commandHistory.length, exportToMarkdown, exportToJson])
+  }, [exit, formatDuration, commandHistory.length, exportToMarkdown, exportToJson, compactContextWindow, calculateContextTokens, getContextUsagePercent, contextWindow.length, compactionCount, contextSummary])
+
+  // Build conversation history for context using contextWindow and summary
+  const buildConversationHistory = useCallback(() => {
+    const history = []
+
+    // Include summary if we have one
+    if (contextSummary) {
+      history.push({
+        role: 'system',
+        content: `Previous conversation summary: ${contextSummary}`
+      })
+    }
+
+    // Add current context window messages
+    for (const msg of contextWindow) {
+      history.push({
+        role: msg.role,
+        content: msg.content
+      })
+    }
+
+    return history
+  }, [contextSummary, contextWindow])
 
   const streamResponse = useCallback(async (query) => {
     setIsStreaming(true)
     setStreamContent('')
 
     try {
+      // Check if auto-compaction is needed before making the request
+      await checkAutoCompaction()
+
+      // Build conversation history for context
+      const history = buildConversationHistory()
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, stream: true })
+        body: JSON.stringify({
+          query,
+          stream: true,
+          history
+        })
       })
 
       if (!response.ok) {
@@ -709,15 +885,23 @@ function ChatApp () {
         }
       }
 
-      setMessages(prev => [...prev, {
+      const assistantMessage = {
         role: 'assistant',
         content: fullContent,
         timestamp: formatTimestamp(new Date())
-      }])
+      }
+
+      // Add to display messages
+      setMessages(prev => [...prev, assistantMessage])
+
+      // Add to context window
+      setContextWindow(prev => [...prev, { role: 'assistant', content: fullContent }])
+
+      const responseTokens = estimateTokens(fullContent)
       setStats(prev => ({
         ...prev,
         responsesReceived: prev.responsesReceived + 1,
-        approxTokens: prev.approxTokens + Math.ceil(fullContent.length / 4)
+        totalTokensUsed: prev.totalTokensUsed + responseTokens
       }))
     } catch (error) {
       setMessages(prev => [...prev, {
@@ -728,7 +912,7 @@ function ChatApp () {
       setIsStreaming(false)
       setStreamContent('')
     }
-  }, [])
+  }, [buildConversationHistory, checkAutoCompaction])
 
   // Handle history navigation
   const handleHistoryNavigate = useCallback((direction) => {
@@ -785,16 +969,21 @@ function ChatApp () {
       return
     }
 
-    // Regular message
+    // Regular message - add to display messages
     setMessages(prev => [...prev, {
       role: 'user',
       content: input,
       timestamp: formatTimestamp(new Date())
     }])
+
+    // Add to context window
+    setContextWindow(prev => [...prev, { role: 'user', content: input }])
+
+    const inputTokens = estimateTokens(input)
     setStats(prev => ({
       ...prev,
       messagesSent: prev.messagesSent + 1,
-      approxTokens: prev.approxTokens + Math.ceil(input.length / 4)
+      totalTokensUsed: prev.totalTokensUsed + inputTokens
     }))
     streamResponse(input)
   }, [handleSlashCommand, streamResponse, commandHistory])
@@ -845,17 +1034,20 @@ function ChatApp () {
             key={i}
             role={msg.role}
             content={msg.content}
-            compact={compactMode}
             timestamp={msg.timestamp}
           />
         ))}
 
         {isStreaming && streamContent && (
-          <Message role="assistant" content={streamContent + ' ▌'} compact={compactMode} />
+          <Message role="assistant" content={streamContent + ' ▌'} />
         )}
 
         {isStreaming && !streamContent && (
           <StreamingIndicator />
+        )}
+
+        {isCompacting && (
+          <CompactingIndicator />
         )}
       </Box>
 
@@ -902,7 +1094,8 @@ function ChatApp () {
   )
 }
 
-export function startChatApp () {
-  render(<ChatApp />)
+export async function startChatApp () {
+  const app = render(<ChatApp />)
+  await app.waitUntilExit()
 }
 

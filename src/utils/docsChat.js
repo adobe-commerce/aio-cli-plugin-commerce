@@ -15,5 +15,5 @@ governing permissions and limitations under the License.
 import { startChatApp } from './chat/ChatApp.js'
 
 export async function startChat () {
-  startChatApp()
+  await startChatApp()
 }

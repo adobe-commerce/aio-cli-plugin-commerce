@@ -30,32 +30,42 @@ const marked = new Marked(markedTerminal({
 const ADOBE_LOGO = `
    █████╗ ██████╗  ██████╗ ██████╗ ███████╗
   ██╔══██╗██╔══██╗██╔═══██╗██╔══██╗██╔════╝
-  ███████║██║  ██║██║   ██║██████╔╝█████╗  
-  ██╔══██║██║  ██║██║   ██║██╔══██╗██╔══╝  
+  ███████║██║  ██║██║   ██║██████╔╝█████╗
+  ██╔══██║██║  ██║██║   ██║██╔══██╗██╔══╝
   ██║  ██║██████╔╝╚██████╔╝██████╔╝███████╗
   ╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝
 `;
 const COMMERCE_TEXT = `
    ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗██████╗  ██████╗███████╗
   ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝██╔══██╗██╔════╝██╔════╝
-  ██║     ██║   ██║██╔████╔██║██╔████╔██║█████╗  ██████╔╝██║     █████╗  
-  ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║     ██╔══╝  
+  ██║     ██║   ██║██╔████╔██║██╔████╔██║█████╗  ██████╔╝██║     █████╗
+  ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║     ██╔══╝
   ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████╗██║  ██║╚██████╗███████╗
    ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝
 `;
 
+// Context window configuration
+const MAX_CONTEXT_TOKENS = 5000;
+const AUTO_COMPACT_THRESHOLD = 0.9; // Compact at 90% of max tokens
+const COMPACT_API_URL = 'https://extensibility-docs.apimesh-adobe-test.workers.dev/compact';
+
+// Approximate token count (rough estimate: 1 token ≈ 4 characters)
+function estimateTokens(text) {
+  return Math.ceil(text.length / 4);
+}
+
 // Slash commands configuration
 const SLASH_COMMANDS = {
   '/clear': {
-    description: 'Clear chat history',
+    description: 'Clear chat history and context',
     action: 'clear'
   },
   '/compact': {
-    description: 'Toggle compact mode (less spacing)',
+    description: 'Summarize conversation context to save tokens',
     action: 'compact'
   },
   '/stats': {
-    description: 'Show session statistics',
+    description: 'Show session and context statistics',
     action: 'stats'
   },
   '/export': {
@@ -167,14 +177,13 @@ function renderMarkdown(text) {
 function Message({
   role,
   content,
-  compact,
   timestamp
 }) {
   const isUser = role === 'user';
   const isSystem = role === 'system';
   if (isSystem) {
     return /*#__PURE__*/_jsx(Box, {
-      marginY: compact ? 0 : 1,
+      marginY: 1,
       paddingX: 2,
       children: /*#__PURE__*/_jsx(Text, {
         color: "yellow",
@@ -187,7 +196,7 @@ function Message({
     return /*#__PURE__*/_jsx(Box, {
       flexDirection: "row",
       justifyContent: "flex-end",
-      marginY: compact ? 0 : 1,
+      marginY: 1,
       paddingX: 1,
       children: /*#__PURE__*/_jsxs(Box, {
         flexDirection: "column",
@@ -208,7 +217,7 @@ function Message({
           borderStyle: "round",
           borderColor: "cyan",
           paddingX: 2,
-          paddingY: compact ? 0 : 1,
+          paddingY: 1,
           justifyContent: "flex-end",
           children: /*#__PURE__*/_jsx(Text, {
             align: "right",
@@ -224,7 +233,7 @@ function Message({
   return /*#__PURE__*/_jsx(Box, {
     flexDirection: "row",
     justifyContent: "flex-start",
-    marginY: compact ? 0 : 1,
+    marginY: 1,
     paddingX: 1,
     children: /*#__PURE__*/_jsxs(Box, {
       flexDirection: "column",
@@ -245,7 +254,7 @@ function Message({
         borderStyle: "round",
         borderColor: "magenta",
         paddingX: 2,
-        paddingY: compact ? 0 : 1,
+        paddingY: 1,
         children: /*#__PURE__*/_jsx(Text, {
           children: renderedContent
         })
@@ -274,6 +283,26 @@ function StreamingIndicator() {
       color: "gray",
       children: [" is thinking", dots]
     })]
+  });
+}
+
+// Compacting indicator
+function CompactingIndicator() {
+  const [dots, setDots] = useState('');
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 200);
+    return () => clearInterval(timer);
+  }, []);
+  return /*#__PURE__*/_jsx(Box, {
+    paddingLeft: 2,
+    marginY: 1,
+    children: /*#__PURE__*/_jsxs(Text, {
+      color: "yellow",
+      bold: true,
+      children: ["\uD83D\uDD04 Compacting context", dots]
+    })
   });
 }
 
@@ -380,6 +409,7 @@ function StatsDisplay({
       onDismiss();
     }
   });
+  const usageColor = stats.contextUsagePercent >= 90 ? 'red' : stats.contextUsagePercent >= 70 ? 'yellow' : 'green';
   return /*#__PURE__*/_jsxs(Box, {
     flexDirection: "column",
     borderStyle: "double",
@@ -412,16 +442,51 @@ function StatsDisplay({
           children: stats.duration
         })]
       }), /*#__PURE__*/_jsxs(Text, {
-        children: ["Total tokens (approx): ", /*#__PURE__*/_jsx(Text, {
+        children: ["Total tokens used: ", /*#__PURE__*/_jsx(Text, {
           color: "green",
           bold: true,
-          children: stats.approxTokens
+          children: stats.totalTokensUsed
         })]
       }), /*#__PURE__*/_jsxs(Text, {
         children: ["Commands in history: ", /*#__PURE__*/_jsx(Text, {
           color: "green",
           bold: true,
           children: stats.historyCount
+        })]
+      })]
+    }), /*#__PURE__*/_jsxs(Box, {
+      marginTop: 1,
+      flexDirection: "column",
+      children: [/*#__PURE__*/_jsx(Text, {
+        color: "cyan",
+        bold: true,
+        children: "\uD83D\uDCE6 Context Window"
+      }), /*#__PURE__*/_jsxs(Text, {
+        children: ["Current tokens: ", /*#__PURE__*/_jsxs(Text, {
+          color: usageColor,
+          bold: true,
+          children: [stats.contextTokens, "/", MAX_CONTEXT_TOKENS]
+        }), " (", /*#__PURE__*/_jsxs(Text, {
+          color: usageColor,
+          children: [stats.contextUsagePercent, "%"]
+        }), ")"]
+      }), /*#__PURE__*/_jsxs(Text, {
+        children: ["Messages in context: ", /*#__PURE__*/_jsx(Text, {
+          color: "green",
+          bold: true,
+          children: stats.contextMessageCount
+        })]
+      }), /*#__PURE__*/_jsxs(Text, {
+        children: ["Times compacted: ", /*#__PURE__*/_jsx(Text, {
+          color: "green",
+          bold: true,
+          children: stats.compactionCount
+        })]
+      }), stats.hasSummary && /*#__PURE__*/_jsxs(Text, {
+        children: ["Has summary: ", /*#__PURE__*/_jsx(Text, {
+          color: "yellow",
+          bold: true,
+          children: "Yes"
         })]
       })]
     }), /*#__PURE__*/_jsx(Box, {
@@ -598,20 +663,26 @@ function ChatApp() {
     stdout
   } = useStdout();
   const [showLogo, setShowLogo] = useState(true);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]); // Full chat history for display and export
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamContent, setStreamContent] = useState('');
-  const [compactMode, setCompactMode] = useState(false);
+  const [isCompacting, setIsCompacting] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showExportSuccess, setShowExportSuccess] = useState(false);
   const [exportedFilePath, setExportedFilePath] = useState('');
   const [sessionStart] = useState(Date.now());
+
+  // Context window state - this is what gets sent to the AI
+  const [contextWindow, setContextWindow] = useState([]); // Current unsummarized messages
+  const [contextSummary, setContextSummary] = useState(''); // Summary of previous conversations
+  const [compactionCount, setCompactionCount] = useState(0); // Number of times context was compacted
+
   const [stats, setStats] = useState({
     messagesSent: 0,
     responsesReceived: 0,
-    approxTokens: 0,
+    totalTokensUsed: 0,
     historyCount: 0
   });
 
@@ -620,6 +691,23 @@ function ChatApp() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [inputValue, setInputValue] = useState('');
   const [tempInput, setTempInput] = useState('');
+
+  // Calculate current context token usage
+  const calculateContextTokens = useCallback(() => {
+    let tokens = 0;
+    if (contextSummary) {
+      tokens += estimateTokens(contextSummary);
+    }
+    for (const msg of contextWindow) {
+      tokens += estimateTokens(msg.content);
+    }
+    return tokens;
+  }, [contextSummary, contextWindow]);
+
+  // Get context usage percentage
+  const getContextUsagePercent = useCallback(() => {
+    return Math.round(calculateContextTokens() / MAX_CONTEXT_TOKENS * 100);
+  }, [calculateContextTokens]);
 
   // Calculate terminal width for markdown
   useEffect(() => {
@@ -676,7 +764,8 @@ function ChatApp() {
       stats: {
         messagesSent: stats.messagesSent,
         responsesReceived: stats.responsesReceived,
-        approxTokens: stats.approxTokens
+        totalTokensUsed: stats.totalTokensUsed,
+        compactionCount
       },
       messages: messages.filter(m => m.role !== 'system').map(m => ({
         role: m.role,
@@ -687,29 +776,106 @@ function ChatApp() {
     };
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
     return filePath;
-  }, [messages, formatDuration, stats, commandHistory]);
+  }, [messages, formatDuration, stats, commandHistory, compactionCount]);
+
+  // Compact the context window by summarizing messages
+  const compactContextWindow = useCallback(async (isAutomatic = false) => {
+    if (contextWindow.length === 0) {
+      if (!isAutomatic) {
+        setMessages(prev => [...prev, {
+          role: 'system',
+          content: 'Nothing to compact - context window is empty.'
+        }]);
+      }
+      return false;
+    }
+    setIsCompacting(true);
+    const beforeTokens = calculateContextTokens();
+    try {
+      // Prepare messages for summarization (include existing summary if any)
+      const messagesToSummarize = [];
+      if (contextSummary) {
+        messagesToSummarize.push({
+          role: 'system',
+          content: `Previous conversation summary: ${contextSummary}`
+        });
+      }
+      messagesToSummarize.push(...contextWindow.map(m => ({
+        role: m.role,
+        content: m.content
+      })));
+      const response = await fetch(COMPACT_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: messagesToSummarize
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`Compact API error: ${response.status}`);
+      }
+      const data = await response.json();
+      const newSummary = data.summary || data.content || '';
+      if (!newSummary) {
+        throw new Error('No summary returned from API');
+      }
+
+      // Update context with new summary and clear the window
+      setContextSummary(newSummary);
+      setContextWindow([]);
+      setCompactionCount(prev => prev + 1);
+      const afterTokens = estimateTokens(newSummary);
+      const savedTokens = beforeTokens - afterTokens;
+      setMessages(prev => [...prev, {
+        role: 'system',
+        content: `${isAutomatic ? '🔄 Auto-compacted' : '✅ Compacted'} context: ${beforeTokens} → ${afterTokens} tokens (saved ${savedTokens} tokens)`
+      }]);
+      return true;
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        role: 'system',
+        content: `Compaction failed: ${error.message}`
+      }]);
+      return false;
+    } finally {
+      setIsCompacting(false);
+    }
+  }, [contextWindow, contextSummary, calculateContextTokens]);
+
+  // Check if auto-compaction is needed
+  const checkAutoCompaction = useCallback(async () => {
+    const usagePercent = getContextUsagePercent();
+    if (usagePercent >= AUTO_COMPACT_THRESHOLD * 100) {
+      await compactContextWindow(true);
+    }
+  }, [getContextUsagePercent, compactContextWindow]);
   const handleSlashCommand = useCallback(async command => {
     const cmd = command.toLowerCase().trim();
     if (cmd === '/clear') {
       setMessages([{
         role: 'system',
-        content: 'Chat history cleared.'
+        content: 'Chat history and context cleared.'
       }]);
+      setContextWindow([]);
+      setContextSummary('');
       return true;
     }
     if (cmd === '/compact') {
-      setCompactMode(prev => !prev);
-      setMessages(prev => [...prev, {
-        role: 'system',
-        content: `Compact mode ${!compactMode ? 'enabled' : 'disabled'}.`
-      }]);
+      await compactContextWindow(false);
       return true;
     }
     if (cmd === '/stats') {
       setStats(prev => ({
         ...prev,
         duration: formatDuration(),
-        historyCount: commandHistory.length
+        historyCount: commandHistory.length,
+        contextTokens: calculateContextTokens(),
+        contextUsagePercent: getContextUsagePercent(),
+        contextMessageCount: contextWindow.length,
+        compactionCount,
+        hasSummary: !!contextSummary
       }));
       setShowStats(true);
       return true;
@@ -753,11 +919,38 @@ function ChatApp() {
       return true;
     }
     return false;
-  }, [compactMode, exit, formatDuration, commandHistory.length, exportToMarkdown, exportToJson]);
+  }, [exit, formatDuration, commandHistory.length, exportToMarkdown, exportToJson, compactContextWindow, calculateContextTokens, getContextUsagePercent, contextWindow.length, compactionCount, contextSummary]);
+
+  // Build conversation history for context using contextWindow and summary
+  const buildConversationHistory = useCallback(() => {
+    const history = [];
+
+    // Include summary if we have one
+    if (contextSummary) {
+      history.push({
+        role: 'system',
+        content: `Previous conversation summary: ${contextSummary}`
+      });
+    }
+
+    // Add current context window messages
+    for (const msg of contextWindow) {
+      history.push({
+        role: msg.role,
+        content: msg.content
+      });
+    }
+    return history;
+  }, [contextSummary, contextWindow]);
   const streamResponse = useCallback(async query => {
     setIsStreaming(true);
     setStreamContent('');
     try {
+      // Check if auto-compaction is needed before making the request
+      await checkAutoCompaction();
+
+      // Build conversation history for context
+      const history = buildConversationHistory();
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
@@ -765,7 +958,8 @@ function ChatApp() {
         },
         body: JSON.stringify({
           query,
-          stream: true
+          stream: true,
+          history
         })
       });
       if (!response.ok) {
@@ -812,15 +1006,25 @@ function ChatApp() {
           // Skip
         }
       }
-      setMessages(prev => [...prev, {
+      const assistantMessage = {
         role: 'assistant',
         content: fullContent,
         timestamp: formatTimestamp(new Date())
+      };
+
+      // Add to display messages
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // Add to context window
+      setContextWindow(prev => [...prev, {
+        role: 'assistant',
+        content: fullContent
       }]);
+      const responseTokens = estimateTokens(fullContent);
       setStats(prev => ({
         ...prev,
         responsesReceived: prev.responsesReceived + 1,
-        approxTokens: prev.approxTokens + Math.ceil(fullContent.length / 4)
+        totalTokensUsed: prev.totalTokensUsed + responseTokens
       }));
     } catch (error) {
       setMessages(prev => [...prev, {
@@ -831,7 +1035,7 @@ function ChatApp() {
       setIsStreaming(false);
       setStreamContent('');
     }
-  }, []);
+  }, [buildConversationHistory, checkAutoCompaction]);
 
   // Handle history navigation
   const handleHistoryNavigate = useCallback(direction => {
@@ -882,16 +1086,23 @@ function ChatApp() {
       return;
     }
 
-    // Regular message
+    // Regular message - add to display messages
     setMessages(prev => [...prev, {
       role: 'user',
       content: input,
       timestamp: formatTimestamp(new Date())
     }]);
+
+    // Add to context window
+    setContextWindow(prev => [...prev, {
+      role: 'user',
+      content: input
+    }]);
+    const inputTokens = estimateTokens(input);
     setStats(prev => ({
       ...prev,
       messagesSent: prev.messagesSent + 1,
-      approxTokens: prev.approxTokens + Math.ceil(input.length / 4)
+      totalTokensUsed: prev.totalTokensUsed + inputTokens
     }));
     streamResponse(input);
   }, [handleSlashCommand, streamResponse, commandHistory]);
@@ -960,13 +1171,11 @@ function ChatApp() {
       }), messages.map((msg, i) => /*#__PURE__*/_jsx(Message, {
         role: msg.role,
         content: msg.content,
-        compact: compactMode,
         timestamp: msg.timestamp
       }, i)), isStreaming && streamContent && /*#__PURE__*/_jsx(Message, {
         role: "assistant",
-        content: streamContent + ' ▌',
-        compact: compactMode
-      }), isStreaming && !streamContent && /*#__PURE__*/_jsx(StreamingIndicator, {})]
+        content: streamContent + ' ▌'
+      }), isStreaming && !streamContent && /*#__PURE__*/_jsx(StreamingIndicator, {}), isCompacting && /*#__PURE__*/_jsx(CompactingIndicator, {})]
     }), showStats && /*#__PURE__*/_jsx(StatsDisplay, {
       stats: stats,
       onDismiss: () => setShowStats(false)
@@ -1012,6 +1221,7 @@ function ChatApp() {
     })]
   });
 }
-export function startChatApp() {
-  render(/*#__PURE__*/_jsx(ChatApp, {}));
+export async function startChatApp() {
+  const app = render(/*#__PURE__*/_jsx(ChatApp, {}));
+  await app.waitUntilExit();
 }
