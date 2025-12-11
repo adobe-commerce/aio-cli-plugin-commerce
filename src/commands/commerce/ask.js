@@ -28,4 +28,3 @@ AskCommand.examples = [
   '$ aio commerce ask',
   '$ aio commerce:ask'
 ]
-

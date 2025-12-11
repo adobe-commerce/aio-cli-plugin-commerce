@@ -15,11 +15,11 @@ governing permissions and limitations under the License.
  * @param {Date} date - Date to format
  * @returns {string} Formatted time string
  */
-export function formatTimestamp(date) {
+export function formatTimestamp (date) {
   return date.toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit'
-  });
+  })
 }
 
 /**
@@ -27,9 +27,9 @@ export function formatTimestamp(date) {
  * @param {number} startTime - Start timestamp in milliseconds
  * @returns {string} Formatted duration string (e.g., "5m 30s" or "45s")
  */
-export function formatDuration(startTime) {
-  const seconds = Math.floor((Date.now() - startTime) / 1000);
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+export function formatDuration (startTime) {
+  const seconds = Math.floor((Date.now() - startTime) / 1000)
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
 }

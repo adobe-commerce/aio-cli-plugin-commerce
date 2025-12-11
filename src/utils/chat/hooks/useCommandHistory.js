@@ -10,52 +10,52 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react'
 
 /**
  * Custom hook for managing command history with navigation
  * @returns {object} Command history state and handlers
  */
-export function useCommandHistory() {
-  const [commandHistory, setCommandHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [inputValue, setInputValue] = useState('');
-  const [tempInput, setTempInput] = useState('');
+export function useCommandHistory () {
+  const [commandHistory, setCommandHistory] = useState([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const [inputValue, setInputValue] = useState('')
+  const [tempInput, setTempInput] = useState('')
   const addToHistory = useCallback(input => {
     // Don't add duplicates of the last command
     if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== input) {
-      setCommandHistory(prev => [...prev, input]);
+      setCommandHistory(prev => [...prev, input])
     }
-  }, [commandHistory]);
+  }, [commandHistory])
   const handleHistoryNavigate = useCallback(direction => {
     if (direction === 'up') {
       if (historyIndex === -1) {
         // Save current input before navigating
-        setTempInput(inputValue);
+        setTempInput(inputValue)
       }
-      const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
+      const newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1)
       if (newIndex >= 0 && commandHistory.length > 0) {
-        setHistoryIndex(newIndex);
-        setInputValue(commandHistory[newIndex]);
+        setHistoryIndex(newIndex)
+        setInputValue(commandHistory[newIndex])
       }
     } else if (direction === 'down') {
-      if (historyIndex === -1) return;
-      const newIndex = historyIndex + 1;
+      if (historyIndex === -1) return
+      const newIndex = historyIndex + 1
       if (newIndex >= commandHistory.length) {
         // Restore original input
-        setHistoryIndex(-1);
-        setInputValue(tempInput);
+        setHistoryIndex(-1)
+        setInputValue(tempInput)
       } else {
-        setHistoryIndex(newIndex);
-        setInputValue(commandHistory[newIndex]);
+        setHistoryIndex(newIndex)
+        setInputValue(commandHistory[newIndex])
       }
     }
-  }, [historyIndex, commandHistory, inputValue, tempInput]);
+  }, [historyIndex, commandHistory, inputValue, tempInput])
   const resetNavigation = useCallback(() => {
-    setHistoryIndex(-1);
-    setTempInput('');
-    setInputValue('');
-  }, []);
+    setHistoryIndex(-1)
+    setTempInput('')
+    setInputValue('')
+  }, [])
   return {
     commandHistory,
     historyIndex,
@@ -64,5 +64,5 @@ export function useCommandHistory() {
     addToHistory,
     handleHistoryNavigate,
     resetNavigation
-  };
+  }
 }

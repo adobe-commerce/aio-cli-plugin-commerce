@@ -10,26 +10,26 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Marked } from 'marked';
-import { markedTerminal } from 'marked-terminal';
+import { Marked } from 'marked'
+import { markedTerminal } from 'marked-terminal'
 
 // Configure marked with terminal renderer
 const marked = new Marked(markedTerminal({
   reflowText: true,
   width: 80,
   tab: 2
-}));
+}))
 
 /**
  * Update markdown renderer options (e.g., for terminal width)
  * @param {object} options - Options to pass to markedTerminal
  */
-export function updateMarkdownOptions(options) {
+export function updateMarkdownOptions (options) {
   marked.setOptions(markedTerminal({
     reflowText: true,
     tab: 2,
     ...options
-  }));
+  }))
 }
 
 /**
@@ -37,10 +37,10 @@ export function updateMarkdownOptions(options) {
  * @param {string} text - Markdown text to render
  * @returns {string} Terminal-formatted text
  */
-export function renderMarkdown(text) {
+export function renderMarkdown (text) {
   try {
-    return marked.parse(text).trim();
+    return marked.parse(text).trim()
   } catch {
-    return text;
+    return text
   }
 }

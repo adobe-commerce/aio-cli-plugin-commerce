@@ -10,34 +10,34 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { render, Box, Text, useInput, useApp, useStdout } from 'ink';
+import React, { useState, useEffect, useCallback } from 'react'
+import { render, Box, Text, useInput, useApp, useStdout } from 'ink'
 
 // Local imports
-import { SLASH_COMMANDS } from './constants/index.js';
-import { updateMarkdownOptions, formatTimestamp, formatDuration, estimateTokens, exportToMarkdown, exportToJson } from './utils/index.js';
-import { AnimatedLogo, Message, ChatInput, StreamingIndicator, CompactingIndicator, StatsDisplay, HistoryDisplay, ExportSuccess, HelpDisplay } from './components/index.js';
-import { useCommandHistory, useContextWindow, useStreamResponse } from './hooks/index.js';
+import { SLASH_COMMANDS } from './constants/index.js'
+import { updateMarkdownOptions, formatTimestamp, formatDuration, estimateTokens, exportToMarkdown, exportToJson } from './utils/index.js'
+import { AnimatedLogo, Message, ChatInput, StreamingIndicator, CompactingIndicator, StatsDisplay, HistoryDisplay, ExportSuccess, HelpDisplay } from './components/index.js'
+import { useCommandHistory, useContextWindow, useStreamResponse } from './hooks/index.js'
 
 /* eslint-disable react/react-in-jsx-scope */
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-function ChatApp() {
+import { jsx as _jsx, jsxs as _jsxs } from 'react/jsx-runtime'
+function ChatApp () {
   const {
     exit
-  } = useApp();
+  } = useApp()
   const {
     stdout
-  } = useStdout();
+  } = useStdout()
 
   // UI state
-  const [showLogo, setShowLogo] = useState(true);
-  const [messages, setMessages] = useState([]);
-  const [showStats, setShowStats] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showExportSuccess, setShowExportSuccess] = useState(false);
-  const [exportedFilePath, setExportedFilePath] = useState('');
-  const [sessionStart] = useState(Date.now());
+  const [showLogo, setShowLogo] = useState(true)
+  const [messages, setMessages] = useState([])
+  const [showStats, setShowStats] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const [showExportSuccess, setShowExportSuccess] = useState(false)
+  const [exportedFilePath, setExportedFilePath] = useState('')
+  const [sessionStart] = useState(Date.now())
 
   // Stats state
   const [stats, setStats] = useState({
@@ -45,20 +45,20 @@ function ChatApp() {
     responsesReceived: 0,
     totalTokensUsed: 0,
     historyCount: 0
-  });
+  })
 
   // Helper to add system messages
   const addSystemMessage = useCallback(content => {
     setMessages(prev => [...prev, {
       role: 'system',
       content
-    }]);
-  }, []);
+    }])
+  }, [])
 
   // Helper to add any message
   const addMessage = useCallback(message => {
-    setMessages(prev => [...prev, message]);
-  }, []);
+    setMessages(prev => [...prev, message])
+  }, [])
 
   // Custom hooks
   const {
@@ -69,7 +69,7 @@ function ChatApp() {
     addToHistory,
     handleHistoryNavigate,
     resetNavigation
-  } = useCommandHistory();
+  } = useCommandHistory()
   const {
     contextWindow,
     contextSummary,
@@ -81,7 +81,7 @@ function ChatApp() {
     clearContext,
     buildConversationHistory,
     compactContextWindow
-  } = useContextWindow(addSystemMessage);
+  } = useContextWindow(addSystemMessage)
   const {
     isStreaming,
     streamContent,
@@ -89,44 +89,44 @@ function ChatApp() {
   } = useStreamResponse({
     buildHistory: buildConversationHistory,
     checkAutoCompaction: async () => {
-      const usagePercent = getContextUsagePercent();
+      const usagePercent = getContextUsagePercent()
       if (usagePercent >= 90) {
-        await compactContextWindow(true);
+        await compactContextWindow(true)
       }
     },
     addMessage,
     addToContext,
     updateStats: setStats
-  });
+  })
 
   // Calculate terminal width for markdown
   useEffect(() => {
     if (stdout) {
       updateMarkdownOptions({
         width: Math.min(stdout.columns - 10, 100) || 80
-      });
+      })
     }
-  }, [stdout]);
+  }, [stdout])
 
   // Get formatted duration
   const getFormattedDuration = useCallback(() => {
-    return formatDuration(sessionStart);
-  }, [sessionStart]);
+    return formatDuration(sessionStart)
+  }, [sessionStart])
 
   // Handle slash commands
   const handleSlashCommand = useCallback(async command => {
-    const cmd = command.toLowerCase().trim();
+    const cmd = command.toLowerCase().trim()
     if (cmd === '/clear') {
       setMessages([{
         role: 'system',
         content: 'Chat history and context cleared.'
-      }]);
-      clearContext();
-      return true;
+      }])
+      clearContext()
+      return true
     }
     if (cmd === '/compact') {
-      await compactContextWindow(false);
-      return true;
+      await compactContextWindow(false)
+      return true
     }
     if (cmd === '/stats') {
       setStats(prev => ({
@@ -138,23 +138,23 @@ function ChatApp() {
         contextMessageCount: contextWindow.length,
         compactionCount,
         hasSummary: !!contextSummary
-      }));
-      setShowStats(true);
-      return true;
+      }))
+      setShowStats(true)
+      return true
     }
     if (cmd === '/history') {
-      setShowHistory(true);
-      return true;
+      setShowHistory(true)
+      return true
     }
     if (cmd === '/export' || cmd === '/export md' || cmd === '/export markdown') {
       try {
-        const filePath = await exportToMarkdown(messages, getFormattedDuration());
-        setExportedFilePath(filePath);
-        setShowExportSuccess(true);
+        const filePath = await exportToMarkdown(messages, getFormattedDuration())
+        setExportedFilePath(filePath)
+        setShowExportSuccess(true)
       } catch (error) {
-        addSystemMessage(`Export failed: ${error.message}`);
+        addSystemMessage(`Export failed: ${error.message}`)
       }
-      return true;
+      return true
     }
     if (cmd === '/export json') {
       try {
@@ -164,38 +164,38 @@ function ChatApp() {
           stats,
           commandHistory,
           compactionCount
-        });
-        setExportedFilePath(filePath);
-        setShowExportSuccess(true);
+        })
+        setExportedFilePath(filePath)
+        setShowExportSuccess(true)
       } catch (error) {
-        addSystemMessage(`Export failed: ${error.message}`);
+        addSystemMessage(`Export failed: ${error.message}`)
       }
-      return true;
+      return true
     }
     if (cmd === '/help') {
-      setShowHelp(true);
-      return true;
+      setShowHelp(true)
+      return true
     }
     if (cmd === '/exit' || cmd === '/quit') {
-      exit();
-      return true;
+      exit()
+      return true
     }
-    return false;
-  }, [exit, getFormattedDuration, commandHistory, messages, stats, compactionCount, contextSummary, contextWindow.length, calculateContextTokens, getContextUsagePercent, clearContext, compactContextWindow, addSystemMessage]);
+    return false
+  }, [exit, getFormattedDuration, commandHistory, messages, stats, compactionCount, contextSummary, contextWindow.length, calculateContextTokens, getContextUsagePercent, clearContext, compactContextWindow, addSystemMessage])
 
   // Handle message submission
   const handleSubmit = useCallback(async input => {
-    resetNavigation();
-    addToHistory(input);
+    resetNavigation()
+    addToHistory(input)
 
     // Check for slash commands first
     if (input.startsWith('/')) {
       if (await handleSlashCommand(input)) {
-        return;
+        return
       }
       // Unknown command
-      addSystemMessage(`Unknown command: ${input}. Type /help for available commands.`);
-      return;
+      addSystemMessage(`Unknown command: ${input}. Type /help for available commands.`)
+      return
     }
 
     // Regular message - add to display messages
@@ -203,139 +203,139 @@ function ChatApp() {
       role: 'user',
       content: input,
       timestamp: formatTimestamp(new Date())
-    });
+    })
 
     // Add to context window
     addToContext({
       role: 'user',
       content: input
-    });
-    const inputTokens = estimateTokens(input);
+    })
+    const inputTokens = estimateTokens(input)
     setStats(prev => ({
       ...prev,
       messagesSent: prev.messagesSent + 1,
       totalTokensUsed: prev.totalTokensUsed + inputTokens
-    }));
-    streamResponse(input);
-  }, [handleSlashCommand, streamResponse, resetNavigation, addToHistory, addMessage, addToContext, addSystemMessage]);
+    }))
+    streamResponse(input)
+  }, [handleSlashCommand, streamResponse, resetNavigation, addToHistory, addMessage, addToContext, addSystemMessage])
 
   // Handle Ctrl+C
   useInput((input, key) => {
     if (key.ctrl && input === 'c') {
-      exit();
+      exit()
     }
-  });
+  })
 
   // Show animated logo on startup
   if (showLogo) {
-    return /*#__PURE__*/_jsx(Box, {
-      flexDirection: "column",
+    return /* #__PURE__ */_jsx(Box, {
+      flexDirection: 'column',
       padding: 1,
-      children: /*#__PURE__*/_jsx(AnimatedLogo, {
+      children: /* #__PURE__ */_jsx(AnimatedLogo, {
         onComplete: () => setShowLogo(false)
       })
-    });
+    })
   }
-  return /*#__PURE__*/_jsxs(Box, {
-    flexDirection: "column",
+  return /* #__PURE__ */_jsxs(Box, {
+    flexDirection: 'column',
     padding: 1,
-    children: [/*#__PURE__*/_jsxs(Box, {
-      borderStyle: "double",
-      borderColor: "red",
+    children: [/* #__PURE__ */_jsxs(Box, {
+      borderStyle: 'double',
+      borderColor: 'red',
       paddingX: 2,
-      justifyContent: "center",
-      children: [/*#__PURE__*/_jsx(Text, {
-        color: "red",
+      justifyContent: 'center',
+      children: [/* #__PURE__ */_jsx(Text, {
+        color: 'red',
         bold: true,
-        children: "ADOBE"
-      }), /*#__PURE__*/_jsx(Text, {
-        children: " "
-      }), /*#__PURE__*/_jsx(Text, {
-        color: "magenta",
+        children: 'ADOBE'
+      }), /* #__PURE__ */_jsx(Text, {
+        children: ' '
+      }), /* #__PURE__ */_jsx(Text, {
+        color: 'magenta',
         bold: true,
-        children: "COMMERCE"
-      }), /*#__PURE__*/_jsx(Text, {
-        children: " "
-      }), /*#__PURE__*/_jsx(Text, {
-        color: "gray",
-        children: "Docs Chat"
+        children: 'COMMERCE'
+      }), /* #__PURE__ */_jsx(Text, {
+        children: ' '
+      }), /* #__PURE__ */_jsx(Text, {
+        color: 'gray',
+        children: 'Docs Chat'
       })]
-    }), /*#__PURE__*/_jsxs(Box, {
-      flexDirection: "column",
+    }), /* #__PURE__ */_jsxs(Box, {
+      flexDirection: 'column',
       flexGrow: 1,
       marginY: 1,
-      children: [messages.length === 0 && !isStreaming && /*#__PURE__*/_jsxs(Box, {
-        flexDirection: "column",
-        alignItems: "center",
+      children: [messages.length === 0 && !isStreaming && /* #__PURE__ */_jsxs(Box, {
+        flexDirection: 'column',
+        alignItems: 'center',
         paddingY: 2,
-        children: [/*#__PURE__*/_jsx(Text, {
-          color: "gray",
-          children: "Welcome to Adobe Commerce Docs Chat!"
-        }), /*#__PURE__*/_jsxs(Text, {
-          color: "gray",
-          children: ["Ask any question about Adobe Commerce, or type ", /*#__PURE__*/_jsx(Text, {
-            color: "yellow",
-            children: "/help"
-          }), " for commands."]
-        }), /*#__PURE__*/_jsx(Text, {
-          color: "gray",
+        children: [/* #__PURE__ */_jsx(Text, {
+          color: 'gray',
+          children: 'Welcome to Adobe Commerce Docs Chat!'
+        }), /* #__PURE__ */_jsxs(Text, {
+          color: 'gray',
+          children: ['Ask any question about Adobe Commerce, or type ', /* #__PURE__ */_jsx(Text, {
+            color: 'yellow',
+            children: '/help'
+          }), ' for commands.']
+        }), /* #__PURE__ */_jsx(Text, {
+          color: 'gray',
           dimColor: true,
-          children: "Use \u2191/\u2193 arrows to navigate command history."
+          children: 'Use \u2191/\u2193 arrows to navigate command history.'
         })]
-      }), messages.map((msg, i) => /*#__PURE__*/_jsx(Message, {
+      }), messages.map((msg, i) => /* #__PURE__ */_jsx(Message, {
         role: msg.role,
         content: msg.content,
         timestamp: msg.timestamp
-      }, i)), isStreaming && streamContent && /*#__PURE__*/_jsx(Message, {
-        role: "assistant",
+      }, i)), isStreaming && streamContent && /* #__PURE__ */_jsx(Message, {
+        role: 'assistant',
         content: streamContent + ' ▌'
-      }), isStreaming && !streamContent && /*#__PURE__*/_jsx(StreamingIndicator, {}), isCompacting && /*#__PURE__*/_jsx(CompactingIndicator, {})]
-    }), showStats && /*#__PURE__*/_jsx(StatsDisplay, {
-      stats: stats,
+      }), isStreaming && !streamContent && /* #__PURE__ */_jsx(StreamingIndicator, {}), isCompacting && /* #__PURE__ */_jsx(CompactingIndicator, {})]
+    }), showStats && /* #__PURE__ */_jsx(StatsDisplay, {
+      stats,
       onDismiss: () => setShowStats(false)
-    }), showHistory && /*#__PURE__*/_jsx(HistoryDisplay, {
+    }), showHistory && /* #__PURE__ */_jsx(HistoryDisplay, {
       history: commandHistory,
       onDismiss: () => setShowHistory(false)
-    }), showExportSuccess && /*#__PURE__*/_jsx(ExportSuccess, {
+    }), showExportSuccess && /* #__PURE__ */_jsx(ExportSuccess, {
       filePath: exportedFilePath,
       onDismiss: () => setShowExportSuccess(false)
-    }), showHelp && /*#__PURE__*/_jsx(HelpDisplay, {
+    }), showHelp && /* #__PURE__ */_jsx(HelpDisplay, {
       onDismiss: () => setShowHelp(false)
-    }), /*#__PURE__*/_jsx(Box, {
+    }), /* #__PURE__ */_jsx(Box, {
       marginTop: 1,
-      children: /*#__PURE__*/_jsx(ChatInput, {
+      children: /* #__PURE__ */_jsx(ChatInput, {
         onSubmit: handleSubmit,
         disabled: isStreaming,
-        commandHistory: commandHistory,
-        historyIndex: historyIndex,
+        commandHistory,
+        historyIndex,
         onHistoryNavigate: handleHistoryNavigate,
         onValueChange: setInputValue,
         externalValue: inputValue
       })
-    }), /*#__PURE__*/_jsx(Box, {
+    }), /* #__PURE__ */_jsx(Box, {
       marginTop: 1,
-      justifyContent: "center",
-      children: /*#__PURE__*/_jsxs(Text, {
-        color: "gray",
+      justifyContent: 'center',
+      children: /* #__PURE__ */_jsxs(Text, {
+        color: 'gray',
         dimColor: true,
-        children: [/*#__PURE__*/_jsx(Text, {
-          color: "yellow",
-          children: "/help"
-        }), " commands \u2022 ", /*#__PURE__*/_jsx(Text, {
-          color: "yellow",
-          children: "/export"
-        }), " save chat \u2022 ", /*#__PURE__*/_jsx(Text, {
-          color: "yellow",
-          children: "\u2191\u2193"
-        }), " history \u2022 ", /*#__PURE__*/_jsx(Text, {
-          color: "yellow",
-          children: "Ctrl+C"
-        }), " exit"]
+        children: [/* #__PURE__ */_jsx(Text, {
+          color: 'yellow',
+          children: '/help'
+        }), ' commands \u2022 ', /* #__PURE__ */_jsx(Text, {
+          color: 'yellow',
+          children: '/export'
+        }), ' save chat \u2022 ', /* #__PURE__ */_jsx(Text, {
+          color: 'yellow',
+          children: '\u2191\u2193'
+        }), ' history \u2022 ', /* #__PURE__ */_jsx(Text, {
+          color: 'yellow',
+          children: 'Ctrl+C'
+        }), ' exit']
       })
     })]
-  });
+  })
 }
-export async function startChatApp() {
-  const app = render(/*#__PURE__*/_jsx(ChatApp, {}));
-  await app.waitUntilExit();
+export async function startChatApp () {
+  const app = render(/* #__PURE__ */_jsx(ChatApp, {}))
+  await app.waitUntilExit()
 }
