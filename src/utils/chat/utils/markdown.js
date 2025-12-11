@@ -10,26 +10,30 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Marked } from 'marked'
+import { marked } from 'marked'
 import { markedTerminal } from 'marked-terminal'
+import chalk from 'chalk'
 
-// Configure marked with terminal renderer
-const marked = new Marked(markedTerminal({
+// Force chalk to use colors (overrides NO_COLOR env var)
+chalk.level = 3
+
+// Default terminal renderer options
+let terminalOptions = {
   reflowText: true,
   width: 80,
   tab: 2
-}))
+}
+
+// Configure marked with terminal renderer
+marked.use(markedTerminal(terminalOptions))
 
 /**
  * Update markdown renderer options (e.g., for terminal width)
  * @param {object} options - Options to pass to markedTerminal
  */
 export function updateMarkdownOptions (options) {
-  marked.setOptions(markedTerminal({
-    reflowText: true,
-    tab: 2,
-    ...options
-  }))
+  terminalOptions = { ...terminalOptions, ...options }
+  marked.use(markedTerminal(terminalOptions))
 }
 
 /**
@@ -39,7 +43,9 @@ export function updateMarkdownOptions (options) {
  */
 export function renderMarkdown (text) {
   try {
-    return marked.parse(text).trim()
+    const rendered = marked.parse(text)
+    // Remove trailing newlines but preserve internal formatting
+    return rendered.replace(/\n+$/, '')
   } catch {
     return text
   }
