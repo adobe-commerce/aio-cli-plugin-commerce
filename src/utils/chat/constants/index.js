@@ -11,12 +11,12 @@ governing permissions and limitations under the License.
 */
 
 // API endpoints
-export const API_URL = 'https://extensibility-docs.apimesh-adobe-test.workers.dev/ai-search'
-export const COMPACT_API_URL = 'https://extensibility-docs.apimesh-adobe-test.workers.dev/compact'
+export const API_URL = 'https://extensibility-docs.apimesh-adobe-test.workers.dev/ai-search';
+export const COMPACT_API_URL = 'https://extensibility-docs.apimesh-adobe-test.workers.dev/compact';
 
 // Context window configuration
-export const MAX_CONTEXT_TOKENS = 5000
-export const AUTO_COMPACT_THRESHOLD = 0.9 // Compact at 90% of max tokens
+export const MAX_CONTEXT_TOKENS = 5000;
+export const AUTO_COMPACT_THRESHOLD = 0.9; // Compact at 90% of max tokens
 
 // ASCII Art Logos
 export const ADOBE_LOGO = `
@@ -26,8 +26,7 @@ export const ADOBE_LOGO = `
   ██╔══██║██║  ██║██║   ██║██╔══██╗██╔══╝
   ██║  ██║██████╔╝╚██████╔╝██████╔╝███████╗
   ╚═╝  ╚═╝╚═════╝  ╚═════╝ ╚═════╝ ╚══════╝
-`
-
+`;
 export const COMMERCE_TEXT = `
    ██████╗ ██████╗ ███╗   ███╗███╗   ███╗███████╗██████╗  ██████╗███████╗
   ██╔════╝██╔═══██╗████╗ ████║████╗ ████║██╔════╝██╔══██╗██╔════╝██╔════╝
@@ -35,7 +34,7 @@ export const COMMERCE_TEXT = `
   ██║     ██║   ██║██║╚██╔╝██║██║╚██╔╝██║██╔══╝  ██╔══██╗██║     ██╔══╝
   ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║ ╚═╝ ██║███████╗██║  ██║╚██████╗███████╗
    ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝
-`
+`;
 
 // Slash commands configuration
 export const SLASH_COMMANDS = {
@@ -71,5 +70,4 @@ export const SLASH_COMMANDS = {
     description: 'Exit the chat',
     action: 'exit'
   }
-}
-
+};

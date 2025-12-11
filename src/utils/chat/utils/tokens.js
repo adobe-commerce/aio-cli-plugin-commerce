@@ -15,7 +15,6 @@ governing permissions and limitations under the License.
  * @param {string} text - Text to estimate tokens for
  * @returns {number} Estimated token count
  */
-export function estimateTokens (text) {
-  return Math.ceil(text.length / 4)
+export function estimateTokens(text) {
+  return Math.ceil(text.length / 4);
 }
-

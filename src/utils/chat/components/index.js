@@ -10,9 +10,8 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-export { AnimatedLogo } from './AnimatedLogo.js'
-export { Message } from './Message.js'
-export { ChatInput } from './ChatInput.js'
-export { StreamingIndicator, CompactingIndicator } from './Indicators.js'
-export { StatsDisplay, HistoryDisplay, ExportSuccess, HelpDisplay } from './Overlays.js'
-
+export { AnimatedLogo } from './AnimatedLogo.js';
+export { Message } from './Message.js';
+export { ChatInput } from './ChatInput.js';
+export { StreamingIndicator, CompactingIndicator } from './Indicators.js';
+export { StatsDisplay, HistoryDisplay, ExportSuccess, HelpDisplay } from './Overlays.js';

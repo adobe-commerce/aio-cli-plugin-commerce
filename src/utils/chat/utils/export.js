@@ -10,8 +10,8 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'fs/promises';
+import path from 'path';
 
 /**
  * Export chat messages to a Markdown file
@@ -19,34 +19,30 @@ import path from 'path'
  * @param {string} duration - Session duration string
  * @returns {Promise<string>} Path to the exported file
  */
-export async function exportToMarkdown (messages, duration) {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const filename = `commerce-docs-chat-${timestamp}.md`
-  const filePath = path.join(process.cwd(), filename)
-
-  let content = `# Adobe Commerce Docs Chat Export\n\n`
-  content += `**Exported:** ${new Date().toLocaleString()}\n`
-  content += `**Session Duration:** ${duration}\n`
-  content += `**Messages:** ${messages.filter(m => m.role !== 'system').length}\n\n`
-  content += `---\n\n`
-
+export async function exportToMarkdown(messages, duration) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const filename = `commerce-docs-chat-${timestamp}.md`;
+  const filePath = path.join(process.cwd(), filename);
+  let content = `# Adobe Commerce Docs Chat Export\n\n`;
+  content += `**Exported:** ${new Date().toLocaleString()}\n`;
+  content += `**Session Duration:** ${duration}\n`;
+  content += `**Messages:** ${messages.filter(m => m.role !== 'system').length}\n\n`;
+  content += `---\n\n`;
   for (const msg of messages) {
-    if (msg.role === 'system') continue
-
+    if (msg.role === 'system') continue;
     if (msg.role === 'user') {
-      content += `## 👤 You\n`
-      if (msg.timestamp) content += `*${msg.timestamp}*\n\n`
-      content += `${msg.content}\n\n`
+      content += `## 👤 You\n`;
+      if (msg.timestamp) content += `*${msg.timestamp}*\n\n`;
+      content += `${msg.content}\n\n`;
     } else {
-      content += `## 🤖 Adobe Commerce Docs\n`
-      if (msg.timestamp) content += `*${msg.timestamp}*\n\n`
-      content += `${msg.content}\n\n`
+      content += `## 🤖 Adobe Commerce Docs\n`;
+      if (msg.timestamp) content += `*${msg.timestamp}*\n\n`;
+      content += `${msg.content}\n\n`;
     }
-    content += `---\n\n`
+    content += `---\n\n`;
   }
-
-  await fs.writeFile(filePath, content, 'utf-8')
-  return filePath
+  await fs.writeFile(filePath, content, 'utf-8');
+  return filePath;
 }
 
 /**
@@ -54,11 +50,10 @@ export async function exportToMarkdown (messages, duration) {
  * @param {object} data - Data to export (messages, stats, history, etc.)
  * @returns {Promise<string>} Path to the exported file
  */
-export async function exportToJson (data) {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-  const filename = `commerce-docs-chat-${timestamp}.json`
-  const filePath = path.join(process.cwd(), filename)
-
+export async function exportToJson(data) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const filename = `commerce-docs-chat-${timestamp}.json`;
+  const filePath = path.join(process.cwd(), filename);
   const exportData = {
     exportedAt: new Date().toISOString(),
     sessionDuration: data.duration,
@@ -74,9 +69,7 @@ export async function exportToJson (data) {
       timestamp: m.timestamp || null
     })),
     commandHistory: data.commandHistory
-  }
-
-  await fs.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf-8')
-  return filePath
+  };
+  await fs.writeFile(filePath, JSON.stringify(exportData, null, 2), 'utf-8');
+  return filePath;
 }
-
