@@ -62,8 +62,8 @@
   "main": "src/commands/commerce/index.js",
   "scripts": {
     "build:jsx": "babel src/utils/chat --out-dir src/utils/chat --extensions '.jsx' --out-file-extension .js",
-    "lint": "eslint src test e2e --ignore-pattern '*.jsx'",
-    "lint:fix": "eslint src test e2e --ignore-pattern '*.jsx' --fix",
+    "lint": "eslint src test e2e --ignore-pattern '*.jsx' --ignore-pattern 'src/utils/chat/ChatApp.js' --ignore-pattern 'src/utils/chat/components/*.js'",
+    "lint:fix": "eslint src test e2e --ignore-pattern '*.jsx' --ignore-pattern 'src/utils/chat/ChatApp.js' --ignore-pattern 'src/utils/chat/components/*.js' --fix",
     "posttest": "npm run lint",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --testRegex '.+\\.test\\.js' --ci",
     "prepack": "npm run build:jsx && oclif manifest && oclif readme",
