@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Command } from '@oclif/core'
+import { Command, Flags } from '@oclif/core'
 import {
   promptInput,
   promptSelect
@@ -25,8 +25,37 @@ import { GeminiCLIAgent } from '../../../utils/extensibility/tools-setup/agents/
 import { ClaudeCodeAgent } from '../../../utils/extensibility/tools-setup/agents/ClaudeCodeAgent.js'
 
 const aioLogger = Logger('commerce:tools-setup.js')
+
+/**
+ * Validates the version string format.
+ * Accepts semver versions (1.2.3, 1.2.3-beta.1), npm tags (latest, next, beta),
+ * and version ranges (^1.2.3, ~1.2.3, >=1.0.0).
+ * @param {string} version - The version string to validate
+ * @returns {boolean} - True if valid, false otherwise
+ */
+function isValidVersionFormat (version) {
+  // Allow npm dist-tags (latest, next, beta, alpha, canary, etc.)
+  const distTagPattern = /^[a-zA-Z][a-zA-Z0-9-]*$/
+
+  // Allow semver versions with optional pre-release and build metadata
+  // Examples: 1.2.3, 1.2.3-beta.1, 1.2.3+build.123, ^1.2.3, ~1.2.3, >=1.0.0
+  const semverPattern = /^[~^]?[><=]*\d+(\.\d+)?(\.\d+)?(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$/
+
+  return distTagPattern.test(version) || semverPattern.test(version)
+}
+
 export class ToolsSetupCommand extends Command {
   async run () {
+    const { flags } = await this.parse(ToolsSetupCommand)
+    const toolsVersion = flags['tools-version'] || 'latest'
+
+    // Validate version format before proceeding
+    if (!isValidVersionFormat(toolsVersion)) {
+      console.error(`❌ Invalid version format: "${toolsVersion}"`)
+      console.error('   Version must be a valid semver (e.g., 1.2.3, ^1.2.3) or npm tag (e.g., latest, next)')
+      throw new Error(`Invalid version format: "${toolsVersion}"`)
+    }
+
     try {
       console.log('🔧 Setting up Commerce Extensibility Tools...\n')
 
@@ -86,17 +115,24 @@ export class ToolsSetupCommand extends Command {
 
       // Install the npm package
       console.log(
-        `📦 Installing @adobe-commerce/commerce-extensibility-tools package using ${packageManager}...`
+        `📦 Installing @adobe-commerce/commerce-extensibility-tools@${toolsVersion} using ${packageManager}...`
       )
+      // Note: yarn requires -W flag to install in workspace root environments
       const installCommand = packageManager === 'yarn'
-        ? 'yarn add -D @adobe-commerce/commerce-extensibility-tools@latest'
-        : 'npm install --save-dev @adobe-commerce/commerce-extensibility-tools@latest'
+        ? `yarn add -W -D @adobe-commerce/commerce-extensibility-tools@${toolsVersion}`
+        : `npm install --save-dev @adobe-commerce/commerce-extensibility-tools@${toolsVersion}`
 
       try {
         await runCommand(installCommand)
         console.log('✅ Package installed successfully')
       } catch (error) {
         console.error('❌ Package installation failed:', error.message)
+        // Check if the error is related to version not found
+        if (error.message.includes('404') || error.message.includes('ETARGET') || error.message.includes('No matching version')) {
+          console.error(`   The specified version "${toolsVersion}" may not exist on npm.`)
+          console.error('   Please verify the version exists: npm view @adobe-commerce/commerce-extensibility-tools versions')
+          throw new Error(`Package installation failed. Version "${toolsVersion}" not found on npm.`)
+        }
         throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
@@ -109,6 +145,17 @@ export class ToolsSetupCommand extends Command {
   }
 }
 
+ToolsSetupCommand.flags = {
+  'tools-version': Flags.string({
+    char: 'v',
+    description: 'Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)',
+    required: false
+  })
+}
+
 ToolsSetupCommand.description =
   'Setup Commerce Extensibility Tools for Cursor IDE'
-ToolsSetupCommand.examples = ['$ aio commerce:extensibility:tools-setup']
+ToolsSetupCommand.examples = [
+  '$ aio commerce:extensibility:tools-setup',
+  '$ aio commerce:extensibility:tools-setup --tools-version 1.2.3'
+]
