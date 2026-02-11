@@ -153,13 +153,18 @@ EXAMPLES
 
 ```
 USAGE
-  $ aio commerce extensibility tools-setup
+  $ aio commerce extensibility tools-setup [-v <value>]
+
+FLAGS
+  -v, --tools-version=<value>  Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
 
 DESCRIPTION
   Setup Commerce Extensibility Tools for Cursor IDE
 
 EXAMPLES
   $ aio commerce:extensibility:tools-setup
+  $ aio commerce:extensibility:tools-setup --tools-version 1.2.3
+  $ aio commerce:extensibility:tools-setup -v latest
 ```
 
 This command sets up Commerce Extensibility Tools for use with Cursor IDE. It will:
@@ -168,6 +173,16 @@ This command sets up Commerce Extensibility Tools for use with Cursor IDE. It wi
 - Create MCP (Model Context Protocol) configuration for Cursor
 - Set up rules and tooling for Commerce App Builder development
 - Configure the environment for enhanced development experience
+
+### Version Flag
+
+The `--tools-version` (or `-v`) flag allows you to specify which version of `@adobe-commerce/commerce-extensibility-tools` to install:
+
+- **Semver versions**: `1.2.3`, `1.0.0-beta.1`
+- **Version ranges**: `^1.2.3`, `~1.2.3`, `>=1.0.0`
+- **npm dist-tags**: `latest`, `next`, `beta`
+
+If not specified, defaults to `latest`. The command validates the version format before installation and provides helpful error messages if the specified version is invalid or not found on npm.
 
 The setup process will prompt you to:
 - Choose between current directory or a new directory for setup
