@@ -4,8 +4,9 @@ import fs from 'fs'
 import { promptConfirm } from '../../../../utils/prompt.js'
 
 export class ClaudeCodeAgent {
-  constructor (targetDir) {
+  constructor (targetDir, options = {}) {
     this.targetDir = targetDir
+    this.force = options.force || false
   }
 
   getMCPPath () {
@@ -49,7 +50,7 @@ export class ClaudeCodeAgent {
     // Check if MCP already exists in target directory
     const exists = await this.checkIfMCPExists()
 
-    if (exists) {
+    if (exists && !this.force) {
       const shouldOverride = await promptConfirm('.mcp.json already exists in the project root. Do you want to override it?')
 
       if (!shouldOverride) {

@@ -153,10 +153,16 @@ EXAMPLES
 
 ```
 USAGE
-  $ aio commerce extensibility tools-setup [-v <value>]
+  $ aio commerce extensibility tools-setup [-v <value>] [--skills | --rules] [-s <value>] [-a <value>] [-p npm|yarn] [-f]
 
 FLAGS
-  -v, --tools-version=<value>  Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
+  -v, --tools-version=<value>    Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
+      --skills                   Use Skills mode (recommended). Mutually exclusive with --rules
+      --rules                    Use Rules mode (legacy). Mutually exclusive with --skills
+  -s, --starter-kit=<option>     Starter kit to use (skills mode only). e.g. "integration-starter-kit"
+  -a, --agent=<value>            Coding agent to configure (see Supported Agents below)
+  -p, --package-manager=<option> Package manager: "npm" or "yarn"
+  -f, --force                    Force overwrite of existing MCP configuration without prompting
 
 DESCRIPTION
   Setup Commerce Extensibility Tools with Agent Skills or Rules for your coding agent
@@ -164,7 +170,9 @@ DESCRIPTION
 EXAMPLES
   $ aio commerce:extensibility:tools-setup
   $ aio commerce:extensibility:tools-setup --tools-version 1.2.3
-  $ aio commerce:extensibility:tools-setup -v latest
+  $ aio commerce:extensibility:tools-setup --skills --starter-kit integration-starter-kit --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup --skills -s integration-starter-kit -a Cursor -p npm -f
+  $ aio commerce:extensibility:tools-setup --rules --agent "Claude Code" --package-manager npm --force
 ```
 
 This command sets up Commerce Extensibility Tools for use with your preferred coding agent. It supports two modes:
@@ -199,22 +207,40 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 
 The original setup mode that copies agent-specific rules files. Supports Cursor, Copilot, Gemini CLI, and Claude Code. This mode will be deprecated in a future release in favor of Skills.
 
-### Version Flag
+### Flags Reference
 
-The `--tools-version` (or `-v`) flag allows you to specify which version of `@adobe-commerce/commerce-extensibility-tools` to install:
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
+| `--skills` | | Use Skills mode (recommended). Mutually exclusive with `--rules`. |
+| `--rules` | | Use Rules mode (legacy). Mutually exclusive with `--skills`. |
+| `--starter-kit` | `-s` | Starter kit folder name (skills mode only). e.g. `integration-starter-kit`. |
+| `--agent` | `-a` | Coding agent name. Skills mode: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. Rules mode: `Cursor`, `Copilot`, `Gemini CLI`, `Claude Code`. |
+| `--package-manager` | `-p` | Package manager: `npm` or `yarn`. |
+| `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |
 
-- **Semver versions**: `1.2.3`, `1.0.0-beta.1`
-- **Version ranges**: `^1.2.3`, `~1.2.3`, `>=1.0.0`
-- **npm dist-tags**: `latest`, `next`, `beta`
+All flags are optional. When a flag is omitted, the command will prompt interactively. When all flags are provided, the command runs fully non-interactively, making it suitable for CI/CD pipelines.
 
-If not specified, defaults to `latest`. The command validates the version format before installation and provides helpful error messages if the specified version is invalid or not found on npm.
+### CI / Automation
 
-The setup process will prompt you to:
-- Choose between Skills (recommended) or Rules (legacy)
-- Select a starter kit (Skills flow only)
-- Select your coding agent
-- Select your preferred package manager (npm or yarn)
-- Confirm if you want to override existing MCP configuration
+To run the setup without any interactive prompts (e.g. in a CI pipeline), provide all flags:
+
+```sh
+# Skills mode - fully automated
+aio commerce:extensibility:tools-setup \
+  --skills \
+  --starter-kit integration-starter-kit \
+  --agent Cursor \
+  --package-manager npm \
+  --force
+
+# Rules mode (legacy) - fully automated
+aio commerce:extensibility:tools-setup \
+  --rules \
+  --agent "Claude Code" \
+  --package-manager npm \
+  --force
+```
 
 Navigate to your project directory before running the command. After setup, restart your coding agent to load the new MCP tools and skills.
 <!-- commandsstop -->

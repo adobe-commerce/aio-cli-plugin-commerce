@@ -12,50 +12,7 @@ governing permissions and limitations under the License.
 
 import fs from 'fs'
 import path from 'path'
-
-/**
- * Agent skills folder paths for each supported coding agent.
- * Each entry maps an agent key to its display name and the relative
- * path (from project root) where skills should be installed.
- */
-export const AGENTS_CONFIG = {
-  Cursor: {
-    name: 'Cursor',
-    skillsPath: '.cursor/skills'
-  },
-  'Claude Code': {
-    name: 'Claude Code',
-    skillsPath: '.claude/skills'
-  },
-  'GitHub Copilot': {
-    name: 'GitHub Copilot',
-    skillsPath: '.github/skills'
-  },
-  Windsurf: {
-    name: 'Windsurf',
-    skillsPath: '.windsurf/skills'
-  },
-  'Gemini CLI': {
-    name: 'Gemini CLI',
-    skillsPath: '.gemini/skills'
-  },
-  'OpenAI Codex': {
-    name: 'OpenAI Codex',
-    skillsPath: '.agents/skills'
-  },
-  Cline: {
-    name: 'Cline',
-    skillsPath: '.cline/skills'
-  },
-  'Kilo Code': {
-    name: 'Kilo Code',
-    skillsPath: '.kilocode/skills'
-  },
-  Antigravity: {
-    name: 'Antigravity',
-    skillsPath: '.agent/skills'
-  }
-}
+import agentsConfig from '../../../configs/agents.json' with { type: 'json' }
 
 /**
  * Recursively copies a directory from src to dest.
@@ -125,8 +82,8 @@ export async function installSkills (targetDir, starterKitFolder, agentKey) {
   if (agentKey === 'Other') {
     skillsDest = path.join(targetDir, 'skills')
   } else {
-    const agentConfig = AGENTS_CONFIG[agentKey]
-    skillsDest = path.join(targetDir, agentConfig.skillsPath)
+    const agentCfg = agentsConfig[agentKey]
+    skillsDest = path.join(targetDir, agentCfg.skillsPath)
   }
 
   // Create skills destination directory

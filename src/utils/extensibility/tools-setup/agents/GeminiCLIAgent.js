@@ -4,8 +4,9 @@ import fs from 'fs'
 import { promptConfirm } from '../../../../utils/prompt.js'
 
 export class GeminiCLIAgent {
-  constructor (targetDir) {
+  constructor (targetDir, options = {}) {
     this.targetDir = targetDir
+    this.force = options.force || false
   }
 
   getMCPPath () {
@@ -61,7 +62,7 @@ export class GeminiCLIAgent {
     // Check if MCP already exists in target directory
     const exists = await this.checkIfMCPExists()
 
-    if (exists) {
+    if (exists && !this.force) {
       const shouldOverride = await promptConfirm('settings.json already exists in the .gemini directory. Do you want to override it?')
 
       if (!shouldOverride) {

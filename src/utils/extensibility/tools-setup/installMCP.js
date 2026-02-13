@@ -13,8 +13,8 @@ governing permissions and limitations under the License.
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-
 import { promptConfirm } from '../../prompt.js'
+import agentsConfig from '../../../configs/agents.json' with { type: 'json' }
 
 /**
  * The MCP server entry that gets written into every agent's config.
@@ -26,80 +26,35 @@ const MCP_SERVER_ENTRY = {
 }
 
 /**
- * MCP configuration specs for each supported coding agent.
+ * Resolves a global path template from agents.json by replacing
+ * {homedir} and {APPDATA} placeholders with runtime values.
  *
- * - path: relative path from project root (or absolute for global configs)
- * - topKey: the JSON key that wraps the server entries
- * - format: 'json' or 'toml'
- * - global: true if this agent only supports global MCP config (not project-level)
- * - globalPathFn: function returning the OS-specific global config path
+ * @param {string} template - Path template with placeholders
+ * @returns {string} Resolved absolute path
  */
-const MCP_CONFIGS = {
-  Cursor: {
-    path: path.join('.cursor', 'mcp.json'),
-    topKey: 'mcpServers',
-    format: 'json'
-  },
-  'Claude Code': {
-    path: '.mcp.json',
-    topKey: 'mcpServers',
-    format: 'json'
-  },
-  'GitHub Copilot': {
-    path: path.join('.vscode', 'mcp.json'),
-    topKey: 'servers',
-    format: 'json'
-  },
-  Windsurf: {
-    topKey: 'mcpServers',
-    format: 'json',
-    global: true,
-    globalPathFn: () => {
-      const platform = os.platform()
-      if (platform === 'darwin') {
-        return path.join(os.homedir(), '.codeium', 'windsurf', 'mcp_config.json')
-      } else if (platform === 'win32') {
-        return path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'Codeium', 'Windsurf', 'mcp_config.json')
-      }
-      // Linux
-      return path.join(os.homedir(), '.codeium', 'windsurf', 'mcp_config.json')
-    }
-  },
-  'Gemini CLI': {
-    path: path.join('.gemini', 'settings.json'),
-    topKey: 'mcpServers',
-    format: 'json'
-  },
-  'OpenAI Codex': {
-    path: path.join('.codex', 'config.toml'),
-    topKey: 'mcp_servers',
-    format: 'toml'
-  },
-  Cline: {
-    topKey: 'mcpServers',
-    format: 'json',
-    global: true,
-    globalPathFn: () => {
-      const platform = os.platform()
-      if (platform === 'darwin') {
-        return path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'globalStorage', 'saoudrizwan.claude-dev', 'settings', 'cline_mcp_settings.json')
-      } else if (platform === 'win32') {
-        return path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'), 'Code', 'User', 'globalStorage', 'saoudrizwan.claude-dev', 'settings', 'cline_mcp_settings.json')
-      }
-      // Linux
-      return path.join(os.homedir(), '.config', 'Code', 'User', 'globalStorage', 'saoudrizwan.claude-dev', 'settings', 'cline_mcp_settings.json')
-    }
-  },
-  'Kilo Code': {
-    path: path.join('.kilocode', 'mcp.json'),
-    topKey: 'mcpServers',
-    format: 'json'
-  },
-  Antigravity: {
-    path: path.join('.agent', 'mcp_config.json'),
-    topKey: 'mcpServers',
-    format: 'json'
+function resolveGlobalPath (template) {
+  return template
+    .replace('{homedir}', os.homedir())
+    .replace('{APPDATA}', process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'))
+}
+
+/**
+ * Returns the MCP file path for the given agent config.
+ * For global agents, resolves the OS-specific template from globalPaths.
+ * For project-level agents, joins the relative path with targetDir.
+ *
+ * @param {object} mcpConfig - The mcp section from agents.json
+ * @param {string} targetDir - The project root directory
+ * @returns {object} { filePath, isGlobal }
+ */
+function resolveMcpFilePath (mcpConfig, targetDir) {
+  if (mcpConfig.global && mcpConfig.globalPaths) {
+    const platform = os.platform()
+    // Fall back to linux paths for unknown platforms
+    const template = mcpConfig.globalPaths[platform] || mcpConfig.globalPaths.linux
+    return { filePath: resolveGlobalPath(template), isGlobal: true }
   }
+  return { filePath: path.join(targetDir, mcpConfig.path), isGlobal: false }
 }
 
 /**
@@ -122,18 +77,21 @@ args = ["node_modules/@adobe-commerce/commerce-extensibility-tools/index.js"]
  * @param {string} filePath - Absolute path to the MCP config file
  * @param {string} topKey - The top-level JSON key (e.g. 'mcpServers', 'servers')
  * @param {boolean} isGlobal - Whether this is a global config file
+ * @param {boolean} force - If true, skip confirmation prompts and overwrite
  * @returns {Promise<boolean>} true if written successfully, false if user cancelled
  */
-async function writeJsonMcpConfig (filePath, topKey, isGlobal) {
+async function writeJsonMcpConfig (filePath, topKey, isGlobal, force) {
   let existingConfig = {}
 
   if (fs.existsSync(filePath)) {
-    const label = isGlobal ? `Global MCP config already exists at ${filePath}` : 'MCP config already exists in the target directory'
-    const shouldOverride = await promptConfirm(
-      `${label}. Do you want to merge the commerce-extensibility server into it?`
-    )
-    if (!shouldOverride) {
-      return false
+    if (!force) {
+      const label = isGlobal ? `Global MCP config already exists at ${filePath}` : 'MCP config already exists in the target directory'
+      const shouldOverride = await promptConfirm(
+        `${label}. Do you want to merge the commerce-extensibility server into it?`
+      )
+      if (!shouldOverride) {
+        return false
+      }
     }
 
     try {
@@ -165,9 +123,10 @@ async function writeJsonMcpConfig (filePath, topKey, isGlobal) {
  * Writes or appends a TOML MCP config for OpenAI Codex.
  *
  * @param {string} filePath - Absolute path to the .codex/config.toml file
+ * @param {boolean} force - If true, skip confirmation prompts and overwrite
  * @returns {Promise<boolean>} true if written successfully, false if user cancelled
  */
-async function writeTomlMcpConfig (filePath) {
+async function writeTomlMcpConfig (filePath, force) {
   const tomlEntry = generateTomlConfig()
 
   if (fs.existsSync(filePath)) {
@@ -175,11 +134,13 @@ async function writeTomlMcpConfig (filePath) {
 
     // Check if commerce-extensibility is already configured
     if (existingContent.includes('[mcp_servers.commerce-extensibility]')) {
-      const shouldOverride = await promptConfirm(
-        'commerce-extensibility MCP server already exists in .codex/config.toml. Do you want to override it?'
-      )
-      if (!shouldOverride) {
-        return false
+      if (!force) {
+        const shouldOverride = await promptConfirm(
+          'commerce-extensibility MCP server already exists in .codex/config.toml. Do you want to override it?'
+        )
+        if (!shouldOverride) {
+          return false
+        }
       }
 
       // Replace existing commerce-extensibility block
@@ -214,9 +175,12 @@ async function writeTomlMcpConfig (filePath) {
  * For "Other", prints the config snippet for the user to add manually.
  *
  * @param {string} targetDir - The project root directory
- * @param {string} agentKey - The agent key from MCP_CONFIGS, or 'Other'
+ * @param {string} agentKey - The agent key from agents.json, or 'Other'
+ * @param {object} [options] - Options
+ * @param {boolean} [options.force] - If true, skip confirmation prompts and overwrite existing configs
  */
-export async function installMCP (targetDir, agentKey) {
+export async function installMCP (targetDir, agentKey, options = {}) {
+  const force = options.force || false
   if (agentKey === 'Other') {
     console.log('\n📋 MCP server configuration for your coding agent:')
     console.log(JSON.stringify({
@@ -227,30 +191,29 @@ export async function installMCP (targetDir, agentKey) {
     return
   }
 
-  const config = MCP_CONFIGS[agentKey]
-  if (!config) {
+  const agentCfg = agentsConfig[agentKey]
+  if (!agentCfg || !agentCfg.mcp) {
     console.log(`⚠️  MCP configuration not available for agent "${agentKey}"`)
     return
   }
 
-  let filePath
-  if (config.global && config.globalPathFn) {
-    filePath = config.globalPathFn()
+  const mcpConfig = agentCfg.mcp
+  const { filePath, isGlobal } = resolveMcpFilePath(mcpConfig, targetDir)
+
+  if (isGlobal) {
     console.log(`📋 MCP config will be written to global path: ${filePath}`)
-  } else {
-    filePath = path.join(targetDir, config.path)
   }
 
   let success = false
 
-  if (config.format === 'toml') {
-    success = await writeTomlMcpConfig(filePath)
+  if (mcpConfig.format === 'toml') {
+    success = await writeTomlMcpConfig(filePath, force)
   } else {
-    success = await writeJsonMcpConfig(filePath, config.topKey, !!config.global)
+    success = await writeJsonMcpConfig(filePath, mcpConfig.topKey, isGlobal, force)
   }
 
   if (success) {
-    const location = config.global ? filePath : config.path
+    const location = isGlobal ? filePath : mcpConfig.path
     console.log(`✅ Created MCP configuration: ${location}`)
   } else {
     console.log('⚠️  MCP configuration was not modified.')

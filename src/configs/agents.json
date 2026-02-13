@@ -1,0 +1,93 @@
+{
+  "Cursor": {
+    "name": "Cursor",
+    "skillsPath": ".cursor/skills",
+    "mcp": {
+      "path": ".cursor/mcp.json",
+      "topKey": "mcpServers",
+      "format": "json"
+    }
+  },
+  "Claude Code": {
+    "name": "Claude Code",
+    "skillsPath": ".claude/skills",
+    "mcp": {
+      "path": ".mcp.json",
+      "topKey": "mcpServers",
+      "format": "json"
+    }
+  },
+  "GitHub Copilot": {
+    "name": "GitHub Copilot",
+    "skillsPath": ".github/skills",
+    "mcp": {
+      "path": ".vscode/mcp.json",
+      "topKey": "servers",
+      "format": "json"
+    }
+  },
+  "Windsurf": {
+    "name": "Windsurf",
+    "skillsPath": ".windsurf/skills",
+    "mcp": {
+      "topKey": "mcpServers",
+      "format": "json",
+      "global": true,
+      "globalPaths": {
+        "darwin": "{homedir}/.codeium/windsurf/mcp_config.json",
+        "win32": "{APPDATA}/Codeium/Windsurf/mcp_config.json",
+        "linux": "{homedir}/.codeium/windsurf/mcp_config.json"
+      }
+    }
+  },
+  "Gemini CLI": {
+    "name": "Gemini CLI",
+    "skillsPath": ".gemini/skills",
+    "mcp": {
+      "path": ".gemini/settings.json",
+      "topKey": "mcpServers",
+      "format": "json"
+    }
+  },
+  "OpenAI Codex": {
+    "name": "OpenAI Codex",
+    "skillsPath": ".agents/skills",
+    "mcp": {
+      "path": ".codex/config.toml",
+      "topKey": "mcp_servers",
+      "format": "toml"
+    }
+  },
+  "Cline": {
+    "name": "Cline",
+    "skillsPath": ".cline/skills",
+    "mcp": {
+      "topKey": "mcpServers",
+      "format": "json",
+      "global": true,
+      "globalPaths": {
+        "darwin": "{homedir}/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
+        "win32": "{APPDATA}/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json",
+        "linux": "{homedir}/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json"
+      }
+    }
+  },
+  "Kilo Code": {
+    "name": "Kilo Code",
+    "skillsPath": ".kilocode/skills",
+    "mcp": {
+      "path": ".kilocode/mcp.json",
+      "topKey": "mcpServers",
+      "format": "json"
+    }
+  },
+  "Antigravity": {
+    "name": "Antigravity",
+    "skillsPath": ".agent/skills",
+    "mcp": {
+      "path": ".agent/mcp_config.json",
+      "topKey": "mcpServers",
+      "format": "json"
+    }
+  }
+}
