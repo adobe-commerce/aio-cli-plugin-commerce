@@ -159,7 +159,7 @@ FLAGS
   -v, --tools-version=<value>  Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
 
 DESCRIPTION
-  Setup Commerce Extensibility Tools for Cursor IDE
+  Setup Commerce Extensibility Tools with Agent Skills or Rules for your coding agent
 
 EXAMPLES
   $ aio commerce:extensibility:tools-setup
@@ -167,12 +167,37 @@ EXAMPLES
   $ aio commerce:extensibility:tools-setup -v latest
 ```
 
-This command sets up Commerce Extensibility Tools for use with Cursor IDE. It will:
+This command sets up Commerce Extensibility Tools for use with your preferred coding agent. It supports two modes:
 
-- Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
-- Create MCP (Model Context Protocol) configuration for Cursor
-- Set up rules and tooling for Commerce App Builder development
-- Configure the environment for enhanced development experience
+### Skills (Recommended)
+
+[Agent Skills](https://agentskills.io/) are an open standard for giving AI coding agents domain-specific expertise. When you choose the Skills flow, the command will:
+
+1. Prompt you to select a **starter kit** (Integration Starter Kit or Checkout Starter Kit)
+2. Prompt you to select your **coding agent** from 9 supported agents (plus an "Other" option)
+3. Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
+4. Create MCP (Model Context Protocol) configuration for your agent
+5. Copy `AGENTS.md` to your project root (top-level agent instructions)
+6. Copy skill folders (architect, developer, tester, tutor, etc.) to your agent's skills directory
+
+#### Supported Agents
+
+| Agent | Skills Path | MCP Config |
+|-------|------------|------------|
+| Cursor | `.cursor/skills/` | `.cursor/mcp.json` |
+| Claude Code | `.claude/skills/` | `.mcp.json` |
+| GitHub Copilot | `.github/skills/` | `.vscode/mcp.json` |
+| Windsurf | `.windsurf/skills/` | Global: `~/.codeium/windsurf/mcp_config.json` |
+| Gemini CLI | `.gemini/skills/` | `.gemini/settings.json` |
+| OpenAI Codex | `.agents/skills/` | `.codex/config.toml` |
+| Cline | `.cline/skills/` | Global: VS Code extension storage |
+| Kilo Code | `.kilocode/skills/` | `.kilocode/mcp.json` |
+| Antigravity | `.agent/skills/` | `.agent/mcp_config.json` |
+| Other | `./skills/` (project root) | Manual setup required |
+
+### Rules (Legacy)
+
+The original setup mode that copies agent-specific rules files. Supports Cursor, Copilot, Gemini CLI, and Claude Code. This mode will be deprecated in a future release in favor of Skills.
 
 ### Version Flag
 
@@ -185,11 +210,13 @@ The `--tools-version` (or `-v`) flag allows you to specify which version of `@ad
 If not specified, defaults to `latest`. The command validates the version format before installation and provides helpful error messages if the specified version is invalid or not found on npm.
 
 The setup process will prompt you to:
-- Choose between current directory or a new directory for setup
+- Choose between Skills (recommended) or Rules (legacy)
+- Select a starter kit (Skills flow only)
+- Select your coding agent
 - Select your preferred package manager (npm or yarn)
 - Confirm if you want to override existing MCP configuration
 
-After setup, restart Cursor to load the new MCP tools and start using the Commerce App Builder extensions.
+Navigate to your project directory before running the command. After setup, restart your coding agent to load the new MCP tools and skills.
 <!-- commandsstop -->
 
 ## Local Development

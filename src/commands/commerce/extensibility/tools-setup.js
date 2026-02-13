@@ -11,20 +11,38 @@ governing permissions and limitations under the License.
 */
 import { Command, Flags } from '@oclif/core'
 import {
-  promptInput,
   promptSelect
 } from '../../../utils/prompt.js'
 import { runCommand } from '../../../utils/runCommand.js'
-import fs from 'fs'
-import path from 'path'
 import Logger from '@adobe/aio-lib-core-logging'
 
+// Skills flow imports
+import { installSkills, AGENTS_CONFIG } from '../../../utils/extensibility/tools-setup/installSkills.js'
+import { installMCP } from '../../../utils/extensibility/tools-setup/installMCP.js'
+
+// Rules flow imports (to be deprecated)
 import { CursorAgent } from '../../../utils/extensibility/tools-setup/agents/CursorAgent.js'
 import { CopilotAgent } from '../../../utils/extensibility/tools-setup/agents/CopilotAgent.js'
 import { GeminiCLIAgent } from '../../../utils/extensibility/tools-setup/agents/GeminiCLIAgent.js'
 import { ClaudeCodeAgent } from '../../../utils/extensibility/tools-setup/agents/ClaudeCodeAgent.js'
 
 const aioLogger = Logger('commerce:tools-setup.js')
+
+/**
+ * Starter kit configurations.
+ * Each entry maps a starter kit to its display name and the folder name
+ * inside the dist/ directory of the commerce-extensibility-tools package.
+ */
+const STARTER_KITS = [
+  {
+    name: 'Integration Starter Kit',
+    folder: 'integration-starter-kit'
+  }
+  // {
+  //   name: 'Checkout Starter Kit',
+  //   folder: 'checkout-starter-kit'
+  // }
+]
 
 /**
  * Validates the version string format.
@@ -59,42 +77,53 @@ export class ToolsSetupCommand extends Command {
     try {
       console.log('🔧 Setting up Commerce Extensibility Tools...\n')
 
-      // Ask if they want to setup in current directory or new directory
-      const setupLocation = await promptSelect(
-        'Where would you like to setup the tools?',
-        ['Current directory', 'New directory']
-      )
-
-      let targetDir = process.cwd()
-
-      if (setupLocation === 'New directory') {
-        const newPath = await promptInput(
-          'Enter the path for the new directory:'
-        )
-        targetDir = path.resolve(newPath)
-
-        // Create directory if it doesn't exist
-        if (!fs.existsSync(targetDir)) {
-          fs.mkdirSync(targetDir, { recursive: true })
-          console.log(`✅ Created directory: ${targetDir}`)
-        }
-      }
-
-      // Change to target directory
-      process.chdir(targetDir)
+      const targetDir = process.cwd()
       console.log(`📁 Working in directory: ${targetDir}`)
 
-      const selectedAgent = await promptSelect('Which coding agent would you like to use?', ['Cursor', 'Copilot', 'Gemini CLI', 'Claude Code'])
+      // Ask if user wants to use Skills (recommended) or Rules
+      const setupMode = await promptSelect(
+        'Would you like to use Skills (recommended) or Rules?',
+        ['Skills (recommended)', 'Rules (legacy)']
+      )
+
+      const useSkills = setupMode === 'Skills (recommended)'
+
+      // Variables to hold selections for each flow
+      let selectedStarterKit = null
+      let selectedAgent = null
       let codingAgent = null
 
-      if (selectedAgent === 'Copilot') {
-        codingAgent = new CopilotAgent(targetDir)
-      } else if (selectedAgent === 'Gemini CLI') {
-        codingAgent = new GeminiCLIAgent(targetDir)
-      } else if (selectedAgent === 'Claude Code') {
-        codingAgent = new ClaudeCodeAgent(targetDir)
+      if (useSkills) {
+        // Skills flow: ask for starter kit, then agent
+        const starterKitNames = STARTER_KITS.map(kit => kit.name)
+        const selectedKitName = await promptSelect(
+          'Which starter kit would you like to use?',
+          starterKitNames
+        )
+        selectedStarterKit = STARTER_KITS.find(kit => kit.name === selectedKitName)
+
+        // Build agent choices: 9 named agents + Other
+        const agentChoices = [...Object.keys(AGENTS_CONFIG), 'Other']
+        selectedAgent = await promptSelect(
+          'Which coding agent would you like to install the skills for?',
+          agentChoices
+        )
       } else {
-        codingAgent = new CursorAgent(targetDir)
+        // Rules flow: ask for agent (existing 4 agents)
+        const rulesAgent = await promptSelect(
+          'Which coding agent would you like to use?',
+          ['Cursor', 'Copilot', 'Gemini CLI', 'Claude Code']
+        )
+
+        if (rulesAgent === 'Copilot') {
+          codingAgent = new CopilotAgent(targetDir)
+        } else if (rulesAgent === 'Gemini CLI') {
+          codingAgent = new GeminiCLIAgent(targetDir)
+        } else if (rulesAgent === 'Claude Code') {
+          codingAgent = new ClaudeCodeAgent(targetDir)
+        } else {
+          codingAgent = new CursorAgent(targetDir)
+        }
       }
 
       // Ask user for package manager preference
@@ -103,7 +132,7 @@ export class ToolsSetupCommand extends Command {
         ['npm', 'yarn']
       )
 
-      // Check if @adobe/aio-cli-plugin-app-dev is installed, if not, install it using aio plugins:install @adobe/aio-cli-plugin-app-dev
+      // Check if @adobe/aio-cli-plugin-app-dev is installed, if not, install it
       try {
         await runCommand('aio plugins:inspect @adobe/aio-cli-plugin-app-dev')
         console.log('✅ @adobe/aio-cli-plugin-app-dev plugin installed')
@@ -117,7 +146,6 @@ export class ToolsSetupCommand extends Command {
       console.log(
         `📦 Installing @adobe-commerce/commerce-extensibility-tools@${toolsVersion} using ${packageManager}...`
       )
-      // Note: yarn requires -W flag to install in workspace root environments
       const installCommand = packageManager === 'yarn'
         ? `yarn add -W -D @adobe-commerce/commerce-extensibility-tools@${toolsVersion}`
         : `npm install --save-dev @adobe-commerce/commerce-extensibility-tools@${toolsVersion}`
@@ -127,7 +155,6 @@ export class ToolsSetupCommand extends Command {
         console.log('✅ Package installed successfully')
       } catch (error) {
         console.error('❌ Package installation failed:', error.message)
-        // Check if the error is related to version not found
         if (error.message.includes('404') || error.message.includes('ETARGET') || error.message.includes('No matching version')) {
           console.error(`   The specified version "${toolsVersion}" may not exist on npm.`)
           console.error('   Please verify the version exists: npm view @adobe-commerce/commerce-extensibility-tools versions')
@@ -136,7 +163,27 @@ export class ToolsSetupCommand extends Command {
         throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
-      await codingAgent.setup()
+      if (useSkills) {
+        // Skills flow: install MCP, then install skills
+        await installMCP(targetDir, selectedAgent)
+        await installSkills(targetDir, selectedStarterKit.folder, selectedAgent)
+
+        console.log('\n🎉 Commerce Extensibility Tools setup complete!')
+        console.log(`📁 Configuration location: ${targetDir}`)
+        console.log('📋 AGENTS.md: project root')
+        if (selectedAgent !== 'Other') {
+          const agentConfig = AGENTS_CONFIG[selectedAgent]
+          console.log(`📋 Skills location: ${agentConfig.skillsPath}/`)
+        } else {
+          console.log('📋 Skills location: ./skills/')
+        }
+        console.log('\nNext steps:')
+        console.log('1. Restart your coding agent to load the new MCP tools and skills')
+        console.log('2. The Commerce App Builder tools should now be available in your environment')
+      } else {
+        // Rules flow: run existing agent setup (MCP + rules)
+        await codingAgent.setup()
+      }
     } catch (error) {
       aioLogger.error(error)
       console.error('❌ Setup failed:', error.message)
@@ -154,7 +201,7 @@ ToolsSetupCommand.flags = {
 }
 
 ToolsSetupCommand.description =
-  'Setup Commerce Extensibility Tools for Cursor IDE'
+  'Setup Commerce Extensibility Tools with Agent Skills or Rules for your coding agent'
 ToolsSetupCommand.examples = [
   '$ aio commerce:extensibility:tools-setup',
   '$ aio commerce:extensibility:tools-setup --tools-version 1.2.3'
