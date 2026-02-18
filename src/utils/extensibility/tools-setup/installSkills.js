@@ -100,6 +100,17 @@ export async function installSkills (targetDir, starterKitFolder, agentKey) {
     }
   }
 
+  // Copy optional examples and references folders (placed alongside skills)
+  const skillsParentDest = path.dirname(skillsDest)
+  for (const folder of ['examples', 'references']) {
+    const folderSrc = path.join(distPath, folder)
+    if (fs.existsSync(folderSrc)) {
+      const folderDest = path.join(skillsParentDest, folder)
+      copyDirRecursive(folderSrc, folderDest)
+      console.log(`📋 Copied ${folder} folder`)
+    }
+  }
+
   console.log('✅ Skills copied successfully')
 
   if (agentKey === 'Other') {

@@ -187,6 +187,7 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 4. Create MCP (Model Context Protocol) configuration for your agent
 5. Copy `AGENTS.md` to your project root (top-level agent instructions)
 6. Copy skill folders (architect, developer, tester, tutor, etc.) to your agent's skills directory
+7. Copy `examples` and `references` folders (if provided by the starter kit) alongside the skills directory
 
 #### Supported Agents
 
