@@ -157,8 +157,8 @@ USAGE
 
 FLAGS
   -v, --tools-version=<value>    Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
-      --skills                   Use Skills mode (recommended). Mutually exclusive with --rules
-      --rules                    Use Rules mode (legacy). Mutually exclusive with --skills
+      --skills                   Use Skills mode (experimental). Mutually exclusive with --rules
+      --rules                    Use Rules mode (default). Mutually exclusive with --skills
   -s, --starter-kit=<option>     Starter kit to use (skills mode only). e.g. "integration-starter-kit"
   -a, --agent=<value>            Coding agent to configure (see Supported Agents below)
   -p, --package-manager=<option> Package manager: "npm" or "yarn"
@@ -177,7 +177,7 @@ EXAMPLES
 
 This command sets up Commerce Extensibility Tools for use with your preferred coding agent. It supports two modes:
 
-### Skills (Recommended)
+### Skills (Experimental)
 
 [Agent Skills](https://agentskills.io/) are an open standard for giving AI coding agents domain-specific expertise. When you choose the Skills flow, the command will:
 
@@ -204,17 +204,17 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 | Antigravity | `.agent/skills/` | `.agent/mcp_config.json` |
 | Other | `./skills/` (project root) | Manual setup required |
 
-### Rules (Legacy)
+### Rules (Default)
 
-The original setup mode that copies agent-specific rules files. Supports Cursor, Copilot, Gemini CLI, and Claude Code. This mode will be deprecated in a future release in favor of Skills.
+The original setup mode that copies agent-specific rules files. Supports Cursor, Copilot, Gemini CLI, and Claude Code.
 
 ### Flags Reference
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
-| `--skills` | | Use Skills mode (recommended). Mutually exclusive with `--rules`. |
-| `--rules` | | Use Rules mode (legacy). Mutually exclusive with `--skills`. |
+| `--skills` | | Use Skills mode (experimental). Mutually exclusive with `--rules`. |
+| `--rules` | | Use Rules mode (default). Mutually exclusive with `--skills`. |
 | `--starter-kit` | `-s` | Starter kit folder name (skills mode only). e.g. `integration-starter-kit`. |
 | `--agent` | `-a` | Coding agent name. Skills mode: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. Rules mode: `Cursor`, `Copilot`, `Gemini CLI`, `Claude Code`. |
 | `--package-manager` | `-p` | Package manager: `npm` or `yarn`. |

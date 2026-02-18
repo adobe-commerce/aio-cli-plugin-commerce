@@ -18,7 +18,7 @@ import Logger from '@adobe/aio-lib-core-logging'
 import { installSkills } from '../../../utils/extensibility/tools-setup/installSkills.js'
 import { installMCP } from '../../../utils/extensibility/tools-setup/installMCP.js'
 
-// Rules flow imports (to be deprecated)
+// Rules flow imports (current default)
 import { CursorAgent } from '../../../utils/extensibility/tools-setup/agents/CursorAgent.js'
 import { CopilotAgent } from '../../../utils/extensibility/tools-setup/agents/CopilotAgent.js'
 import { GeminiCLIAgent } from '../../../utils/extensibility/tools-setup/agents/GeminiCLIAgent.js'
@@ -121,10 +121,10 @@ export class ToolsSetupCommand extends Command {
       } else {
         currentStep = 'mode selection'
         const setupMode = await promptSelect(
-          'Would you like to use Skills (recommended) or Rules?',
-          ['Skills (recommended)', 'Rules (legacy)']
+          'Would you like to use Rules (default) or Skills (experimental)?',
+          ['Rules (default)', 'Skills (experimental)']
         )
-        useSkills = setupMode === 'Skills (recommended)'
+        useSkills = setupMode === 'Skills (experimental)'
       }
 
       // Variables to hold selections for each flow
@@ -279,12 +279,12 @@ ToolsSetupCommand.flags = {
     required: false
   }),
   skills: Flags.boolean({
-    description: 'Use Skills mode (recommended). Mutually exclusive with --rules',
+    description: 'Use Skills mode (experimental). Mutually exclusive with --rules',
     default: false,
     exclusive: ['rules']
   }),
   rules: Flags.boolean({
-    description: 'Use Rules mode (legacy). Mutually exclusive with --skills',
+    description: 'Use Rules mode (default). Mutually exclusive with --skills',
     default: false,
     exclusive: ['skills']
   }),
