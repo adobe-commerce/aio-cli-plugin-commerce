@@ -103,6 +103,7 @@ export class ToolsSetupCommand extends Command {
     }
     // Agent validation is deferred until we know the mode (skills vs rules have different valid agents)
 
+    let currentStep = 'initialization'
     try {
       console.log('🔧 Setting up Commerce Extensibility Tools...\n')
 
@@ -118,6 +119,7 @@ export class ToolsSetupCommand extends Command {
         useSkills = false
         console.log('📋 Mode: rules')
       } else {
+        currentStep = 'mode selection'
         const setupMode = await promptSelect(
           'Would you like to use Skills (recommended) or Rules?',
           ['Skills (recommended)', 'Rules (legacy)']
@@ -141,6 +143,7 @@ export class ToolsSetupCommand extends Command {
           selectedStarterKit = STARTER_KITS.find(kit => kit.folder === flags['starter-kit'])
           console.log(`📋 Starter kit: ${selectedStarterKit.name}`)
         } else {
+          currentStep = 'starter kit selection'
           const starterKitNames = STARTER_KITS.map(kit => kit.name)
           const selectedKitName = await promptSelect(
             'Which starter kit would you like to use?',
@@ -154,6 +157,7 @@ export class ToolsSetupCommand extends Command {
           selectedAgent = flags.agent
           console.log(`📋 Agent: ${selectedAgent}`)
         } else {
+          currentStep = 'agent selection'
           const agentChoices = [...Object.keys(agentsConfig), 'Other']
           selectedAgent = await promptSelect(
             'Which coding agent would you like to install the skills for?',
@@ -167,6 +171,7 @@ export class ToolsSetupCommand extends Command {
         }
 
         // Determine agent: use flag or prompt
+        currentStep = 'agent selection'
         const rulesAgent = flags.agent || await promptSelect(
           'Which coding agent would you like to use?',
           VALID_RULES_AGENTS
@@ -193,6 +198,7 @@ export class ToolsSetupCommand extends Command {
         packageManager = flags['package-manager']
         console.log(`📋 Package manager: ${packageManager}`)
       } else {
+        currentStep = 'package manager selection'
         packageManager = await promptSelect(
           'Which package manager would you like to use?',
           VALID_PACKAGE_MANAGERS
@@ -232,7 +238,9 @@ export class ToolsSetupCommand extends Command {
 
       if (useSkills) {
         // Skills flow: install MCP, then install skills
+        currentStep = 'MCP configuration'
         await installMCP(targetDir, selectedAgent, { force })
+        currentStep = 'skills installation'
         await installSkills(targetDir, selectedStarterKit.folder, selectedAgent)
 
         console.log('\n🎉 Commerce Extensibility Tools setup complete!')
@@ -249,9 +257,14 @@ export class ToolsSetupCommand extends Command {
         console.log('2. The Commerce App Builder tools should now be available in your environment')
       } else {
         // Rules flow: run existing agent setup (MCP + rules)
+        currentStep = 'agent setup'
         await codingAgent.setup()
       }
     } catch (error) {
+      if (error.name === 'ExitPromptError') {
+        console.log(`\n⚠️  Setup cancelled by user during ${currentStep}.`)
+        return
+      }
       aioLogger.error(error)
       console.error('❌ Setup failed:', error.message)
       throw new Error('Tools setup failed. Please try again.')
