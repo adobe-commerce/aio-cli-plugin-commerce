@@ -181,7 +181,7 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 
 [Agent Skills](https://agentskills.io/) are an open standard for giving AI coding agents domain-specific expertise. When you choose the Skills flow, the command will:
 
-1. Prompt you to select a **starter kit** (Integration Starter Kit or Checkout Starter Kit)
+1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit)
 2. Prompt you to select your **coding agent** from 9 supported agents (plus an "Other" option)
 3. Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
 4. Create MCP (Model Context Protocol) configuration for your agent
