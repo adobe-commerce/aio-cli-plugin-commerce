@@ -18,23 +18,14 @@ import Logger from '@adobe/aio-lib-core-logging'
 import { installSkills } from '../../../utils/extensibility/tools-setup/installSkills.js'
 import { installMCP } from '../../../utils/extensibility/tools-setup/installMCP.js'
 
-// Rules flow imports (current default)
-import { CursorAgent } from '../../../utils/extensibility/tools-setup/agents/CursorAgent.js'
-import { CopilotAgent } from '../../../utils/extensibility/tools-setup/agents/CopilotAgent.js'
-import { GeminiCLIAgent } from '../../../utils/extensibility/tools-setup/agents/GeminiCLIAgent.js'
-import { ClaudeCodeAgent } from '../../../utils/extensibility/tools-setup/agents/ClaudeCodeAgent.js'
-
 // Config imports
 import agentsConfig from '../../../configs/agents.json' with { type: 'json' }
 import STARTER_KITS from '../../../configs/starterKits.json' with { type: 'json' }
 
 const aioLogger = Logger('commerce:tools-setup.js')
 
-/** Valid agent names for the skills flow (derived from agents.json + 'Other') */
-const VALID_SKILLS_AGENTS = [...Object.keys(agentsConfig), 'Other']
-
-/** Valid agent names for the rules flow */
-const VALID_RULES_AGENTS = ['Cursor', 'Copilot', 'Gemini CLI', 'Claude Code']
+/** Valid agent names (derived from agents.json + 'Other') */
+const VALID_AGENTS = [...Object.keys(agentsConfig), 'Other']
 
 /** Valid starter kit folder names */
 const VALID_STARTER_KITS = STARTER_KITS.map(kit => kit.folder)
@@ -50,11 +41,7 @@ const VALID_PACKAGE_MANAGERS = ['npm', 'yarn']
  * @returns {boolean} - True if valid, false otherwise
  */
 function isValidVersionFormat (version) {
-  // Allow npm dist-tags (latest, next, beta, alpha, canary, etc.)
   const distTagPattern = /^[a-zA-Z][a-zA-Z0-9-]*$/
-
-  // Allow semver versions with optional pre-release and build metadata
-  // Examples: 1.2.3, 1.2.3-beta.1, 1.2.3+build.123, ^1.2.3, ~1.2.3, >=1.0.0
   const semverPattern = /^[~^]?[><=]*\d+(\.\d+)?(\.\d+)?(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$/
 
   return distTagPattern.test(version) || semverPattern.test(version)
@@ -89,11 +76,6 @@ export class ToolsSetupCommand extends Command {
       throw new Error(`Invalid version format: "${toolsVersion}"`)
     }
 
-    // Validate mutually exclusive --skills / --rules flags
-    if (flags.skills && flags.rules) {
-      throw new Error('Cannot use both --skills and --rules. Please choose one.')
-    }
-
     // Validate flag values upfront if provided
     if (flags['starter-kit']) {
       validateFlagValue('starter-kit', flags['starter-kit'], VALID_STARTER_KITS)
@@ -101,7 +83,9 @@ export class ToolsSetupCommand extends Command {
     if (flags['package-manager']) {
       validateFlagValue('package-manager', flags['package-manager'], VALID_PACKAGE_MANAGERS)
     }
-    // Agent validation is deferred until we know the mode (skills vs rules have different valid agents)
+    if (flags.agent) {
+      validateFlagValue('agent', flags.agent, VALID_AGENTS)
+    }
 
     let currentStep = 'initialization'
     try {
@@ -110,86 +94,33 @@ export class ToolsSetupCommand extends Command {
       const targetDir = process.cwd()
       console.log(`📁 Working in directory: ${targetDir}`)
 
-      // Determine mode: use flag or prompt
-      let useSkills
-      if (flags.skills) {
-        useSkills = true
-        console.log('📋 Mode: skills')
-      } else if (flags.rules) {
-        useSkills = false
-        console.log('📋 Mode: rules')
+      // Determine starter kit: use flag or prompt
+      let selectedStarterKit
+      if (flags['starter-kit']) {
+        selectedStarterKit = STARTER_KITS.find(kit => kit.folder === flags['starter-kit'])
+        console.log(`📋 Starter kit: ${selectedStarterKit.name}`)
       } else {
-        currentStep = 'mode selection'
-        const setupMode = await promptSelect(
-          'Would you like to use Rules (default) or Skills (experimental)?',
-          ['Rules (default)', 'Skills (experimental)']
+        currentStep = 'starter kit selection'
+        const starterKitNames = STARTER_KITS.map(kit => kit.name)
+        const selectedKitName = await promptSelect(
+          'Which starter kit would you like to use?',
+          starterKitNames
         )
-        useSkills = setupMode === 'Skills (experimental)'
+        selectedStarterKit = STARTER_KITS.find(kit => kit.name === selectedKitName)
       }
 
-      // Variables to hold selections for each flow
-      let selectedStarterKit = null
-      let selectedAgent = null
-      let codingAgent = null
-
-      if (useSkills) {
-        // Validate --agent for skills flow if provided
-        if (flags.agent) {
-          validateFlagValue('agent', flags.agent, VALID_SKILLS_AGENTS)
-        }
-
-        // Determine starter kit: use flag or prompt
-        if (flags['starter-kit']) {
-          selectedStarterKit = STARTER_KITS.find(kit => kit.folder === flags['starter-kit'])
-          console.log(`📋 Starter kit: ${selectedStarterKit.name}`)
-        } else {
-          currentStep = 'starter kit selection'
-          const starterKitNames = STARTER_KITS.map(kit => kit.name)
-          const selectedKitName = await promptSelect(
-            'Which starter kit would you like to use?',
-            starterKitNames
-          )
-          selectedStarterKit = STARTER_KITS.find(kit => kit.name === selectedKitName)
-        }
-
-        // Determine agent: use flag or prompt
-        if (flags.agent) {
-          selectedAgent = flags.agent
-          console.log(`📋 Agent: ${selectedAgent}`)
-        } else {
-          currentStep = 'agent selection'
-          const agentChoices = [...Object.keys(agentsConfig), 'Other']
-          selectedAgent = await promptSelect(
-            'Which coding agent would you like to install the skills for?',
-            agentChoices
-          )
-        }
+      // Determine agent: use flag or prompt
+      let selectedAgent
+      if (flags.agent) {
+        selectedAgent = flags.agent
+        console.log(`📋 Agent: ${selectedAgent}`)
       } else {
-        // Validate --agent for rules flow if provided
-        if (flags.agent) {
-          validateFlagValue('agent', flags.agent, VALID_RULES_AGENTS)
-        }
-
-        // Determine agent: use flag or prompt
         currentStep = 'agent selection'
-        const rulesAgent = flags.agent || await promptSelect(
-          'Which coding agent would you like to use?',
-          VALID_RULES_AGENTS
+        const agentChoices = [...Object.keys(agentsConfig), 'Other']
+        selectedAgent = await promptSelect(
+          'Which coding agent would you like to install the skills for?',
+          agentChoices
         )
-
-        if (flags.agent) {
-          console.log(`📋 Agent: ${rulesAgent}`)
-        }
-
-        if (rulesAgent === 'Copilot') {
-          codingAgent = new CopilotAgent(targetDir, { force })
-        } else if (rulesAgent === 'Gemini CLI') {
-          codingAgent = new GeminiCLIAgent(targetDir, { force })
-        } else if (rulesAgent === 'Claude Code') {
-          codingAgent = new ClaudeCodeAgent(targetDir, { force })
-        } else {
-          codingAgent = new CursorAgent(targetDir, { force })
-        }
       }
 
       // Determine package manager: use flag or prompt
@@ -236,30 +167,24 @@ export class ToolsSetupCommand extends Command {
         throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
-      if (useSkills) {
-        // Skills flow: install MCP, then install skills
-        currentStep = 'MCP configuration'
-        await installMCP(targetDir, selectedAgent, { force })
-        currentStep = 'skills installation'
-        await installSkills(targetDir, selectedStarterKit.folder, selectedAgent)
+      // Install MCP configuration and skills
+      currentStep = 'MCP configuration'
+      await installMCP(targetDir, selectedAgent, { force })
+      currentStep = 'skills installation'
+      await installSkills(targetDir, selectedStarterKit.folder, selectedAgent)
 
-        console.log('\n🎉 Commerce Extensibility Tools setup complete!')
-        console.log(`📁 Configuration location: ${targetDir}`)
-        console.log('📋 AGENTS.md: project root')
-        if (selectedAgent !== 'Other') {
-          const agentCfg = agentsConfig[selectedAgent]
-          console.log(`📋 Skills location: ${agentCfg.skillsPath}/`)
-        } else {
-          console.log('📋 Skills location: ./skills/')
-        }
-        console.log('\nNext steps:')
-        console.log('1. Restart your coding agent to load the new MCP tools and skills')
-        console.log('2. The Commerce App Builder tools should now be available in your environment')
+      console.log('\n🎉 Commerce Extensibility Tools setup complete!')
+      console.log(`📁 Configuration location: ${targetDir}`)
+      console.log('📋 AGENTS.md: project root')
+      if (selectedAgent !== 'Other') {
+        const agentCfg = agentsConfig[selectedAgent]
+        console.log(`📋 Skills location: ${agentCfg.skillsPath}/`)
       } else {
-        // Rules flow: run existing agent setup (MCP + rules)
-        currentStep = 'agent setup'
-        await codingAgent.setup()
+        console.log('📋 Skills location: ./skills/')
       }
+      console.log('\nNext steps:')
+      console.log('1. Restart your coding agent to load the new MCP tools and skills')
+      console.log('2. The Commerce App Builder tools should now be available in your environment')
     } catch (error) {
       if (error.name === 'ExitPromptError') {
         console.log(`\n⚠️  Setup cancelled by user during ${currentStep}.`)
@@ -278,25 +203,15 @@ ToolsSetupCommand.flags = {
     description: 'Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)',
     required: false
   }),
-  skills: Flags.boolean({
-    description: 'Use Skills mode (experimental). Mutually exclusive with --rules',
-    default: false,
-    exclusive: ['rules']
-  }),
-  rules: Flags.boolean({
-    description: 'Use Rules mode (default). Mutually exclusive with --skills',
-    default: false,
-    exclusive: ['skills']
-  }),
   'starter-kit': Flags.string({
     char: 's',
-    description: 'Starter kit to use (skills mode only). e.g. "integration-starter-kit"',
+    description: 'Starter kit to use. e.g. "integration-starter-kit"',
     required: false,
     options: VALID_STARTER_KITS
   }),
   agent: Flags.string({
     char: 'a',
-    description: 'Coding agent to configure. Skills: Cursor, "Claude Code", "GitHub Copilot", Windsurf, "Gemini CLI", "OpenAI Codex", Cline, "Kilo Code", Antigravity, Other. Rules: Cursor, Copilot, "Gemini CLI", "Claude Code"',
+    description: 'Coding agent to configure: Cursor, "Claude Code", "GitHub Copilot", Windsurf, "Gemini CLI", "OpenAI Codex", Cline, "Kilo Code", Antigravity, Other',
     required: false
   }),
   'package-manager': Flags.string({
@@ -313,11 +228,10 @@ ToolsSetupCommand.flags = {
 }
 
 ToolsSetupCommand.description =
-  'Setup Commerce Extensibility Tools with Agent Skills or Rules for your coding agent'
+  'Setup Commerce Extensibility Tools with Agent Skills for your coding agent'
 ToolsSetupCommand.examples = [
   '$ aio commerce:extensibility:tools-setup',
   '$ aio commerce:extensibility:tools-setup --tools-version 1.2.3',
-  '$ aio commerce:extensibility:tools-setup --skills --starter-kit integration-starter-kit --agent Cursor --package-manager npm',
-  '$ aio commerce:extensibility:tools-setup --skills -s integration-starter-kit -a Cursor -p npm -f',
-  '$ aio commerce:extensibility:tools-setup --rules --agent "Claude Code" --package-manager npm --force'
+  '$ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm',
+  '$ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f'
 ]

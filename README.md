@@ -153,33 +153,26 @@ EXAMPLES
 
 ```
 USAGE
-  $ aio commerce extensibility tools-setup [-v <value>] [--skills | --rules] [-s <value>] [-a <value>] [-p npm|yarn] [-f]
+  $ aio commerce extensibility tools-setup [-v <value>] [-s <value>] [-a <value>] [-p npm|yarn] [-f]
 
 FLAGS
   -v, --tools-version=<value>    Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
-      --skills                   Use Skills mode (experimental). Mutually exclusive with --rules
-      --rules                    Use Rules mode (default). Mutually exclusive with --skills
-  -s, --starter-kit=<option>     Starter kit to use (skills mode only). e.g. "integration-starter-kit"
+  -s, --starter-kit=<option>     Starter kit to use. e.g. "integration-starter-kit"
   -a, --agent=<value>            Coding agent to configure (see Supported Agents below)
   -p, --package-manager=<option> Package manager: "npm" or "yarn"
   -f, --force                    Force overwrite of existing MCP configuration without prompting
 
 DESCRIPTION
-  Setup Commerce Extensibility Tools with Agent Skills or Rules for your coding agent
+  Setup Commerce Extensibility Tools with Agent Skills for your coding agent
 
 EXAMPLES
   $ aio commerce:extensibility:tools-setup
   $ aio commerce:extensibility:tools-setup --tools-version 1.2.3
-  $ aio commerce:extensibility:tools-setup --skills --starter-kit integration-starter-kit --agent Cursor --package-manager npm
-  $ aio commerce:extensibility:tools-setup --skills -s integration-starter-kit -a Cursor -p npm -f
-  $ aio commerce:extensibility:tools-setup --rules --agent "Claude Code" --package-manager npm --force
+  $ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f
 ```
 
-This command sets up Commerce Extensibility Tools for use with your preferred coding agent. It supports two modes:
-
-### Skills (Experimental)
-
-[Agent Skills](https://agentskills.io/) are an open standard for giving AI coding agents domain-specific expertise. When you choose the Skills flow, the command will:
+This command sets up Commerce Extensibility Tools for use with your preferred coding agent using [Agent Skills](https://agentskills.io/), an open standard for giving AI coding agents domain-specific expertise. The command will:
 
 1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit)
 2. Prompt you to select your **coding agent** from 9 supported agents (plus an "Other" option)
@@ -189,7 +182,7 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 6. Copy skill folders (architect, developer, tester, tutor, etc.) to your agent's skills directory
 7. Copy `examples` and `references` folders (if provided by the starter kit) alongside the skills directory
 
-#### Supported Agents
+### Supported Agents
 
 | Agent | Skills Path | MCP Config |
 |-------|------------|------------|
@@ -204,19 +197,13 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 | Antigravity | `.agent/skills/` | `.agent/mcp_config.json` |
 | Other | `./skills/` (project root) | Manual setup required |
 
-### Rules (Default)
-
-The original setup mode that copies agent-specific rules files. Supports Cursor, Copilot, Gemini CLI, and Claude Code.
-
 ### Flags Reference
 
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
-| `--skills` | | Use Skills mode (experimental). Mutually exclusive with `--rules`. |
-| `--rules` | | Use Rules mode (default). Mutually exclusive with `--skills`. |
-| `--starter-kit` | `-s` | Starter kit folder name (skills mode only). e.g. `integration-starter-kit`. |
-| `--agent` | `-a` | Coding agent name. Skills mode: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. Rules mode: `Cursor`, `Copilot`, `Gemini CLI`, `Claude Code`. |
+| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`. |
+| `--agent` | `-a` | Coding agent name: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. |
 | `--package-manager` | `-p` | Package manager: `npm` or `yarn`. |
 | `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |
 
@@ -227,18 +214,9 @@ All flags are optional. When a flag is omitted, the command will prompt interact
 To run the setup without any interactive prompts (e.g. in a CI pipeline), provide all flags:
 
 ```sh
-# Skills mode - fully automated
 aio commerce:extensibility:tools-setup \
-  --skills \
   --starter-kit integration-starter-kit \
   --agent Cursor \
-  --package-manager npm \
-  --force
-
-# Rules mode (legacy) - fully automated
-aio commerce:extensibility:tools-setup \
-  --rules \
-  --agent "Claude Code" \
   --package-manager npm \
   --force
 ```
