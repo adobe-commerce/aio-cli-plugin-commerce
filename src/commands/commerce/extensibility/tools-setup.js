@@ -14,6 +14,7 @@ import {
   promptSelect
 } from '../../../utils/prompt.js'
 import { runCommand } from '../../../utils/runCommand.js'
+import { detectPackageManager } from '../../../utils/packageManager.js'
 import Logger from '@adobe/aio-lib-core-logging'
 import { installSkills } from '../../../utils/extensibility/tools-setup/installSkills.js'
 import { installMCP } from '../../../utils/extensibility/tools-setup/installMCP.js'
@@ -123,17 +124,24 @@ export class ToolsSetupCommand extends Command {
         )
       }
 
-      // Determine package manager: use flag or prompt
+      // Determine package manager: use flag, auto-detect from lock files, or prompt
       let packageManager
       if (flags['package-manager']) {
         packageManager = flags['package-manager']
         console.log(`📋 Package manager: ${packageManager}`)
       } else {
-        currentStep = 'package manager selection'
-        packageManager = await promptSelect(
-          'Which package manager would you like to use?',
-          VALID_PACKAGE_MANAGERS
-        )
+        const detected = detectPackageManager(targetDir)
+        if (detected.manager) {
+          packageManager = detected.manager
+          console.log(`📋 Auto-detected package manager: ${packageManager} (${detected.reason})`)
+          console.log(`   To choose a different package manager, delete the lock file or use --package-manager flag`)
+        } else {
+          currentStep = 'package manager selection'
+          packageManager = await promptSelect(
+            'Which package manager would you like to use?',
+            VALID_PACKAGE_MANAGERS
+          )
+        }
       }
 
       // Check if @adobe/aio-cli-plugin-app-dev is installed, if not, install it

@@ -159,7 +159,7 @@ FLAGS
   -v, --tools-version=<value>    Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
   -s, --starter-kit=<option>     Starter kit to use. e.g. "integration-starter-kit"
   -a, --agent=<value>            Coding agent to configure (see Supported Agents below)
-  -p, --package-manager=<option> Package manager: "npm" or "yarn"
+  -p, --package-manager=<option> Package manager: "npm" or "yarn" (auto-detected from lock files if omitted)
   -f, --force                    Force overwrite of existing MCP configuration without prompting
 
 DESCRIPTION
@@ -204,10 +204,20 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 | `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
 | `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`. |
 | `--agent` | `-a` | Coding agent name: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. |
-| `--package-manager` | `-p` | Package manager: `npm` or `yarn`. |
+| `--package-manager` | `-p` | Package manager: `npm` or `yarn`. Auto-detected from lock files when omitted (see below). |
 | `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |
 
 All flags are optional. When a flag is omitted, the command will prompt interactively. When all flags are provided, the command runs fully non-interactively, making it suitable for CI/CD pipelines.
+
+### Package Manager Auto-Detection
+
+When `--package-manager` is not provided, the command automatically detects the package manager by checking for lock files in your project directory:
+
+- **`yarn.lock` found** (no `package-lock.json`): uses `yarn`
+- **`package-lock.json` found** (no `yarn.lock`): uses `npm`
+- **Both or neither found**: prompts you to choose
+
+To override auto-detection, either pass `--package-manager` explicitly or delete the unwanted lock file.
 
 ### CI / Automation
 
