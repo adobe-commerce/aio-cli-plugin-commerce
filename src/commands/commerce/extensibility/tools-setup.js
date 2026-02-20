@@ -134,7 +134,7 @@ export class ToolsSetupCommand extends Command {
         if (detected.manager) {
           packageManager = detected.manager
           console.log(`📋 Auto-detected package manager: ${packageManager} (${detected.reason})`)
-          console.log(`   To choose a different package manager, delete the lock file or use --package-manager flag`)
+          console.log('   To choose a different package manager, delete the lock file or use --package-manager flag')
         } else {
           currentStep = 'package manager selection'
           packageManager = await promptSelect(
