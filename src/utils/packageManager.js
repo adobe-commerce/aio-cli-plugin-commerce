@@ -19,7 +19,7 @@ import path from 'path'
  * or null if neither or both are present (ambiguous).
  *
  * @param {string} targetDir - The project root directory
- * @returns {{ manager: string|null, reason: string|null }}
+ * @returns {{ manager: string|null, reason: string|null }} Object with detected manager ('yarn'|'npm'|null) and reason, or both null if ambiguous.
  */
 export function detectPackageManager (targetDir) {
   const hasYarnLock = fs.existsSync(path.join(targetDir, 'yarn.lock'))
