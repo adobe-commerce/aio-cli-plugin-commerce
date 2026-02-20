@@ -241,5 +241,6 @@ ToolsSetupCommand.examples = [
   '$ aio commerce:extensibility:tools-setup',
   '$ aio commerce:extensibility:tools-setup --tools-version 1.2.3',
   '$ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm',
+  '$ aio commerce:extensibility:tools-setup --starter-kit checkout-starter-kit --agent Cursor --package-manager npm',
   '$ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f'
 ]

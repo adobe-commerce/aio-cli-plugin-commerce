@@ -202,7 +202,7 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
-| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`. |
+| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`, `checkout-starter-kit`. |
 | `--agent` | `-a` | Coding agent name: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. |
 | `--package-manager` | `-p` | Package manager: `npm` or `yarn`. Auto-detected from lock files when omitted (see below). |
 | `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |
