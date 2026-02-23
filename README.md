@@ -153,43 +153,85 @@ EXAMPLES
 
 ```
 USAGE
-  $ aio commerce extensibility tools-setup [-v <value>]
+  $ aio commerce extensibility tools-setup [-v <value>] [-s <value>] [-a <value>] [-p npm|yarn] [-f]
 
 FLAGS
-  -v, --tools-version=<value>  Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
+  -v, --tools-version=<value>    Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
+  -s, --starter-kit=<option>     Starter kit to use. e.g. "integration-starter-kit"
+  -a, --agent=<value>            Coding agent to configure (see Supported Agents below)
+  -p, --package-manager=<option> Package manager: "npm" or "yarn" (auto-detected from lock files if omitted)
+  -f, --force                    Force overwrite of existing MCP configuration without prompting
 
 DESCRIPTION
-  Setup Commerce Extensibility Tools for Cursor IDE
+  Setup Commerce Extensibility Tools with Agent Skills for your coding agent
 
 EXAMPLES
   $ aio commerce:extensibility:tools-setup
   $ aio commerce:extensibility:tools-setup --tools-version 1.2.3
-  $ aio commerce:extensibility:tools-setup -v latest
+  $ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f
 ```
 
-This command sets up Commerce Extensibility Tools for use with Cursor IDE. It will:
+This command sets up Commerce Extensibility Tools for use with your preferred coding agent using [Agent Skills](https://agentskills.io/), an open standard for giving AI coding agents domain-specific expertise. The command will:
 
-- Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
-- Create MCP (Model Context Protocol) configuration for Cursor
-- Set up rules and tooling for Commerce App Builder development
-- Configure the environment for enhanced development experience
+1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit)
+2. Prompt you to select your **coding agent** from 9 supported agents (plus an "Other" option)
+3. Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
+4. Create MCP (Model Context Protocol) configuration for your agent
+5. Copy `AGENTS.md` to your project root (top-level agent instructions)
+6. Copy skill folders (architect, developer, tester, tutor, etc.) to your agent's skills directory
+7. Copy `examples` and `references` folders (if provided by the starter kit) alongside the skills directory
 
-### Version Flag
+### Supported Agents
 
-The `--tools-version` (or `-v`) flag allows you to specify which version of `@adobe-commerce/commerce-extensibility-tools` to install:
+| Agent | Skills Path | MCP Config |
+|-------|------------|------------|
+| Cursor | `.cursor/skills/` | `.cursor/mcp.json` |
+| Claude Code | `.claude/skills/` | `.mcp.json` |
+| GitHub Copilot | `.github/skills/` | `.vscode/mcp.json` |
+| Windsurf | `.windsurf/skills/` | Global: `~/.codeium/windsurf/mcp_config.json` |
+| Gemini CLI | `.gemini/skills/` | `.gemini/settings.json` |
+| OpenAI Codex | `.agents/skills/` | `.codex/config.toml` |
+| Cline | `.cline/skills/` | Global: VS Code extension storage |
+| Kilo Code | `.kilocode/skills/` | `.kilocode/mcp.json` |
+| Antigravity | `.agent/skills/` | `.agent/mcp_config.json` |
+| Other | `./skills/` (project root) | Manual setup required |
 
-- **Semver versions**: `1.2.3`, `1.0.0-beta.1`
-- **Version ranges**: `^1.2.3`, `~1.2.3`, `>=1.0.0`
-- **npm dist-tags**: `latest`, `next`, `beta`
+### Flags Reference
 
-If not specified, defaults to `latest`. The command validates the version format before installation and provides helpful error messages if the specified version is invalid or not found on npm.
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
+| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`, `checkout-starter-kit`. |
+| `--agent` | `-a` | Coding agent name: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. |
+| `--package-manager` | `-p` | Package manager: `npm` or `yarn`. Auto-detected from lock files when omitted (see below). |
+| `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |
 
-The setup process will prompt you to:
-- Choose between current directory or a new directory for setup
-- Select your preferred package manager (npm or yarn)
-- Confirm if you want to override existing MCP configuration
+All flags are optional. When a flag is omitted, the command will prompt interactively. When all flags are provided, the command runs fully non-interactively, making it suitable for CI/CD pipelines.
 
-After setup, restart Cursor to load the new MCP tools and start using the Commerce App Builder extensions.
+### Package Manager Auto-Detection
+
+When `--package-manager` is not provided, the command automatically detects the package manager by checking for lock files in your project directory:
+
+- **`yarn.lock` found** (no `package-lock.json`): uses `yarn`
+- **`package-lock.json` found** (no `yarn.lock`): uses `npm`
+- **Both or neither found**: prompts you to choose
+
+To override auto-detection, either pass `--package-manager` explicitly or delete the unwanted lock file.
+
+### CI / Automation
+
+To run the setup without any interactive prompts (e.g. in a CI pipeline), provide all flags:
+
+```sh
+aio commerce:extensibility:tools-setup \
+  --starter-kit integration-starter-kit \
+  --agent Cursor \
+  --package-manager npm \
+  --force
+```
+
+Navigate to your project directory before running the command. After setup, restart your coding agent to load the new MCP tools and skills.
 <!-- commandsstop -->
 
 ## Local Development
