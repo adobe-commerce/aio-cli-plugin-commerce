@@ -162,6 +162,10 @@ InitCommand.args = {
 }
 
 InitCommand.description = 'Scaffold your own Adobe Commerce storefront'
+InitCommand.state = 'deprecated'
+InitCommand.deprecationOptions = {
+  message: 'The "commerce init" command is deprecated. Use the Site Creator Tool instead: https://da.live/app/adobe-commerce/storefront-tools/tools/site-creator/site-creator'
+}
 InitCommand.examples = [
   '$ aio commerce:init --template hlxsites/aem-boilerplate-commerce --skipMesh --repo my-git-user/my-site'
 ]
