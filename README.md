@@ -86,7 +86,7 @@ If you see a 404 when you navigate to your storefront url, it can be due to a fe
 If you are still having problems, please open an issue and confirm that you:
 
 - can consistently reproduce the issue
-- are able to obtain the full error output using AIO_LOG_LEVEL=debug aio commerce init.
+- are able to obtain the full error output using `AIO_LOG_LEVEL=debug aio commerce init`.
 - verify you have tried using the "demo" backends
 - verify you have tried with and without API Mesh
 - verify you deleted the mesh before using the CLI (`aio api-mesh:delete`)
@@ -110,11 +110,13 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 
 # Commands
 <!-- commands -->
-* [`aio commerce init`](#aio-commerce-init)
+* [`aio commerce init`](#aio-commerce-init) _(deprecated)_
 * [`aio commerce dev`](#aio-pluginname)
 * [`aio commerce extensibility tools-setup`](#aio-commerce-extensibility-tools-setup)
 
 ## `aio commerce init`
+
+> **⚠️ Deprecated:** This command is deprecated. Use the [Site Creator Tool](https://da.live/app/adobe-commerce/storefront-tools/tools/site-creator/site-creator) instead.
 
 ```
 USAGE
@@ -257,7 +259,7 @@ Uses [winston](https://github.com/winstonjs/winston) internally.
 Use `AIO_LOG_LEVEL=debug|verbose|info|warn|error <command>` to see full logs.
 
 ```sh
-AIO_LOG_LEVEL=debug aio commerce:init
+AIO_LOG_LEVEL=debug aio commerce:extensibility:tools-setup
 ```
 
 ## Contributing
