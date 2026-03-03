@@ -171,12 +171,13 @@ EXAMPLES
   $ aio commerce:extensibility:tools-setup
   $ aio commerce:extensibility:tools-setup --tools-version 1.2.3
   $ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup --starter-kit aem-boilerplate-commerce --agent Cursor --package-manager npm
   $ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f
 ```
 
 This command sets up Commerce Extensibility Tools for use with your preferred coding agent using [Agent Skills](https://agentskills.io/), an open standard for giving AI coding agents domain-specific expertise. The command will:
 
-1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit)
+1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit, Checkout Starter Kit, or Storefront Skills)
 2. Prompt you to select your **coding agent** from 9 supported agents (plus an "Other" option)
 3. Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
 4. Create MCP (Model Context Protocol) configuration for your agent
@@ -204,7 +205,7 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
-| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`, `checkout-starter-kit`. |
+| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`, `checkout-starter-kit`, `aem-boilerplate-commerce`. |
 | `--agent` | `-a` | Coding agent name: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. |
 | `--package-manager` | `-p` | Package manager: `npm` or `yarn`. Auto-detected from lock files when omitted (see below). |
 | `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |
