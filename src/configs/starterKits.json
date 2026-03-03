@@ -6,5 +6,9 @@
   {
     "name": "Checkout Starter Kit",
     "folder": "checkout-starter-kit"
+  },
+  {
+    "name": "AEM Boilerplate Commerce",
+    "folder": "aem-boilerplate-commerce"
   }
 ]
