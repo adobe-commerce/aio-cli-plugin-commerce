@@ -1,14 +1,20 @@
 [
   {
     "name": "Integration Starter Kit",
-    "folder": "integration-starter-kit"
+    "folder": "integration-starter-kit",
+    "repo": "https://github.com/adobe/commerce-integration-starter-kit.git",
+    "branch": "main"
   },
   {
     "name": "Checkout Starter Kit",
-    "folder": "checkout-starter-kit"
+    "folder": "checkout-starter-kit",
+    "repo": "https://github.com/adobe/commerce-checkout-starter-kit.git",
+    "branch": "main"
   },
   {
     "name": "AEM Boilerplate Commerce",
-    "folder": "aem-boilerplate-commerce"
+    "folder": "aem-boilerplate-commerce",
+    "repo": "https://github.com/hlxsites/aem-boilerplate-commerce.git",
+    "branch": "main"
   }
 ]

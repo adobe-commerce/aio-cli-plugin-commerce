@@ -19,7 +19,15 @@ const urlPattern = /https:\/\/[^\s]+/g
  */
 export async function getAndSelectInstances () {
   try {
-    const { code: IMS_ORG, name } = config.get('console.org')
+    const consoleOrg = config.get('console.org')
+    if (!consoleOrg) {
+      throw new Error('No org selected. Run `aio console org select` first.')
+    }
+    const IMS_ORG = consoleOrg.code ?? consoleOrg.id ?? consoleOrg.ims_org_id
+    const name = consoleOrg.name
+    if (!IMS_ORG) {
+      throw new Error('Console org config is missing org identifier (code/id). Try reselecting org with `aio console org select`.')
+    }
     aioLogger.debug(`Looking up available tenants in the "${name}" IMS Organization`)
     // get ims token
     await ims.context.setCurrent('cli')
