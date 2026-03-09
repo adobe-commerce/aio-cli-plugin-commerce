@@ -16,7 +16,7 @@ const aioLogger = Logger('commerce:devConsole.js')
 /**
  * @returns {consoleCLI, accessToken}
  */
-async function getLibConsoleCLI () {
+export async function getLibConsoleCLI () {
   await context.setCli({ 'cli.bare-output': true }, false)
 
   const clientEnv = getCliEnv()

@@ -16,6 +16,7 @@ import STARTER_KITS from '../../../configs/starterKits.json' with { type: 'json'
 import agentsConfig from '../../../configs/agents.json' with { type: 'json' }
 import { verifyLoggedIn } from '../../../utils/extensibility/app-setup/loginCheck.js'
 import { ensureConsoleConfig } from '../../../utils/extensibility/app-setup/consoleSetup.js'
+import { ensureWorkspaceCredentials } from '../../../utils/extensibility/app-setup/ensureWorkspaceCredentials.js'
 import { cloneAndInstall } from '../../../utils/extensibility/app-setup/cloneAndInstall.js'
 import { runIntegrationSetup } from '../../../utils/extensibility/app-setup/integrationSetup.js'
 import { runCheckoutSetup } from '../../../utils/extensibility/app-setup/checkoutSetup.js'
@@ -101,6 +102,9 @@ export class AppSetupCommand extends Command {
       if (isIntegrationOrCheckout) {
         currentStep = 'console setup'
         await ensureConsoleConfig()
+
+        currentStep = 'workspace credentials'
+        await ensureWorkspaceCredentials()
 
         currentStep = 'kit-specific setup'
         if (selectedStarterKit.folder === 'integration-starter-kit') {
