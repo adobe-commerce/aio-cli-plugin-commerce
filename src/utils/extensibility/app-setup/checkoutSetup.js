@@ -86,7 +86,9 @@ export async function runCheckoutSetup (projectDir) {
   }
 
   console.log('\n🔗 Connecting local workspace to remote workspace...')
-  await runCommand('aio app use workspace.json -m', { cwd: projectDir })
+  const absProjectDir = path.resolve(projectDir)
+  const escapedDir = absProjectDir.replace(/'/g, "'\\''")
+  await runCommand(`cd '${escapedDir}' && aio app use workspace.json -m`)
 
   aioLogger.debug('Checkout setup complete')
 }
