@@ -59,5 +59,6 @@ export async function ensureConsoleConfig () {
   await runInteractiveCommand('aio console project select')
   await runInteractiveCommand('aio console workspace select')
 
+  config.reload()
   aioLogger.debug('Console config selection complete')
 }
