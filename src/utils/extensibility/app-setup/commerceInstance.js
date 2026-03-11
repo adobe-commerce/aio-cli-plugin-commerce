@@ -46,10 +46,8 @@ export async function getCommerceGraphQLUrl () {
     }
   } catch (error) {
     aioLogger.debug('Commerce instance fetch failed, falling back to manual entry:', error)
-    console.log(
-      '\n⚠️  Could not fetch commerce instances (Tenant API unavailable or org config issue).'
-    )
-    console.log('   You can enter your Commerce GraphQL endpoint URL manually.\n')
+    console.log('   ⚠️  Could not fetch commerce instances automatically')
+    console.log('      You can enter your Commerce GraphQL endpoint URL manually.')
   }
 
   const manualUrl = await promptInput(

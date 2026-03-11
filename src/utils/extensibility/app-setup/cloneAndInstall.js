@@ -14,6 +14,7 @@ import path from 'path'
 import { runCommand } from '../../runCommand.js'
 import { detectPackageManager } from '../../packageManager.js'
 import { promptSelect } from '../../prompt.js'
+import { createSpinner } from '../../spinner.js'
 import Logger from '@adobe/aio-lib-core-logging'
 
 const aioLogger = Logger('commerce:app-setup:cloneAndInstall.js')
@@ -60,15 +61,18 @@ export async function cloneAndInstall (starterKit, projectName, parentDir = proc
   }
 
   console.log(`\n📦 Cloning ${starterKit.name}...`)
+
+  let spinner = createSpinner('Cloning repository...').start()
   const cloneCommand = `git clone --branch ${branch} ${repo} ${trimmed}`
   await runCommand(cloneCommand, { cwd: parentDir })
+  spinner.succeed('Repository cloned')
 
   let packageManager = packageManagerOverride
   if (!packageManager) {
     const detected = detectPackageManager(projectDir)
     if (detected.manager) {
       packageManager = detected.manager
-      console.log(`📋 Using ${packageManager} (${detected.reason})`)
+      console.log(`   Using ${packageManager} (${detected.reason})`)
     } else {
       packageManager = await promptSelect(
         'Which package manager would you like to use?',
@@ -77,9 +81,10 @@ export async function cloneAndInstall (starterKit, projectName, parentDir = proc
     }
   }
 
-  console.log(`\n📦 Installing dependencies with ${packageManager}...`)
+  spinner = createSpinner(`Installing dependencies with ${packageManager}...`).start()
   const installCommand = packageManager === 'yarn' ? 'yarn install' : 'npm install'
   await runCommand(installCommand, { cwd: projectDir })
+  spinner.succeed('Dependencies installed')
 
   aioLogger.debug('Clone and install complete', { projectDir, packageManager })
   return { projectDir, packageManager }

@@ -11,6 +11,7 @@ governing permissions and limitations under the License.
 */
 import ims from '@adobe/aio-lib-ims'
 import Logger from '@adobe/aio-lib-core-logging'
+import { createSpinner } from '../../spinner.js'
 
 const aioLogger = Logger('commerce:app-setup:loginCheck.js')
 
@@ -21,11 +22,13 @@ const aioLogger = Logger('commerce:app-setup:loginCheck.js')
  * @throws {Error} When user is not logged in
  */
 export async function verifyLoggedIn () {
+  const spinner = createSpinner('Verifying login...', 0).start()
   try {
     await ims.context.setCurrent('cli')
     await ims.getToken('cli')
-    aioLogger.debug('User is logged in')
+    spinner.succeed('Logged in')
   } catch (error) {
+    spinner.fail('Not logged in')
     aioLogger.debug('Login check failed:', error)
     throw new Error(
       'You are not logged in. Please run `aio auth login` to authenticate, then run this command again.'

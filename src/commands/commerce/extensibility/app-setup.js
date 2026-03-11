@@ -34,11 +34,10 @@ export class AppSetupCommand extends Command {
     let currentStep = 'initialization'
 
     try {
-      console.log('🚀 Adobe Commerce Extensibility App Setup\n')
+      console.log('\n🚀 Adobe Commerce Extensibility App Setup\n')
 
       currentStep = 'login check'
       await verifyLoggedIn()
-      console.log('✅ Logged in\n')
 
       const parentDir = process.cwd()
       console.log(`📁 Working directory: ${parentDir}\n`)
@@ -51,7 +50,7 @@ export class AppSetupCommand extends Command {
             `Invalid --starter-kit "${flags['starter-kit']}". Allowed: ${VALID_STARTER_KIT_FOLDERS.join(', ')}`
           )
         }
-        console.log(`📋 Starter kit: ${selectedStarterKit.name}`)
+        console.log(`Using starter kit: ${selectedStarterKit.name}`)
       } else {
         currentStep = 'starter kit selection'
         const kitNames = STARTER_KITS.map(kit => kit.name)
@@ -62,7 +61,7 @@ export class AppSetupCommand extends Command {
       let projectName
       if (flags['project-name']) {
         projectName = String(flags['project-name']).trim()
-        console.log(`📋 Project name: ${projectName}`)
+        console.log(`Using project name: ${projectName}`)
       } else {
         currentStep = 'project name'
         projectName = await promptInput('Enter a name for your project directory:')
@@ -78,7 +77,7 @@ export class AppSetupCommand extends Command {
           throw new Error(`Invalid --agent "${flags.agent}". Allowed: ${VALID_AGENTS.join(', ')}`)
         }
         selectedAgent = flags.agent
-        console.log(`📋 Agent: ${selectedAgent}`)
+        console.log(`Using agent: ${selectedAgent}`)
       } else {
         currentStep = 'agent selection'
         selectedAgent = await promptSelect(
@@ -128,18 +127,18 @@ export class AppSetupCommand extends Command {
       })
 
       console.log('\n🎉 App setup complete!')
-      console.log(`📁 Project: ${projectDir}`)
+      console.log(`\n📁 Project directory: ${projectDir}`)
       console.log('\nNext steps:')
-      console.log('1. cd into your project directory')
-      console.log('2. Restart your coding agent to load the Commerce Extensibility tools and skills')
+      console.log('  1. cd into your project directory')
+      console.log('  2. Restart your coding agent to load the Commerce Extensibility tools and skills\n')
     } catch (error) {
       if (error.name === 'ExitPromptError') {
-        console.log(`\n⚠️  Setup cancelled by user during ${currentStep}.`)
+        console.log(`\n⚠️  Setup cancelled by user during ${currentStep}.\n`)
         return
       }
       aioLogger.error(error)
-      console.error('❌ Setup failed:', error.message)
-      throw new Error('App setup failed. Please try again.')
+      console.error(`\n❌ Setup failed during ${currentStep}: ${error.message}\n`)
+      this.error('App setup failed. Check the error above and try again.')
     }
   }
 }

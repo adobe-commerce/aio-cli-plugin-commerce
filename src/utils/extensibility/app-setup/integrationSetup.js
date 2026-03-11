@@ -21,16 +21,15 @@ import {
   extractOAuthCredentials,
   extractWorkspaceIds
 } from './workspaceConfig.js'
-import Logger from '@adobe/aio-lib-core-logging'
-
-const aioLogger = Logger('commerce:app-setup:integrationSetup.js')
-
+import { createSpinner } from '../../spinner.js'
 /**
  * Runs Integration Starter Kit-specific setup steps.
  *
  * @param {string} projectDir - Project root directory
  */
 export async function runIntegrationSetup (projectDir) {
+  console.log('\n📋 Configuring Integration Starter Kit...')
+
   const envDistPath = path.join(projectDir, 'env.dist')
   const envPath = path.join(projectDir, '.env')
 
@@ -40,10 +39,9 @@ export async function runIntegrationSetup (projectDir) {
     )
   }
 
-  console.log('\n📋 Creating .env from env.dist...')
+  console.log('   Creating .env from env.dist...')
   copyEnvFile(envDistPath, envPath)
 
-  console.log('\n🛒 Selecting commerce instance...')
   const graphqlUrl = await getCommerceGraphQLUrl()
   let baseUrl = graphqlUrl.replace(/\/graphql\/?$/, '')
   if (!baseUrl.endsWith('/')) {
@@ -53,12 +51,12 @@ export async function runIntegrationSetup (projectDir) {
     COMMERCE_BASE_URL: baseUrl,
     COMMERCE_GRAPHQL_ENDPOINT: graphqlUrl
   })
-  console.log('✅ Commerce instance configured')
+  console.log('   ✔ Commerce instance configured')
 
   const eventPrefix = await promptInput('Enter the event prefix for your workspace:')
   updateEnvValues(envPath, { EVENT_PREFIX: eventPrefix.trim() })
 
-  console.log('\n📥 Downloading workspace configuration...')
+  let spinner = createSpinner('Downloading workspace configuration...').start()
   await downloadWorkspaceConfig(projectDir)
   copyWorkspaceConfig(projectDir)
 
@@ -69,7 +67,7 @@ export async function runIntegrationSetup (projectDir) {
     IO_PROJECT_ID: workspaceIds.projectId,
     IO_WORKSPACE_ID: workspaceIds.workspaceId
   })
-  console.log('✅ Workspace IDs (IO_CONSUMER_ID, IO_PROJECT_ID, IO_WORKSPACE_ID) populated from workspace')
+  spinner.succeed('Workspace IDs configured')
 
   const oauth = extractOAuthCredentials(workspacePath)
   if (oauth) {
@@ -80,13 +78,12 @@ export async function runIntegrationSetup (projectDir) {
       OAUTH_TECHNICAL_ACCOUNT_EMAIL: oauth.technicalAccountEmail,
       OAUTH_ORG_ID: oauth.orgId
     })
-    console.log('✅ OAuth credentials populated from workspace')
+    console.log('   ✔ OAuth credentials configured')
   } else {
-    aioLogger.debug('No oauth_server_to_server credential in workspace.json')
+    console.log('   ⚠ No OAuth server-to-server credential found in workspace config')
   }
 
-  console.log('\n🔗 Connecting local workspace to remote workspace...')
+  spinner = createSpinner('Connecting to remote workspace...').start()
   await runCommand('aio app use workspace.json -m', { cwd: projectDir })
-
-  aioLogger.debug('Integration setup complete')
+  spinner.succeed('Integration Starter Kit configured')
 }

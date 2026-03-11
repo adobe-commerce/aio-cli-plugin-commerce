@@ -12,6 +12,7 @@ governing permissions and limitations in the License.
 import config from '@adobe/aio-lib-core-config'
 import ConsoleLib from '@adobe/aio-cli-lib-console'
 import { getLibConsoleCLI } from '../../devConsole.js'
+import { createSpinner } from '../../spinner.js'
 import Logger from '@adobe/aio-lib-core-logging'
 
 const aioLogger = Logger('commerce:app-setup:ensureWorkspaceCredentials.js')
@@ -78,6 +79,8 @@ function buildServiceProperties (enabledServices, codes) {
  * @returns {Promise<void>}
  */
 export async function ensureWorkspaceCredentials () {
+  console.log('\n🔐 Configuring workspace credentials and services...')
+
   let cleanup = () => {}
   try {
     const org = config.get('console.org')
@@ -100,17 +103,20 @@ export async function ensureWorkspaceCredentials () {
     const { consoleCLI } = await getLibConsoleCLI()
     cleanup = () => ConsoleLib.cleanStdOut && ConsoleLib.cleanStdOut()
 
+    let spinner = createSpinner('Loading workspace configuration...').start()
     let workspaceConfig
     try {
       workspaceConfig = await consoleCLI.getWorkspaceConfig(orgId, projectId, workspaceId)
+      spinner.succeed('Workspace configuration loaded')
     } catch (err) {
+      spinner.fail('Failed to load workspace configuration')
       aioLogger.error('Failed to get workspace config:', err)
       throw new Error(`Could not load workspace config: ${err.message}`)
     }
 
     const hadOAuth = hasOAuthS2SCredential(workspaceConfig)
     if (!hadOAuth) {
-      console.log('\n🔐 Creating OAuth server-to-server credentials...')
+      spinner = createSpinner('Creating OAuth server-to-server credentials...').start()
       try {
         await consoleCLI.createOAuthServerToServerCredentials(
           orgId,
@@ -119,25 +125,33 @@ export async function ensureWorkspaceCredentials () {
           `aio-${workspace.id}`,
           'Auto generated OAuth S2S credentials for Commerce extensibility'
         )
-        console.log('✅ OAuth server-to-server credentials created')
+        spinner.succeed('OAuth server-to-server credentials created')
       } catch (err) {
+        spinner.fail('Failed to create OAuth server-to-server credentials')
         aioLogger.error('Failed to create OAuth S2S credentials:', err)
         throw new Error(`Could not create OAuth credentials: ${err.message}`)
       }
     } else {
-      aioLogger.debug('OAuth S2S credential already present')
+      console.log('   ✔ OAuth server-to-server credentials already configured')
     }
 
+    spinner = createSpinner('Checking required services...').start()
     const enabledServices = await consoleCLI.getEnabledServicesForOrg(orgId)
     const requiredCodes = REQUIRED_SERVICES.map((s) => s.code)
     const enabledCodes = new Set(enabledServices.map((s) => s.code))
 
     const missingInOrg = requiredCodes.filter((c) => !enabledCodes.has(c))
     if (missingInOrg.length) {
-      aioLogger.warn(
-        `Some required services are not enabled for the organization: ${missingInOrg.join(', ')}. ` +
-          'Enable them in Adobe Admin Console if needed.'
+      const missingNames = missingInOrg.map((code) => {
+        const svc = REQUIRED_SERVICES.find((s) => s.code === code)
+        return svc ? svc.name : code
+      })
+      spinner.warn(
+        `Some required services are not enabled for the organization: ${missingNames.join(', ')}`
       )
+      console.log('      Enable them in Adobe Admin Console if needed.')
+    } else {
+      spinner.succeed('All required services available in organization')
     }
 
     let currentServiceProperties = []
@@ -159,20 +173,18 @@ export async function ensureWorkspaceCredentials () {
     const availableToSubscribe = missingServiceCodes.filter((c) => enabledCodes.has(c))
 
     if (availableToSubscribe.length === 0) {
-      if (missingServiceCodes.length > 0 && missingServiceCodes.every((c) => !enabledCodes.has(c))) {
-        aioLogger.debug(
-          'All missing services are not enabled for the org; skipping subscription.'
-        )
+      if (missingServiceCodes.length === 0) {
+        console.log('   ✔ All required services already subscribed')
       }
       return
     }
 
-    console.log('\n📦 Subscribing to required services...')
     const serviceProperties = buildServiceProperties(enabledServices, availableToSubscribe)
     if (serviceProperties.length === 0) {
       return
     }
 
+    spinner = createSpinner('Subscribing to required services...').start()
     try {
       await consoleCLI.subscribeToServicesWithCredentialType({
         orgId,
@@ -182,10 +194,11 @@ export async function ensureWorkspaceCredentials () {
         serviceProperties,
         credentialType: ConsoleLib.OAUTH_SERVER_TO_SERVER_CREDENTIAL
       })
-      console.log(
-        `✅ Subscribed to: ${serviceProperties.map((s) => s.name).join(', ')}`
+      spinner.succeed(
+        `Subscribed to: ${serviceProperties.map((s) => s.name).join(', ')}`
       )
     } catch (err) {
+      spinner.fail('Failed to subscribe to services')
       aioLogger.error('Failed to subscribe to services:', err)
       throw new Error(`Could not subscribe to services: ${err.message}`)
     }

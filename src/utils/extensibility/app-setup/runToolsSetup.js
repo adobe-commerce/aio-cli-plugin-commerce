@@ -10,6 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { runCommand } from '../../runCommand.js'
+import { createSpinner } from '../../spinner.js'
 import Logger from '@adobe/aio-lib-core-logging'
 
 const aioLogger = Logger('commerce:app-setup:runToolsSetup.js')
@@ -67,8 +68,10 @@ export async function runToolsSetup ({
   }
   const command = args.join(' ')
 
-  console.log('\n🔧 Running Commerce Extensibility Tools setup...')
+  console.log('\n🔧 Installing Commerce Extensibility tools and agent skills...')
   aioLogger.debug('Running tools-setup:', command, 'cwd:', projectDir)
 
+  const spinner = createSpinner('Running tools-setup...').start()
   await runCommand(command, { cwd: projectDir })
+  spinner.succeed('Commerce Extensibility tools installed')
 }

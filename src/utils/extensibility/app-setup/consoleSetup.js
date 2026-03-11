@@ -60,5 +60,19 @@ export async function ensureConsoleConfig () {
   await runInteractiveCommand('aio console workspace select')
 
   config.reload()
-  aioLogger.debug('Console config selection complete')
+
+  const selectedOrg = config.get('console.org')
+  const selectedProject = config.get('console.project')
+  const selectedWorkspace = config.get('console.workspace')
+
+  if (!selectedOrg || !selectedProject || !selectedWorkspace) {
+    throw new Error(
+      'Console org, project, and workspace must be selected. Run aio console org/project/workspace select first.'
+    )
+  }
+
+  console.log('\n✅ Console configured:')
+  console.log(`   Org: ${selectedOrg.name ?? 'Unknown'}`)
+  console.log(`   Project: ${selectedProject.name ?? 'Unknown'}`)
+  console.log(`   Workspace: ${selectedWorkspace.name ?? 'Unknown'}`)
 }

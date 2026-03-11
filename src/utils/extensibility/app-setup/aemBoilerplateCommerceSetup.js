@@ -12,9 +12,6 @@ governing permissions and limitations under the License.
 import path from 'path'
 import fs from 'fs'
 import { copyEnvFile } from './envFile.js'
-import Logger from '@adobe/aio-lib-core-logging'
-
-const aioLogger = Logger('commerce:app-setup:aemBoilerplateCommerceSetup.js')
 
 /**
  * Runs AEM Boilerplate Commerce-specific setup steps.
@@ -23,16 +20,18 @@ const aioLogger = Logger('commerce:app-setup:aemBoilerplateCommerceSetup.js')
  * @param {string} projectDir - Project root directory
  */
 export async function runAemBoilerplateCommerceSetup (projectDir) {
+  console.log('\n📋 Configuring AEM Boilerplate Commerce...')
+
   const envExampleMcp = path.join(projectDir, 'mcp-server', 'env.example')
   const envExampleRoot = path.join(projectDir, 'env.example')
 
   if (fs.existsSync(envExampleMcp)) {
     const mcpEnvPath = path.join(projectDir, 'mcp-server', '.env')
-    console.log('\n📋 Creating .env from env.example in mcp-server...')
+    console.log('   Creating .env from env.example in mcp-server...')
     copyEnvFile(envExampleMcp, mcpEnvPath)
   } else if (fs.existsSync(envExampleRoot)) {
     const envPath = path.join(projectDir, '.env')
-    console.log('\n📋 Creating .env from env.example...')
+    console.log('   Creating .env from env.example...')
     copyEnvFile(envExampleRoot, envPath)
   } else {
     throw new Error(
@@ -40,5 +39,5 @@ export async function runAemBoilerplateCommerceSetup (projectDir) {
     )
   }
 
-  aioLogger.debug('AEM Boilerplate Commerce setup complete')
+  console.log('   ✅ AEM Boilerplate Commerce configured')
 }
