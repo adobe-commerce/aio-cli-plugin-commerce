@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Removed hardcoded `DEFAULT_TENANTS` from Commerce instance selection — only instances from the Tenant API are shown
+- Commerce instance selection now throws specific errors (invalid token, no instances found) instead of silently falling back to defaults
+- Manual URL entry is offered as an escape hatch when the API is unavailable or returns no instances
+
 ## [0.7.0] - 2026-03-09
 
 ### Added
