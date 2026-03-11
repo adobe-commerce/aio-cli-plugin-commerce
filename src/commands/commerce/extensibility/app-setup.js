@@ -20,7 +20,6 @@ import { ensureWorkspaceCredentials } from '../../../utils/extensibility/app-set
 import { cloneAndInstall } from '../../../utils/extensibility/app-setup/cloneAndInstall.js'
 import { runIntegrationSetup } from '../../../utils/extensibility/app-setup/integrationSetup.js'
 import { runCheckoutSetup } from '../../../utils/extensibility/app-setup/checkoutSetup.js'
-import { runAemBoilerplateCommerceSetup } from '../../../utils/extensibility/app-setup/aemBoilerplateCommerceSetup.js'
 import { runToolsSetup } from '../../../utils/extensibility/app-setup/runToolsSetup.js'
 
 const aioLogger = Logger('commerce:app-setup.js')
@@ -111,9 +110,6 @@ export class AppSetupCommand extends Command {
         } else {
           await runCheckoutSetup(projectDir)
         }
-      } else {
-        currentStep = 'kit-specific setup'
-        await runAemBoilerplateCommerceSetup(projectDir)
       }
 
       currentStep = 'tools setup'

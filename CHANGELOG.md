@@ -7,12 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Removed hardcoded `DEFAULT_TENANTS` from Commerce instance selection — only instances from the Tenant API are shown
-- Commerce instance selection now throws specific errors (invalid token, no instances found) instead of silently falling back to defaults
-- Manual URL entry is offered as an escape hatch when the API is unavailable or returns no instances
-
 ## [0.7.0] - 2026-03-09
 
 ### Added
@@ -34,13 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Deprecated `commerce init` command in favor of `app-setup` ([#37](../../pull/37))
+- Removed hardcoded `DEFAULT_TENANTS` from Commerce instance selection — only instances from the Tenant API are shown; manual URL entry is the fallback when the API is unavailable
+- Simplified AEM Boilerplate Commerce setup — removed mcp-server env file handling; only clone and dependency install are needed
 - Cleaned up all `app-setup` console output for consistency:
   - Each step now has a clear header, indented sub-steps, and a completion message
   - Surfaced missing-org-services warning to the user (was previously only logged via `aioLogger.warn`)
   - Surfaced missing OAuth credential warning to the user (was previously silent `aioLogger.debug`)
   - Improved error messages to include which step failed
   - Used `this.error()` instead of `throw new Error()` in the catch block to avoid oclif printing a redundant stack trace
-- Removed unused `Logger` imports from `integrationSetup.js`, `checkoutSetup.js`, and `aemBoilerplateCommerceSetup.js`
 
 ### Fixed
 
