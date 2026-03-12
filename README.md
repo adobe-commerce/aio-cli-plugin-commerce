@@ -22,13 +22,6 @@ functionality. Follow here: https://github.com/adobe/aio-cli/issues/679
 
 ❗ You must have the [aio CLI](https://developer.adobe.com/runtime/docs/guides/tools/cli_install/) installed.
 
-❗ You must have the [gh CLI tool](https://cli.github.com/) installed and authenticated before using this plugin.
-
-```sh
-brew install gh
-gh auth login
-```
-
 ❗ You must also log in to the Adobe I/O CLI using your credentials.
 
 ```sh
@@ -59,8 +52,6 @@ If you are still having problems, please open an issue and confirm that you:
 - verify you are in the correct IMS environment (`aio config set cli.env <env>`)
 - verify you are authorized to the correct IMS org (`aio config get console.org`)
 - Sign out of https://experience.adobe.com first before running the CLI, as this may “auto select” the wrong org
-- verify you are authorized to the correct gh user (`gh auth status`)
-
 Additionally, please provide exact steps/inputs you chose in order to reproduce the issue.
 
 # Usage
@@ -75,7 +66,6 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 <!-- commands -->
 * [`aio commerce extensibility app-setup`](#aio-commerce-extensibility-app-setup)
 * [`aio commerce extensibility tools-setup`](#aio-commerce-extensibility-tools-setup)
-* [`aio commerce dev`](#aio-commerce-dev)
 
 ## `aio commerce extensibility app-setup`
 
@@ -115,19 +105,6 @@ This command automates the full project setup workflow for Commerce Extensibilit
 9. **Tools setup** — runs `tools-setup` to install Commerce Extensibility MCP tools and agent skills
 
 All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
-
-## `aio commerce dev`
-
-```
-USAGE
-  $ aio commerce dev
-
-DESCRIPTION
-  one command to clone, install, and run the local development server.
-
-EXAMPLES
-  $ aio commerce:dev
-```
 
 ## `aio commerce extensibility tools-setup`
 

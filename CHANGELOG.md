@@ -12,8 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Removed deprecated `commerce init` command and all init-only utilities (`initialization.js`, `github.js`, `content.js`, `preview.js`, `openBrowser.js`, `mesh.js`, `configs.js`, `importer.js`, `mdast/`, `fetchWithRetry.js`, `sleep.js`) ([#40](../../pull/40))
+- Removed `commerce dev` command and placeholder `commerce test` command
 - Removed unused `selectOrganization` export from `devConsole.js` and unused `readEnvFile`/`writeEnvFile` exports from `envFile.js`
 - Removed `jsdom` dependency (only used by init-related utilities)
+- Removed `gh` CLI prerequisite from README (only used by dev command)
 - Removed all API Mesh references from documentation
 - Removed init-specific sections from README: Mesh Prerequisites, init command docs, init-specific troubleshooting, and Templates section
 
