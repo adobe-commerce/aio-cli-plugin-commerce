@@ -19,45 +19,6 @@ const aioLogger = Logger('commerce:app-setup:envFile.js')
 const ENV_LINE_PATTERN = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/
 
 /**
- * Parses an .env file into a key-value object.
- * Preserves only lines that match KEY=value. Comments and blank lines are ignored.
- *
- * @param {string} filePath - Path to the .env file
- * @returns {Record<string, string>} Key-value pairs
- */
-export function readEnvFile (filePath) {
-  if (!fs.existsSync(filePath)) {
-    throw new Error(`Env file not found: ${filePath}`)
-  }
-  const content = fs.readFileSync(filePath, 'utf-8')
-  const result = {}
-  for (const line of content.split('\n')) {
-    const match = line.match(ENV_LINE_PATTERN)
-    if (match) {
-      result[match[1]] = match[2]
-    }
-  }
-  return result
-}
-
-/**
- * Writes a key-value object to an .env file.
- * Each key is written as KEY=value on its own line.
- *
- * @param {string} filePath - Path to write to
- * @param {Record<string, string>} data - Key-value pairs
- */
-export function writeEnvFile (filePath, data) {
-  const dir = path.dirname(filePath)
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true })
-  }
-  const lines = Object.entries(data).map(([k, v]) => `${k}=${v}`)
-  fs.writeFileSync(filePath, lines.join('\n') + '\n', 'utf-8')
-  aioLogger.debug('Wrote env file', filePath)
-}
-
-/**
  * Updates specific keys in an existing .env file.
  * Preserves comments, blank lines, key order, and keys not in updates.
  * Keys not present in the file are appended at the end.

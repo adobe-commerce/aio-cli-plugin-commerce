@@ -48,7 +48,7 @@ Sometimes your AIO authentication can become invalid. You must first `aio logout
 
 ### Wrong Org
 
-If you are already authenticated to experience.adobe.com with a specific org selected, the aio login command will use that authentication. If this does not match the org you are trying to use for CCM or API Mesh, you will need to log out and log in again.
+If you are already authenticated to experience.adobe.com with a specific org selected, the aio login command will use that authentication. If this does not match the org you are trying to use, you will need to log out and log in again.
 
 ### Further steps
 

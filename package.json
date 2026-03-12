@@ -9,8 +9,7 @@
     "@adobe/aio-lib-ims": "^7.0.2",
     "@inquirer/prompts": "^7.3.2",
     "@oclif/core": "^4",
-    "@oclif/plugin-help": "^6",
-    "jsdom": "^25.0.1"
+    "@oclif/plugin-help": "^6"
   },
   "devDependencies": {
     "@adobe/eslint-config-aio-lib-config": "^4",
