@@ -84,8 +84,6 @@ export async function runCheckoutSetup (projectDir) {
   }
 
   spinner = createSpinner('Connecting to remote workspace...').start()
-  const absProjectDir = path.resolve(projectDir)
-  const escapedDir = absProjectDir.replace(/'/g, "'\\''")
-  await runCommand(`cd '${escapedDir}' && aio app use workspace.json -m`)
+  await runCommand('aio app use workspace.json -m', { cwd: projectDir })
   spinner.succeed('Checkout Starter Kit configured')
 }

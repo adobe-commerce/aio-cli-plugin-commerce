@@ -65,10 +65,11 @@ export function copyWorkspaceConfig (projectDir) {
 
 /**
  * Extracts OAuth server-to-server credentials from workspace.json.
+ * Supports both oauth_server_to_server and oauth_server_to_server_migrate integration types.
  * OAUTH_ORG_ID uses org.ims_org_id (e.g. 045013D3664331DC0A495CD5@AdobeOrg).
  *
  * @param {string} workspaceJsonPath - Path to workspace.json
- * @returns {object|null} { clientId, clientSecret, technicalAccountId, technicalAccountEmail, orgId } or null if no oauth_server_to_server credential
+ * @returns {object|null} { clientId, clientSecret, technicalAccountId, technicalAccountEmail, orgId } or null if no OAuth S2S credential
  */
 export function extractOAuthCredentials (workspaceJsonPath) {
   if (!fs.existsSync(workspaceJsonPath)) {
@@ -84,7 +85,8 @@ export function extractOAuthCredentials (workspaceJsonPath) {
 
   const credentials = data?.project?.workspace?.details?.credentials ?? []
   const oauthCred = credentials.find(
-    (c) => c.integration_type === 'oauth_server_to_server'
+    (c) => c.integration_type === 'oauth_server_to_server' ||
+           c.integration_type === 'oauth_server_to_server_migrate'
   )
 
   if (!oauthCred?.oauth_server_to_server) {

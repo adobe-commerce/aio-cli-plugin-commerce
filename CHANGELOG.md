@@ -130,13 +130,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for multiple templates (Adobe Demo Store, CitiSignal)
 - Flags for non-interactive setup (`--skipGit`, `--datasource`, `--org`, `--repo`, etc.)
 
-[Unreleased]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.7.0...HEAD
-[0.7.0]: https://github.com/adobe/aio-cli-plugin-commerce/compare/v0.5.0-beta.1...0.7.0
-[0.5.0-beta.1]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.3.0-alpha.1...v0.5.0-beta.1
-[0.3.0-alpha.1]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.2.0...0.3.0-alpha.1
-[0.2.0]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.1.3...0.2.0
-[0.1.3]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.1.2...0.1.3
-[0.1.2]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.1.1...0.1.2
-[0.1.1]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.1.0...0.1.1
-[0.1.0]: https://github.com/adobe/aio-cli-plugin-commerce/compare/0.0.1...0.1.0
-[0.0.1]: https://github.com/adobe/aio-cli-plugin-commerce/releases/tag/0.0.1
+[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/v0.5.0-beta.1...0.7.0
+[0.5.0-beta.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.3.0-alpha.1...v0.5.0-beta.1
+[0.3.0-alpha.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.2.0...0.3.0-alpha.1
+[0.2.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.1.3...0.2.0
+[0.1.3]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.1.2...0.1.3
+[0.1.2]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.1.1...0.1.2
+[0.1.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.1.0...0.1.1
+[0.1.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.0.1...0.1.0
+[0.0.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/releases/tag/0.0.1
