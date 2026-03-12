@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-03-11
+
+### Removed
+
+- Removed deprecated `commerce init` command and all init-only utilities (`initialization.js`, `github.js`, `content.js`, `preview.js`, `openBrowser.js`, `mesh.js`) ([#40](../../pull/40))
+- Removed init-specific sections from README: Mesh Prerequisites, init command docs, init-specific troubleshooting, and Templates section
+
 ## [0.7.0] - 2026-03-09
 
 ### Added
@@ -130,7 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for multiple templates (Adobe Demo Store, CitiSignal)
 - Flags for non-interactive setup (`--skipGit`, `--datasource`, `--org`, `--repo`, etc.)
 
-[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...1.0.0
 [0.7.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/v0.5.0-beta.1...0.7.0
 [0.5.0-beta.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.3.0-alpha.1...v0.5.0-beta.1
 [0.3.0-alpha.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.2.0...0.3.0-alpha.1
