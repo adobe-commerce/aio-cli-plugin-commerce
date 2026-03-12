@@ -1,6 +1,6 @@
 {
   "name": "@adobe/aio-cli-plugin-commerce",
-  "version": "0.7.0",
+  "version": "1.0.0",
   "dependencies": {
     "@adobe/aio-cli-lib-console": "^5.0.1",
     "@adobe/aio-lib-core-config": "^5",
@@ -9,8 +9,7 @@
     "@adobe/aio-lib-ims": "^7.0.2",
     "@inquirer/prompts": "^7.3.2",
     "@oclif/core": "^4",
-    "@oclif/plugin-help": "^6",
-    "jsdom": "^25.0.1"
+    "@oclif/plugin-help": "^6"
   },
   "devDependencies": {
     "@adobe/eslint-config-aio-lib-config": "^4",
