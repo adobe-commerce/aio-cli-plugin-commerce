@@ -24,9 +24,9 @@ export class DevCommand extends Command {
     const repo = config.get('commerce.github.repo')
     await runCommand(`gh repo clone ${org}/${repo}`)
     console.log(`✅ Cloned https://github.com/${org}/${repo} to ${path.resolve(repo)}`)
-    await runCommand(`cd ${repo}; npm i;`)
-    runCommand(`cd ${repo}; npm run start;`)
-    runCommand(`cd ${repo}; code .;`)
+    await runCommand('npm i', { cwd: repo })
+    runCommand('npm run start', { cwd: repo })
+    runCommand('code .', { cwd: repo })
     console.log('Your site is installed, and running locally at http://localhost:3000/')
     console.log(`'npm run start' in ${path.resolve(repo)} to run again later.`)
   }

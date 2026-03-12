@@ -110,9 +110,49 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 
 # Commands
 <!-- commands -->
-* [`aio commerce init`](#aio-commerce-init) _(deprecated)_
-* [`aio commerce dev`](#aio-pluginname)
+* [`aio commerce extensibility app-setup`](#aio-commerce-extensibility-app-setup)
 * [`aio commerce extensibility tools-setup`](#aio-commerce-extensibility-tools-setup)
+* [`aio commerce init`](#aio-commerce-init) _(deprecated)_
+* [`aio commerce dev`](#aio-commerce-dev)
+
+## `aio commerce extensibility app-setup`
+
+```
+USAGE
+  $ aio commerce extensibility app-setup [-s <value>] [-n <value>] [-a <value>] [-p npm|yarn] [-v <value>] [-f]
+
+FLAGS
+  -s, --starter-kit=<value>      Starter kit folder (e.g. integration-starter-kit, checkout-starter-kit, aem-boilerplate-commerce)
+  -n, --project-name=<value>     Name for the project directory
+  -a, --agent=<value>            Coding agent to install skills for (see Supported Agents in tools-setup)
+  -p, --package-manager=<option> Package manager: npm or yarn
+  -v, --tools-version=<value>    Version of commerce-extensibility-tools to install (default: latest)
+  -f, --force                    Force overwrite of existing MCP configuration in tools-setup
+
+DESCRIPTION
+  Setup your Commerce Extensibility app: clone starter kit, configure aio console,
+  install dependencies, and run tools-setup
+
+EXAMPLES
+  $ aio commerce extensibility app-setup
+  $ aio commerce extensibility app-setup --starter-kit integration-starter-kit --project-name my-app --agent Cursor
+  $ aio commerce extensibility app-setup -s checkout-starter-kit -n checkout-app -a Cursor -p npm
+  $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor
+```
+
+This command automates the full project setup workflow for Commerce Extensibility. It runs the following steps:
+
+1. **Login check** — verifies you are authenticated via `aio auth login`
+2. **Starter kit selection** — prompts for Integration Starter Kit, Checkout Starter Kit, or AEM Boilerplate Commerce
+3. **Project name** — prompts for a directory name for the new project
+4. **Agent selection** — prompts for which coding agent to install skills for
+5. **Clone and install** — clones the starter kit repo and installs dependencies
+6. **Console configuration** _(Integration/Checkout only)_ — selects Adobe I/O Console org, project, and workspace
+7. **Workspace credentials** _(Integration/Checkout only)_ — creates OAuth server-to-server credentials and subscribes to required services (ACCS REST API, I/O Management API, I/O Events, Adobe I/O Events for Adobe Commerce)
+8. **Kit-specific setup** _(Integration/Checkout only)_ — creates `.env` from template, configures Commerce instance, downloads workspace config, populates workspace IDs and OAuth credentials
+9. **Tools setup** — runs `tools-setup` to install Commerce Extensibility MCP tools and agent skills
+
+All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
 
 ## `aio commerce init`
 

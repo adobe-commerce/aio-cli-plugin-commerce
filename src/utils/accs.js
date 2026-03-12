@@ -7,63 +7,63 @@ import CONSTANTS from './constants.js'
 const aioLogger = Logger('commerce:accs.js')
 const { CCM_BASE_URL } = CONSTANTS
 
-// A list of some default tenant (can remove later)
-const DEFAULT_TENANTS = [
-  'Test OneGraph Endpoint: https://na1-sandbox.api.commerce.adobe.com/Vi7V652YrG2CcCR1WAYPXg/graphql'
-]
-
 const urlPattern = /https:\/\/[^\s]+/g
 
 /**
- * Uses current IMS Org to fetch tenants and allows user to select one from list.
+ * Fetches Commerce instances from the Tenant API for the current IMS Org
+ * and prompts the user to select one.
+ *
+ * @returns {Promise<string>} The selected Commerce GraphQL endpoint URL
+ * @throws {Error} When the API is unavailable, auth fails, or no instances are found
  */
 export async function getAndSelectInstances () {
-  try {
-    const { code: IMS_ORG, name } = config.get('console.org')
-    aioLogger.debug(`Looking up available tenants in the "${name}" IMS Organization`)
-    // get ims token
-    await ims.context.setCurrent('cli')
-    const token = await ims.getToken('cli')
-    aioLogger.debug(`Fetch: ${CCM_BASE_URL}/api/v1/tenants/owner/${IMS_ORG}`)
-    const resp = await fetch(`${CCM_BASE_URL}/api/v1/tenants/owner/${IMS_ORG}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    }).then(async resp => {
-      const respJson = await resp.json()
-      aioLogger.debug('received response', respJson)
-      return respJson
-    })
-
-    if (resp?.title === 'ErrInvalidOauthToken') {
-      aioLogger.error('Invalid auth token received. Re-authenticate with `aio logout` and `aio login`.')
-    }
-
-    const choices = DEFAULT_TENANTS.concat(
-      resp?.tenants?.map(tenant => `${tenant.name}: ${tenant.serviceURLs.graphQL}`) || []
-    )
-
-    const choice = await promptSelect(
-      'Select tenant (type to search)',
-      choices
-    )
-    const urlMatch = choice.match(urlPattern)
-    aioLogger.debug('selected', urlMatch[0])
-
-    try {
-      const chosen = resp?.tenants?.find(tenant => tenant.serviceURLs.graphQL === urlMatch[0])
-      if (chosen) {
-        config.set('commerce.datasource.admin', chosen.serviceURLs.admin)
-      } else {
-        // no admin url
-        aioLogger.debug('unable to get admin url')
-      }
-    } catch (e) {
-      aioLogger.debug('unable to get admin url')
-    }
-    return urlMatch[0]
-  } catch (e) {
-    aioLogger.log('Tenant API is not available. Check your aio IMS Org settings and try again.')
-    throw new Error(e)
+  const consoleOrg = config.get('console.org')
+  if (!consoleOrg) {
+    throw new Error('No org selected. Run `aio console org select` first.')
   }
+  const IMS_ORG = consoleOrg.code ?? consoleOrg.id ?? consoleOrg.ims_org_id
+  const name = consoleOrg.name
+  if (!IMS_ORG) {
+    throw new Error('Console org config is missing org identifier (code/id). Try reselecting org with `aio console org select`.')
+  }
+
+  aioLogger.debug(`Looking up available tenants in the "${name}" IMS Organization`)
+
+  await ims.context.setCurrent('cli')
+  const token = await ims.getToken('cli')
+
+  aioLogger.debug(`Fetch: ${CCM_BASE_URL}/api/v1/tenants/owner/${IMS_ORG}`)
+  const response = await fetch(`${CCM_BASE_URL}/api/v1/tenants/owner/${IMS_ORG}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  const resp = await response.json()
+  aioLogger.debug('received response', resp)
+
+  if (resp?.title === 'ErrInvalidOauthToken') {
+    throw new Error('Invalid auth token. Re-authenticate with `aio logout` and `aio auth login`.')
+  }
+
+  const tenants = resp?.tenants ?? []
+  if (tenants.length === 0) {
+    throw new Error(`No Commerce instances found for org "${name}".`)
+  }
+
+  const choices = tenants.map(tenant => `${tenant.name}: ${tenant.serviceURLs.graphQL}`)
+
+  const choice = await promptSelect(
+    'Select Commerce instance (type to search)',
+    choices
+  )
+  const urlMatch = choice.match(urlPattern)
+  aioLogger.debug('selected', urlMatch[0])
+
+  try {
+    const chosen = tenants.find(tenant => tenant.serviceURLs.graphQL === urlMatch[0])
+    if (chosen) {
+      config.set('commerce.datasource.admin', chosen.serviceURLs.admin)
+    }
+  } catch (e) {
+    aioLogger.debug('unable to get admin url')
+  }
+  return urlMatch[0]
 }
