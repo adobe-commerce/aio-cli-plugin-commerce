@@ -4,7 +4,6 @@ oclif.manifest.json
 /.nyc_output
 /dist
 /tmp
-/yarn.lock
 node_modules
 .DS_Store
 /test-results.xml
