@@ -17,6 +17,7 @@ const aioLogger = Logger('commerce:app-setup:runToolsSetup.js')
 
 /**
  * Escapes a value for safe use in a shell command (quotes values containing spaces/special chars).
+ * Uses platform-appropriate escaping: '""' for Windows cmd.exe, '\"' for POSIX shells.
  *
  * @param {string} val - Value to escape
  * @returns {string}
@@ -25,6 +26,9 @@ function escapeShellArg (val) {
   const s = String(val)
   if (/^[a-zA-Z0-9_-]+$/.test(s)) {
     return s
+  }
+  if (process.platform === 'win32') {
+    return `"${s.replace(/"/g, '""')}"`
   }
   return `"${s.replace(/"/g, '\\"')}"`
 }
