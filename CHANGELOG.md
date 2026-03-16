@@ -5,7 +5,12 @@ All notable changes to `@adobe/aio-cli-plugin-commerce` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.1] - 2026-03-16
+
+### Fixed
+
+- Fixed `escapeShellArg` in `runToolsSetup` to use platform-appropriate quote escaping (`""` for Windows cmd.exe, `\"` for POSIX shells)
+- Fixed `readEnvFile` and `updateEnvValues` to handle Windows `\r\n` line endings, preventing corrupted values and mixed line endings in `.env` files
 
 ## [0.7.0] - 2026-03-09
 
@@ -130,7 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for multiple templates (Adobe Demo Store, CitiSignal)
 - Flags for non-interactive setup (`--skipGit`, `--datasource`, `--org`, `--repo`, etc.)
 
-[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/v0.5.0-beta.1...0.7.0
 [0.5.0-beta.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.3.0-alpha.1...v0.5.0-beta.1
 [0.3.0-alpha.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.2.0...0.3.0-alpha.1

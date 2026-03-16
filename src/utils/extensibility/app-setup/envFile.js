@@ -31,7 +31,7 @@ export function readEnvFile (filePath) {
   }
   const content = fs.readFileSync(filePath, 'utf-8')
   const result = {}
-  for (const line of content.split('\n')) {
+  for (const line of content.split(/\r?\n/)) {
     const match = line.match(ENV_LINE_PATTERN)
     if (match) {
       result[match[1]] = match[2]
@@ -70,7 +70,8 @@ export function updateEnvValues (filePath, updates) {
     throw new Error(`Env file not found: ${filePath}`)
   }
   const content = fs.readFileSync(filePath, 'utf-8')
-  const lines = content.split('\n')
+  const eol = content.includes('\r\n') ? '\r\n' : '\n'
+  const lines = content.split(/\r?\n/)
   const updatedKeys = new Set()
 
   const updated = lines.map((line) => {
@@ -83,10 +84,10 @@ export function updateEnvValues (filePath, updates) {
   })
 
   const missingKeys = Object.keys(updates).filter((k) => !updatedKeys.has(k))
-  let output = updated.join('\n')
+  let output = updated.join(eol)
   if (missingKeys.length > 0) {
-    const append = missingKeys.map((k) => `${k}=${updates[k]}`).join('\n')
-    output = output.trimEnd() ? output + '\n' + append + '\n' : append + '\n'
+    const append = missingKeys.map((k) => `${k}=${updates[k]}`).join(eol)
+    output = output.trimEnd() ? output + eol + append + eol : append + eol
   }
   fs.writeFileSync(filePath, output, 'utf-8')
   aioLogger.debug('Updated env values', Object.keys(updates))
