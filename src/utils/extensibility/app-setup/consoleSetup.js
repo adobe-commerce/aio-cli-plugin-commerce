@@ -56,7 +56,20 @@ export async function ensureConsoleConfig () {
   console.log('\n🔧 Selecting Adobe I/O Console org, project, and workspace...\n')
 
   await runInteractiveCommand('aio console org select')
-  await runInteractiveCommand('aio console project select')
+
+  try {
+    await runInteractiveCommand('aio console project select')
+  } catch (error) {
+    if (error.stderr && /terms/i.test(error.stderr)) {
+      throw new Error(
+        'The selected organization has not accepted the Adobe Developer Terms of Use.\n' +
+        'An org admin must accept the terms at https://developer.adobe.com/console/ before projects can be accessed.\n' +
+        'After accepting, run this command again.'
+      )
+    }
+    throw error
+  }
+
   await runInteractiveCommand('aio console workspace select')
 
   config.reload()

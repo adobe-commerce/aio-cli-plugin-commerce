@@ -25,8 +25,9 @@ export async function runCommand (command, options = {}) {
 }
 
 /**
- * Runs a command interactively with inherited stdio. Use for commands that prompt the user
- * (e.g. aio console org select). Forwards stdin/stdout/stderr to the terminal.
+ * Runs a command interactively with inherited stdin/stdout and captured stderr.
+ * Stderr is forwarded to the terminal in real time AND collected so callers
+ * can inspect it when the command fails.
  *
  * @param {string} command - The shell command to run
  * @param {object} [options={}] - Options for spawn (e.g. { cwd: '/path/to/dir' })
@@ -34,14 +35,21 @@ export async function runCommand (command, options = {}) {
  */
 export function runInteractiveCommand (command, options = {}) {
   return new Promise((resolve, reject) => {
+    const stderrChunks = []
     const proc = spawn(command, [], {
-      stdio: 'inherit',
+      stdio: ['inherit', 'inherit', 'pipe'],
       shell: true,
       ...options
     })
+    proc.stderr.on('data', (chunk) => {
+      process.stderr.write(chunk)
+      stderrChunks.push(chunk)
+    })
     proc.on('close', (code, signal) => {
       if (code !== 0) {
-        reject(new Error(`Command exited with code ${code}${signal ? ` (signal: ${signal})` : ''}`))
+        const err = new Error(`Command exited with code ${code}${signal ? ` (signal: ${signal})` : ''}`)
+        err.stderr = Buffer.concat(stderrChunks).toString()
+        reject(err)
       } else {
         resolve(code ?? 0)
       }
