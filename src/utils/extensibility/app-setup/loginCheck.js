@@ -17,21 +17,22 @@ const aioLogger = Logger('commerce:app-setup:loginCheck.js')
 
 /**
  * Verifies the user is logged in by attempting to get an IMS token.
- * If not logged in, throws an error instructing the user to run `aio auth login`.
+ * If not logged in, triggers the browser-based login flow automatically.
  *
- * @throws {Error} When user is not logged in
+ * @throws {Error} When login fails or is cancelled
  */
 export async function verifyLoggedIn () {
   const spinner = createSpinner('Verifying login...', 0).start()
   try {
     await ims.context.setCurrent('cli')
+    await ims.context.setCli({ 'cli.bare-output': false }, false, true)
     await ims.getToken('cli')
     spinner.succeed('Logged in')
   } catch (error) {
     spinner.fail('Not logged in')
     aioLogger.debug('Login check failed:', error)
     throw new Error(
-      'You are not logged in. Please run `aio auth login` to authenticate, then run this command again.'
+      'Login failed. Please try running `aio auth login --force` manually, then run this command again.'
     )
   }
 }

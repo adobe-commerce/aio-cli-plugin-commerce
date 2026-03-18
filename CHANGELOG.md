@@ -5,6 +5,12 @@ All notable changes to `@adobe/aio-cli-plugin-commerce` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-03-17
+
+### Fixed
+
+- Fixed `app-setup` login check failing with "not logged in" error instead of opening the browser login page when the IMS CLI context was not fully configured (missing `cli.bare-output` property required by the IMS OAuth CLI plugin)
+
 ## [0.7.1] - 2026-03-16
 
 ### Fixed
@@ -135,7 +141,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for multiple templates (Adobe Demo Store, CitiSignal)
 - Flags for non-interactive setup (`--skipGit`, `--datasource`, `--org`, `--repo`, etc.)
 
-[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.1...HEAD
+[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.2...HEAD
+[0.7.2]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/v0.5.0-beta.1...0.7.0
 [0.5.0-beta.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.3.0-alpha.1...v0.5.0-beta.1
