@@ -17,6 +17,52 @@ import Logger from '@adobe/aio-lib-core-logging'
 const aioLogger = Logger('commerce:app-setup:consoleSetup.js')
 
 /**
+ * Ensures an org is selected in the aio console config.
+ * If already set, displays it and asks if the user wants to continue or reselect.
+ * Only prompts for org — does not touch project or workspace.
+ *
+ * @returns {Promise<void>}
+ */
+export async function ensureConsoleOrg () {
+  const org = config.get('console.org')
+
+  if (org) {
+    const orgId = org.id ?? org.code
+
+    console.log('\n📋 Current Adobe I/O Console organization:')
+    console.log(`   Org: ${org.name ?? 'Unknown'} (${orgId ?? 'Unknown'})`)
+
+    const continueWithCurrent = await promptConfirm(
+      'Do you want to continue with this organization? (Answer "No" to select a different org)'
+    )
+
+    if (continueWithCurrent) {
+      aioLogger.debug('User chose to continue with existing console org')
+      return
+    }
+
+    aioLogger.debug('User chose to reselect org')
+    config.delete('console.org')
+  }
+
+  console.log('\n🔧 Selecting Adobe I/O Console organization...\n')
+
+  await runInteractiveCommand('aio console org select')
+
+  config.reload()
+
+  const selectedOrg = config.get('console.org')
+  if (!selectedOrg) {
+    throw new Error(
+      'Console org must be selected. Run `aio console org select` first.'
+    )
+  }
+
+  console.log('\n✅ Organization configured:')
+  console.log(`   Org: ${selectedOrg.name ?? 'Unknown'}`)
+}
+
+/**
  * Ensures org, project, and workspace are selected in the aio console config.
  * If already set, displays them and asks if the user wants to continue or reselect.
  * If user reselects, clears config and runs interactive aio console selection commands.
