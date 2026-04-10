@@ -15,11 +15,13 @@ import Logger from '@adobe/aio-lib-core-logging'
 import STARTER_KITS from '../../../configs/starterKits.json' with { type: 'json' }
 import agentsConfig from '../../../configs/agents.json' with { type: 'json' }
 import { verifyLoggedIn } from '../../../utils/extensibility/app-setup/loginCheck.js'
-import { ensureConsoleConfig } from '../../../utils/extensibility/app-setup/consoleSetup.js'
+import { ensureConsoleConfig, ensureConsoleOrg } from '../../../utils/extensibility/app-setup/consoleSetup.js'
 import { ensureWorkspaceCredentials } from '../../../utils/extensibility/app-setup/ensureWorkspaceCredentials.js'
 import { cloneAndInstall } from '../../../utils/extensibility/app-setup/cloneAndInstall.js'
 import { runIntegrationSetup } from '../../../utils/extensibility/app-setup/integrationSetup.js'
 import { runCheckoutSetup } from '../../../utils/extensibility/app-setup/checkoutSetup.js'
+import { runBoilerplateSetup } from '../../../utils/extensibility/app-setup/boilerplateSetup.js'
+import { getCommerceGraphQLUrl } from '../../../utils/extensibility/app-setup/commerceInstance.js'
 import { runToolsSetup } from '../../../utils/extensibility/app-setup/runToolsSetup.js'
 
 const aioLogger = Logger('commerce:app-setup.js')
@@ -85,6 +87,25 @@ export class AppSetupCommand extends Command {
         )
       }
 
+      const isIntegrationOrCheckout =
+        selectedStarterKit.folder === 'integration-starter-kit' ||
+        selectedStarterKit.folder === 'checkout-starter-kit'
+      const isBoilerplate =
+        selectedStarterKit.folder === 'aem-boilerplate-commerce'
+
+      // Console & instance prompts before clone so all questions are asked upfront
+      let commerceGraphQLUrl
+      if (isBoilerplate) {
+        currentStep = 'console setup'
+        await ensureConsoleOrg()
+
+        currentStep = 'commerce instance selection'
+        commerceGraphQLUrl = await getCommerceGraphQLUrl()
+      } else if (isIntegrationOrCheckout) {
+        currentStep = 'console setup'
+        await ensureConsoleConfig()
+      }
+
       currentStep = 'clone and install'
       const { projectDir, packageManager } = await cloneAndInstall(
         selectedStarterKit,
@@ -93,23 +114,18 @@ export class AppSetupCommand extends Command {
         flags['package-manager'] || null
       )
 
-      const isIntegrationOrCheckout =
-        selectedStarterKit.folder === 'integration-starter-kit' ||
-        selectedStarterKit.folder === 'checkout-starter-kit'
-
       if (isIntegrationOrCheckout) {
-        currentStep = 'console setup'
-        await ensureConsoleConfig()
-
         currentStep = 'workspace credentials'
         await ensureWorkspaceCredentials()
+      }
 
-        currentStep = 'kit-specific setup'
-        if (selectedStarterKit.folder === 'integration-starter-kit') {
-          await runIntegrationSetup(projectDir)
-        } else {
-          await runCheckoutSetup(projectDir)
-        }
+      currentStep = 'kit-specific setup'
+      if (selectedStarterKit.folder === 'integration-starter-kit') {
+        await runIntegrationSetup(projectDir)
+      } else if (selectedStarterKit.folder === 'checkout-starter-kit') {
+        await runCheckoutSetup(projectDir)
+      } else if (isBoilerplate) {
+        await runBoilerplateSetup(projectDir, commerceGraphQLUrl)
       }
 
       currentStep = 'tools setup'
