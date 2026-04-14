@@ -26,8 +26,9 @@ import { createSpinner } from '../../spinner.js'
  * Runs Integration Starter Kit-specific setup steps.
  *
  * @param {string} projectDir - Project root directory
+ * @param {object} [instanceOptions={}] - Commerce instance options (--instance / --instance-name flags)
  */
-export async function runIntegrationSetup (projectDir) {
+export async function runIntegrationSetup (projectDir, instanceOptions = {}) {
   console.log('\n📋 Configuring Integration Starter Kit...')
 
   const envDistPath = path.join(projectDir, 'env.dist')
@@ -42,7 +43,7 @@ export async function runIntegrationSetup (projectDir) {
   console.log('   Creating .env from env.dist...')
   copyEnvFile(envDistPath, envPath)
 
-  const graphqlUrl = await getCommerceGraphQLUrl()
+  const graphqlUrl = await getCommerceGraphQLUrl(instanceOptions)
   let baseUrl = graphqlUrl.replace(/\/graphql\/?$/, '')
   if (!baseUrl.endsWith('/')) {
     baseUrl += '/'

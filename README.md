@@ -120,6 +120,7 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 ```
 USAGE
   $ aio commerce extensibility app-setup [-s <value>] [-n <value>] [-a <value>] [-p npm|yarn] [-v <value>] [-f]
+    [-i <value>] [-I <value>]
 
 FLAGS
   -s, --starter-kit=<value>      Starter kit folder (e.g. integration-starter-kit, checkout-starter-kit, aem-boilerplate-commerce)
@@ -128,6 +129,8 @@ FLAGS
   -p, --package-manager=<option> Package manager: npm or yarn
   -v, --tools-version=<value>    Version of commerce-extensibility-tools to install (default: latest)
   -f, --force                    Force overwrite of existing MCP configuration in tools-setup
+  -i, --instance=<value>         Commerce GraphQL endpoint URL (mutually exclusive with --instance-name)
+  -I, --instance-name=<value>    Commerce instance name to select from available instances (mutually exclusive with --instance)
 
 DESCRIPTION
   Setup your Commerce Extensibility app: clone starter kit, configure aio console,
@@ -138,6 +141,8 @@ EXAMPLES
   $ aio commerce extensibility app-setup --starter-kit integration-starter-kit --project-name my-app --agent Cursor
   $ aio commerce extensibility app-setup -s checkout-starter-kit -n checkout-app -a Cursor -p npm
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor
+  $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql
+  $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"
 ```
 
 This command automates the full project setup workflow for Commerce Extensibility. It runs the following steps:
@@ -153,6 +158,18 @@ This command automates the full project setup workflow for Commerce Extensibilit
 9. **Tools setup** — runs `tools-setup` to install Commerce Extensibility MCP tools and agent skills
 
 All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
+
+### Commerce Instance Selection (Boilerplate only)
+
+For the `aem-boilerplate-commerce` starter kit, the command needs a Commerce GraphQL endpoint URL. You can provide it in three ways:
+
+| Method | Flag | Behavior |
+|--------|------|----------|
+| Direct URL | `--instance` | Uses the provided URL directly (no API lookup) |
+| By name | `--instance-name` | Looks up the instance by name from available instances (case-insensitive match). If no match is found, displays the available instances and falls back to interactive selection |
+| Interactive | _(neither flag)_ | Fetches available instances and prompts you to select one |
+
+The `--instance` and `--instance-name` flags are **mutually exclusive** — providing both will result in an error.
 
 ## `aio commerce init`
 
