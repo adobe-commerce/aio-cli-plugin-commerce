@@ -26,9 +26,12 @@ import { createSpinner } from '../../spinner.js'
  * Runs Checkout Starter Kit-specific setup steps.
  *
  * @param {string} projectDir - Project root directory
- * @param {object} [instanceOptions={}] - Commerce instance options (--instance / --instance-name flags)
+ * @param {object} [options={}] - Setup options from CLI flags
+ * @param {string} [options.instanceUrl] - Commerce GraphQL URL (--instance flag)
+ * @param {string} [options.instanceName] - Commerce instance name (--instance-name flag)
+ * @param {string} [options.eventPrefix] - Event prefix for workspace (--event-prefix flag)
  */
-export async function runCheckoutSetup (projectDir, instanceOptions = {}) {
+export async function runCheckoutSetup (projectDir, options = {}) {
   console.log('\n📋 Configuring Checkout Starter Kit...')
 
   const envDistPath = path.join(projectDir, 'env.dist')
@@ -43,7 +46,7 @@ export async function runCheckoutSetup (projectDir, instanceOptions = {}) {
   console.log('   Creating .env from env.dist...')
   copyEnvFile(envDistPath, envPath)
 
-  const graphqlUrl = await getCommerceGraphQLUrl(instanceOptions)
+  const graphqlUrl = await getCommerceGraphQLUrl(options)
   let baseUrl = graphqlUrl.replace(/\/graphql\/?$/, '')
   if (!baseUrl.endsWith('/')) {
     baseUrl += '/'
@@ -54,7 +57,13 @@ export async function runCheckoutSetup (projectDir, instanceOptions = {}) {
   })
   console.log('   ✔ Commerce instance configured')
 
-  const eventPrefix = await promptInput('Enter the event prefix for your workspace:')
+  let eventPrefix
+  if (options.eventPrefix) {
+    eventPrefix = options.eventPrefix
+    console.log(`   Using event prefix: ${eventPrefix}`)
+  } else {
+    eventPrefix = await promptInput('Enter the event prefix for your workspace:')
+  }
   updateEnvValues(envPath, { EVENT_PREFIX: eventPrefix.trim() })
 
   let spinner = createSpinner('Downloading workspace configuration...').start()

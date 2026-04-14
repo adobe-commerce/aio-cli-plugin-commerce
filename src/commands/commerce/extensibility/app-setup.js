@@ -122,16 +122,17 @@ export class AppSetupCommand extends Command {
         await ensureWorkspaceCredentials()
       }
 
-      const instanceOptions = {
+      const setupOptions = {
         instanceUrl: flags.instance,
-        instanceName: flags['instance-name']
+        instanceName: flags['instance-name'],
+        eventPrefix: flags['event-prefix']
       }
 
       currentStep = 'kit-specific setup'
       if (selectedStarterKit.folder === 'integration-starter-kit') {
-        await runIntegrationSetup(projectDir, instanceOptions)
+        await runIntegrationSetup(projectDir, setupOptions)
       } else if (selectedStarterKit.folder === 'checkout-starter-kit') {
-        await runCheckoutSetup(projectDir, instanceOptions)
+        await runCheckoutSetup(projectDir, setupOptions)
       } else if (isBoilerplate) {
         await runBoilerplateSetup(projectDir, commerceGraphQLUrl)
       }
@@ -206,6 +207,11 @@ AppSetupCommand.flags = {
     description: 'Commerce instance name to select from available instances (mutually exclusive with --instance)',
     required: false,
     exclusive: ['instance']
+  }),
+  'event-prefix': Flags.string({
+    char: 'e',
+    description: 'Event prefix for your workspace (Integration/Checkout starter kits only)',
+    required: false
   })
 }
 
@@ -217,5 +223,6 @@ AppSetupCommand.examples = [
   '$ aio commerce extensibility app-setup -s checkout-starter-kit -n checkout-app -a Cursor -p npm',
   '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor',
   '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql',
-  '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"'
+  '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"',
+  '$ aio commerce extensibility app-setup -s integration-starter-kit -n my-app -a Cursor -I "My Instance" -e my-event-prefix'
 ]

@@ -120,7 +120,7 @@ $ aio plugins:install https://github.com/adobe-commerce/aio-cli-plugin-commerce#
 ```
 USAGE
   $ aio commerce extensibility app-setup [-s <value>] [-n <value>] [-a <value>] [-p npm|yarn] [-v <value>] [-f]
-    [-i <value>] [-I <value>]
+    [-i <value>] [-I <value>] [-e <value>]
 
 FLAGS
   -s, --starter-kit=<value>      Starter kit folder (e.g. integration-starter-kit, checkout-starter-kit, aem-boilerplate-commerce)
@@ -131,6 +131,7 @@ FLAGS
   -f, --force                    Force overwrite of existing MCP configuration in tools-setup
   -i, --instance=<value>         Commerce GraphQL endpoint URL (mutually exclusive with --instance-name)
   -I, --instance-name=<value>    Commerce instance name to select from available instances (mutually exclusive with --instance)
+  -e, --event-prefix=<value>     Event prefix for your workspace (Integration/Checkout starter kits only)
 
 DESCRIPTION
   Setup your Commerce Extensibility app: clone starter kit, configure aio console,
@@ -143,6 +144,7 @@ EXAMPLES
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"
+  $ aio commerce extensibility app-setup -s integration-starter-kit -n my-app -a Cursor -I "My Instance" -e my-event-prefix
 ```
 
 This command automates the full project setup workflow for Commerce Extensibility. It runs the following steps:
@@ -159,9 +161,9 @@ This command automates the full project setup workflow for Commerce Extensibilit
 
 All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
 
-### Commerce Instance Selection (Boilerplate only)
+### Commerce Instance Selection
 
-For the `aem-boilerplate-commerce` starter kit, the command needs a Commerce GraphQL endpoint URL. You can provide it in three ways:
+The command needs a Commerce GraphQL endpoint URL. You can provide it in three ways:
 
 | Method | Flag | Behavior |
 |--------|------|----------|

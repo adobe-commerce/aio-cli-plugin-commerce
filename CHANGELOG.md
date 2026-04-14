@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `--instance` (`-i`) flag for `app-setup` to provide a Commerce GraphQL endpoint URL directly, skipping interactive instance selection
 - New `--instance-name` (`-I`) flag for `app-setup` to select a Commerce instance by name from the available instances (case-insensitive match); falls back to interactive selection with the available list if no match is found
 - The two flags are mutually exclusive — providing both results in an error
+- New `--event-prefix` (`-e`) flag for `app-setup` to set the workspace event prefix non-interactively (Integration/Checkout starter kits only)
 
 ### Changed
 
