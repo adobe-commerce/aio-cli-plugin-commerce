@@ -100,7 +100,10 @@ export class AppSetupCommand extends Command {
         await ensureConsoleOrg()
 
         currentStep = 'commerce instance selection'
-        commerceGraphQLUrl = await getCommerceGraphQLUrl()
+        commerceGraphQLUrl = await getCommerceGraphQLUrl({
+          instanceUrl: flags.instance,
+          instanceName: flags['instance-name']
+        })
       } else if (isIntegrationOrCheckout) {
         currentStep = 'console setup'
         await ensureConsoleConfig()
@@ -119,11 +122,16 @@ export class AppSetupCommand extends Command {
         await ensureWorkspaceCredentials()
       }
 
+      const instanceOptions = {
+        instanceUrl: flags.instance,
+        instanceName: flags['instance-name']
+      }
+
       currentStep = 'kit-specific setup'
       if (selectedStarterKit.folder === 'integration-starter-kit') {
-        await runIntegrationSetup(projectDir)
+        await runIntegrationSetup(projectDir, instanceOptions)
       } else if (selectedStarterKit.folder === 'checkout-starter-kit') {
-        await runCheckoutSetup(projectDir)
+        await runCheckoutSetup(projectDir, instanceOptions)
       } else if (isBoilerplate) {
         await runBoilerplateSetup(projectDir, commerceGraphQLUrl)
       }
@@ -186,6 +194,18 @@ AppSetupCommand.flags = {
     char: 'f',
     description: 'Force overwrite of existing MCP configuration in tools-setup',
     default: false
+  }),
+  instance: Flags.string({
+    char: 'i',
+    description: 'Commerce GraphQL endpoint URL (mutually exclusive with --instance-name)',
+    required: false,
+    exclusive: ['instance-name']
+  }),
+  'instance-name': Flags.string({
+    char: 'I',
+    description: 'Commerce instance name to select from available instances (mutually exclusive with --instance)',
+    required: false,
+    exclusive: ['instance']
   })
 }
 
@@ -195,5 +215,7 @@ AppSetupCommand.examples = [
   '$ aio commerce extensibility app-setup',
   '$ aio commerce extensibility app-setup --starter-kit integration-starter-kit --project-name my-app --agent Cursor',
   '$ aio commerce extensibility app-setup -s checkout-starter-kit -n checkout-app -a Cursor -p npm',
-  '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor'
+  '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor',
+  '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql',
+  '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"'
 ]

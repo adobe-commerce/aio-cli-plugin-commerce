@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { getAndSelectInstances } from '../../accs.js'
+import { getAndSelectInstances, findInstanceByName } from '../../accs.js'
 import { promptInput } from '../../prompt.js'
 import Logger from '@adobe/aio-lib-core-logging'
 
@@ -33,12 +33,30 @@ function normalizeGraphQLUrl (input) {
 
 /**
  * Gets the Commerce GraphQL endpoint URL.
- * First attempts to fetch and select from the tenant API.
- * If that fails, prompts the user to enter the URL manually.
  *
+ * When `instanceUrl` is provided, normalizes and returns it directly.
+ * When `instanceName` is provided, looks up the instance by name from the tenant API.
+ * Otherwise falls back to the interactive selection flow.
+ *
+ * @param {object} [options={}]
+ * @param {string} [options.instanceUrl] - Direct Commerce GraphQL URL (--instance flag)
+ * @param {string} [options.instanceName] - Instance name to look up (--instance-name flag)
  * @returns {Promise<string>} The GraphQL endpoint URL
  */
-export async function getCommerceGraphQLUrl () {
+export async function getCommerceGraphQLUrl ({ instanceUrl, instanceName } = {}) {
+  if (instanceUrl) {
+    const normalized = normalizeGraphQLUrl(instanceUrl)
+    if (!normalized) {
+      throw new Error('Invalid --instance URL. Please provide a valid Commerce GraphQL endpoint URL.')
+    }
+    console.log(`Using Commerce instance URL: ${normalized}`)
+    return normalized
+  }
+
+  if (instanceName) {
+    return findInstanceByName(instanceName)
+  }
+
   try {
     const url = await getAndSelectInstances()
     if (url) {

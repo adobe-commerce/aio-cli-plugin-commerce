@@ -5,6 +5,19 @@ All notable changes to `@adobe/aio-cli-plugin-commerce` will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-04-14
+
+### Added
+
+- New `--instance` (`-i`) flag for `app-setup` to provide a Commerce GraphQL endpoint URL directly, skipping interactive instance selection
+- New `--instance-name` (`-I`) flag for `app-setup` to select a Commerce instance by name from the available instances (case-insensitive match); falls back to interactive selection with the available list if no match is found
+- The two flags are mutually exclusive — providing both results in an error
+
+### Changed
+
+- Refactored `accs.js` to extract shared `fetchTenants()` and `saveAdminUrl()` helpers, reused by both `getAndSelectInstances()` and the new `findInstanceByName()`
+- Updated `runIntegrationSetup()` and `runCheckoutSetup()` to accept and forward instance options, so `--instance` and `--instance-name` flags work for all three starter kits (integration, checkout, and boilerplate)
+
 ## [0.8.0] - 2026-03-16
 
 ### Added
@@ -152,7 +165,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for multiple templates (Adobe Demo Store, CitiSignal)
 - Flags for non-interactive setup (`--skipGit`, `--datasource`, `--org`, `--repo`, etc.)
 
-[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.8.0...HEAD
+[Unreleased]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.2...0.8.0
 [0.7.2]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.1...0.7.2
 [0.7.1]: https://github.com/adobe-commerce/aio-cli-plugin-commerce/compare/0.7.0...0.7.1
