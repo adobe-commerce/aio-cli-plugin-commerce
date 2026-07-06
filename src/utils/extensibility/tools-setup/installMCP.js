@@ -83,16 +83,25 @@ function resolveMcpFilePath (mcpConfig, targetDir) {
 }
 
 /**
+ * Serializes a single server entry as a TOML block.
+ *
+ * @param {string} key - The MCP server key (e.g. 'commerce-extensibility')
+ * @param {object} entry - The server entry ({ command, args })
+ * @returns {string} TOML block for this server
+ */
+function serverToTomlBlock (key, entry) {
+  const argsToml = (entry.args || []).map(a => `"${a}"`).join(', ')
+  return `[mcp_servers.${key}]\ncommand = "${entry.command}"\nargs = [${argsToml}]\n`
+}
+
+/**
  * Generates a TOML MCP config string for one or more servers.
  *
  * @param {Array<{key: string, entry: object}>} servers
  * @returns {string} TOML configuration block(s)
  */
 function generateTomlConfig (servers) {
-  return servers.map(({ key, entry }) => {
-    const argsToml = (entry.args || []).map(a => `"${a}"`).join(', ')
-    return `[mcp_servers.${key}]\ncommand = "${entry.command}"\nargs = [${argsToml}]\n`
-  }).join('\n')
+  return servers.map(({ key, entry }) => serverToTomlBlock(key, entry)).join('\n')
 }
 
 /**
@@ -177,10 +186,8 @@ async function writeTomlMcpConfig (filePath, servers, force) {
     for (const server of servers) {
       const tomlBlock = generateTomlConfig([server])
       if (content.includes(`[mcp_servers.${server.key}]`)) {
-        content = content.replace(
-          new RegExp(`\\[mcp_servers\\.${server.key}][^[]*(?=\\[|$)`, 's'),
-          tomlBlock
-        )
+        const blockPattern = new RegExp(`\\[mcp_servers\\.${server.key}][^[]*(?=\\[|$)`, 's')
+        content = content.replace(blockPattern, tomlBlock)
       } else {
         toAppend.push(tomlBlock)
       }
