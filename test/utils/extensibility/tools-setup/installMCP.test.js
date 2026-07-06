@@ -27,64 +27,70 @@ function readJson (filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
 }
 
+function tomlPath (dir) {
+  return path.join(dir, '.codex', 'config.toml')
+}
+
+function writeToml (dir, content) {
+  const p = tomlPath(dir)
+  fs.mkdirSync(path.dirname(p), { recursive: true })
+  fs.writeFileSync(p, content)
+}
+
+function readToml (dir) {
+  return fs.readFileSync(tomlPath(dir), 'utf8')
+}
+
+function countMatches (str, pattern) {
+  return (str.match(pattern) || []).length
+}
+
 // ─── tests ──────────────────────────────────────────────────────────────────
 
 describe('installMCP', () => {
   describe('server filtering by starter kit', () => {
-    it('writes only commerce-extensibility for integration-starter-kit', async () => {
-      const dir = makeTmpDir()
-      await installMCP(dir, 'Cursor', { force: true, starterKitFolder: 'integration-starter-kit' })
+    it.each(['integration-starter-kit', 'checkout-starter-kit', undefined])(
+      'writes only commerce-extensibility for %s',
+      async (kit) => {
+        const dir = makeTmpDir()
+        await installMCP(dir, 'Cursor', { force: true, starterKitFolder: kit })
 
-      const config = readJson(path.join(dir, '.cursor', 'mcp.json'))
-      expect(Object.keys(config.mcpServers)).toEqual(['commerce-extensibility'])
-    })
-
-    it('writes only commerce-extensibility for checkout-starter-kit', async () => {
-      const dir = makeTmpDir()
-      await installMCP(dir, 'Cursor', { force: true, starterKitFolder: 'checkout-starter-kit' })
-
-      const config = readJson(path.join(dir, '.cursor', 'mcp.json'))
-      expect(Object.keys(config.mcpServers)).toEqual(['commerce-extensibility'])
-    })
+        const { mcpServers } = readJson(path.join(dir, '.cursor', 'mcp.json'))
+        expect(Object.keys(mcpServers)).toEqual(['commerce-extensibility'])
+      }
+    )
 
     it('writes both commerce-extensibility and dropins for aem-boilerplate-commerce', async () => {
       const dir = makeTmpDir()
       await installMCP(dir, 'Cursor', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
 
-      const config = readJson(path.join(dir, '.cursor', 'mcp.json'))
-      expect(config.mcpServers).toHaveProperty('commerce-extensibility')
-      expect(config.mcpServers).toHaveProperty('dropins')
-    })
-
-    it('writes only commerce-extensibility when no starter kit is provided', async () => {
-      const dir = makeTmpDir()
-      await installMCP(dir, 'Cursor', { force: true })
-
-      const config = readJson(path.join(dir, '.cursor', 'mcp.json'))
-      expect(Object.keys(config.mcpServers)).toEqual(['commerce-extensibility'])
+      const { mcpServers } = readJson(path.join(dir, '.cursor', 'mcp.json'))
+      expect(mcpServers).toHaveProperty('commerce-extensibility')
+      expect(mcpServers).toHaveProperty('dropins')
     })
   })
 
   describe('JSON config content', () => {
-    it('commerce-extensibility entry runs via node from node_modules', async () => {
+    let mcpServers
+
+    beforeEach(async () => {
       const dir = makeTmpDir()
       await installMCP(dir, 'Cursor', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
+      mcpServers = readJson(path.join(dir, '.cursor', 'mcp.json')).mcpServers
+    })
 
-      const { mcpServers } = readJson(path.join(dir, '.cursor', 'mcp.json'))
+    it('commerce-extensibility runs via node from node_modules', () => {
       expect(mcpServers['commerce-extensibility'].command).toBe('node')
       expect(mcpServers['commerce-extensibility'].args[0]).toContain('commerce-extensibility-tools')
     })
 
-    it('dropins entry runs via npx', async () => {
-      const dir = makeTmpDir()
-      await installMCP(dir, 'Cursor', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
-
-      const { mcpServers } = readJson(path.join(dir, '.cursor', 'mcp.json'))
+    it('dropins runs via npx --yes (non-interactive, safe for MCP hosts)', () => {
       expect(mcpServers.dropins.command).toBe('npx')
+      expect(mcpServers.dropins.args).toContain('--yes')
       expect(mcpServers.dropins.args).toContain('@dropins/mcp')
     })
 
-    it('merges new entries into an existing config without removing other keys', async () => {
+    it('merges new entries without removing pre-existing keys', async () => {
       const dir = makeTmpDir()
       const configPath = path.join(dir, '.cursor', 'mcp.json')
       fs.mkdirSync(path.dirname(configPath), { recursive: true })
@@ -102,44 +108,116 @@ describe('installMCP', () => {
   })
 
   describe('TOML config (OpenAI Codex)', () => {
-    it('writes both server blocks for aem-boilerplate-commerce', async () => {
+    it.each([
+      ['aem-boilerplate-commerce', true],
+      ['integration-starter-kit', false]
+    ])('creates correct blocks for %s', async (kit, expectDropins) => {
       const dir = makeTmpDir()
+      await installMCP(dir, 'OpenAI Codex', { force: true, starterKitFolder: kit })
+
+      const toml = readToml(dir)
+      expect(toml).toContain('[mcp_servers.commerce-extensibility]')
+      if (expectDropins) {
+        expect(toml).toContain('[mcp_servers.dropins]')
+      } else {
+        expect(toml).not.toContain('[mcp_servers.dropins]')
+      }
+    })
+
+    it('appends to an existing file with unrelated sections', async () => {
+      const dir = makeTmpDir()
+      writeToml(dir, '[some_other_section]\nkey = "value"\n')
+
       await installMCP(dir, 'OpenAI Codex', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
 
-      const toml = fs.readFileSync(path.join(dir, '.codex', 'config.toml'), 'utf8')
+      const toml = readToml(dir)
+      expect(toml).toContain('[some_other_section]')
       expect(toml).toContain('[mcp_servers.commerce-extensibility]')
       expect(toml).toContain('[mcp_servers.dropins]')
     })
 
-    it('writes only commerce-extensibility block for integration-starter-kit', async () => {
+    it('replaces an existing block without duplicating it', async () => {
       const dir = makeTmpDir()
+      writeToml(dir, [
+        '[mcp_servers.commerce-extensibility]',
+        'command = "node"',
+        'args = ["old/path.js"]',
+        ''
+      ].join('\n'))
+
       await installMCP(dir, 'OpenAI Codex', { force: true, starterKitFolder: 'integration-starter-kit' })
 
-      const toml = fs.readFileSync(path.join(dir, '.codex', 'config.toml'), 'utf8')
+      const toml = readToml(dir)
+      expect(countMatches(toml, /\[mcp_servers\.commerce-extensibility\]/g)).toBe(1)
+      expect(toml).not.toContain('old/path.js')
+      expect(toml).toContain('commerce-extensibility-tools')
+    })
+
+    it('replaces both blocks without duplicating them', async () => {
+      const dir = makeTmpDir()
+      writeToml(dir, [
+        '[mcp_servers.commerce-extensibility]',
+        'command = "node"',
+        'args = ["old/path.js"]',
+        '',
+        '[mcp_servers.dropins]',
+        'command = "npx"',
+        'args = ["old-dropins-pkg"]',
+        ''
+      ].join('\n'))
+
+      await installMCP(dir, 'OpenAI Codex', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
+
+      const toml = readToml(dir)
+      expect(countMatches(toml, /\[mcp_servers\.commerce-extensibility\]/g)).toBe(1)
+      expect(countMatches(toml, /\[mcp_servers\.dropins\]/g)).toBe(1)
+      expect(toml).not.toContain('old/path.js')
+      expect(toml).not.toContain('old-dropins-pkg')
+      expect(toml).toContain('@dropins/mcp')
+    })
+
+    it('preserves unrelated sections when replacing existing blocks', async () => {
+      const dir = makeTmpDir()
+      writeToml(dir, [
+        '[some_other_section]',
+        'key = "value"',
+        '',
+        '[mcp_servers.commerce-extensibility]',
+        'command = "node"',
+        'args = ["old/path.js"]',
+        ''
+      ].join('\n'))
+
+      await installMCP(dir, 'OpenAI Codex', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
+
+      const toml = readToml(dir)
+      expect(toml).toContain('[some_other_section]')
+      expect(toml).toContain('key = "value"')
       expect(toml).toContain('[mcp_servers.commerce-extensibility]')
-      expect(toml).not.toContain('[mcp_servers.dropins]')
+      expect(toml).toContain('[mcp_servers.dropins]')
     })
   })
 
   describe('"Other" agent', () => {
+    let logSpy
+
+    beforeEach(() => { logSpy = jest.spyOn(console, 'log').mockImplementation(() => {}) })
+    afterEach(() => { logSpy.mockRestore() })
+
     it('prints both server entries for aem-boilerplate-commerce', async () => {
-      const spy = jest.spyOn(console, 'log').mockImplementation(() => {})
       await installMCP('/any', 'Other', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
 
-      const output = spy.mock.calls.map(args => args.join(' ')).join('\n')
+      const output = logSpy.mock.calls.map(args => args.join(' ')).join('\n')
       expect(output).toContain('commerce-extensibility')
       expect(output).toContain('dropins')
-      spy.mockRestore()
     })
 
     it('prints only commerce-extensibility for non-AEM kits', async () => {
-      const spy = jest.spyOn(console, 'log').mockImplementation(() => {})
       await installMCP('/any', 'Other', { force: true, starterKitFolder: 'integration-starter-kit' })
 
-      const output = spy.mock.calls.map(args => args.join(' ')).join('\n')
+      const output = logSpy.mock.calls.map(args => args.join(' ')).join('\n')
       expect(output).toContain('commerce-extensibility')
       expect(output).not.toContain('dropins')
-      spy.mockRestore()
     })
   })
 })

@@ -34,7 +34,7 @@ const MCP_REGISTRY = [
     key: 'dropins',
     entry: {
       command: 'npx',
-      args: ['@dropins/mcp']
+      args: ['--yes', '@dropins/mcp']
     },
     starterKits: ['aem-boilerplate-commerce']
   }
@@ -186,8 +186,10 @@ async function writeTomlMcpConfig (filePath, servers, force) {
     for (const server of servers) {
       const tomlBlock = generateTomlConfig([server])
       if (content.includes(`[mcp_servers.${server.key}]`)) {
-        const blockPattern = new RegExp(`\\[mcp_servers\\.${server.key}][^[]*(?=\\[|$)`, 's')
-        content = content.replace(blockPattern, tomlBlock)
+        // Match from the section header to the start of the next section or end of string.
+        // [^]* matches any character including newlines; *? stops lazily at the next \n[ or end.
+        const blockPattern = new RegExp(`\\[mcp_servers\\.${server.key}\\][^]*?(?=\\n\\[|$)`)
+        content = content.replace(blockPattern, tomlBlock.trimEnd())
       } else {
         toAppend.push(tomlBlock)
       }

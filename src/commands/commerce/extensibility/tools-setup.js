@@ -183,7 +183,7 @@ export class ToolsSetupCommand extends Command {
           console.log('✅ @dropins/mcp installed successfully')
         } catch (error) {
           console.warn('⚠️  @dropins/mcp global install failed:', error.message)
-          console.warn('   The MCP server will fall back to npx on first use.')
+          console.warn('   The MCP server will be fetched via npx --yes on first use (no prompt).')
         }
       }
 
