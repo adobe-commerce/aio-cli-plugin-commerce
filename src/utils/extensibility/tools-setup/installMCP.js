@@ -17,12 +17,37 @@ import { promptConfirm } from '../../prompt.js'
 import agentsConfig from '../../../configs/agents.json' with { type: 'json' }
 
 /**
- * The MCP server entry that gets written into every agent's config.
+ * Registry of MCP servers to install.
+ * Entries without `starterKits` are installed for every project type.
+ * Entries with `starterKits` are only installed when the selected starter kit matches.
  */
-const MCP_SERVER_ENTRY = {
-  command: 'node',
-  args: ['node_modules/@adobe-commerce/commerce-extensibility-tools/index.js'],
-  env: {}
+const MCP_REGISTRY = [
+  {
+    key: 'commerce-extensibility',
+    entry: {
+      command: 'node',
+      args: ['node_modules/@adobe-commerce/commerce-extensibility-tools/index.js'],
+      env: {}
+    }
+  },
+  {
+    key: 'dropins',
+    entry: {
+      command: 'npx',
+      args: ['@dropins/mcp']
+    },
+    starterKits: ['aem-boilerplate-commerce']
+  }
+]
+
+/**
+ * Returns the subset of MCP_REGISTRY entries applicable to the given starter kit.
+ *
+ * @param {string} [starterKitFolder] - The selected starter kit folder name
+ * @returns {Array<{key: string, entry: object}>}
+ */
+function getApplicableServers (starterKitFolder) {
+  return MCP_REGISTRY.filter(s => !s.starterKits || s.starterKits.includes(starterKitFolder))
 }
 
 /**
@@ -58,36 +83,38 @@ function resolveMcpFilePath (mcpConfig, targetDir) {
 }
 
 /**
- * Generates a TOML MCP config string for OpenAI Codex.
+ * Generates a TOML MCP config string for one or more servers.
  *
- * @returns {string} TOML configuration for the commerce-extensibility MCP server
+ * @param {Array<{key: string, entry: object}>} servers
+ * @returns {string} TOML configuration block(s)
  */
-function generateTomlConfig () {
-  return `[mcp_servers.commerce-extensibility]
-command = "node"
-args = ["node_modules/@adobe-commerce/commerce-extensibility-tools/index.js"]
-`
+function generateTomlConfig (servers) {
+  return servers.map(({ key, entry }) => {
+    const argsToml = (entry.args || []).map(a => `"${a}"`).join(', ')
+    return `[mcp_servers.${key}]\ncommand = "${entry.command}"\nargs = [${argsToml}]\n`
+  }).join('\n')
 }
 
 /**
- * Writes or merges a JSON MCP config file.
- * If the file exists, merges the commerce-extensibility server entry
- * into the existing config under the specified top-level key.
+ * Writes or merges a JSON MCP config file with all applicable server entries.
+ * If the file exists, merges each server entry into the existing config.
  *
  * @param {string} filePath - Absolute path to the MCP config file
  * @param {string} topKey - The top-level JSON key (e.g. 'mcpServers', 'servers')
+ * @param {Array<{key: string, entry: object}>} servers - Servers to write
  * @param {boolean} isGlobal - Whether this is a global config file
  * @param {boolean} force - If true, skip confirmation prompts and overwrite
  * @returns {Promise<boolean>} true if written successfully, false if user cancelled
  */
-async function writeJsonMcpConfig (filePath, topKey, isGlobal, force) {
+async function writeJsonMcpConfig (filePath, topKey, servers, isGlobal, force) {
   let existingConfig = {}
 
   if (fs.existsSync(filePath)) {
     if (!force) {
       const label = isGlobal ? `Global MCP config already exists at ${filePath}` : 'MCP config already exists in the target directory'
+      const serverKeys = servers.map(s => s.key).join(', ')
       const shouldOverride = await promptConfirm(
-        `${label}. Do you want to merge the commerce-extensibility server into it?`
+        `${label}. Do you want to merge the MCP server entries (${serverKeys}) into it?`
       )
       if (!shouldOverride) {
         return false
@@ -103,11 +130,13 @@ async function writeJsonMcpConfig (filePath, topKey, isGlobal, force) {
     }
   }
 
-  // Merge the server entry under the top-level key
+  // Merge each server entry under the top-level key
   if (!existingConfig[topKey]) {
     existingConfig[topKey] = {}
   }
-  existingConfig[topKey]['commerce-extensibility'] = { ...MCP_SERVER_ENTRY }
+  for (const { key, entry } of servers) {
+    existingConfig[topKey][key] = { ...entry }
+  }
 
   // Ensure parent directory exists
   const dir = path.dirname(filePath)
@@ -121,39 +150,44 @@ async function writeJsonMcpConfig (filePath, topKey, isGlobal, force) {
 
 /**
  * Writes or appends a TOML MCP config for OpenAI Codex.
+ * Handles multiple server entries, replacing existing blocks and appending new ones.
  *
  * @param {string} filePath - Absolute path to the .codex/config.toml file
+ * @param {Array<{key: string, entry: object}>} servers - Servers to write
  * @param {boolean} force - If true, skip confirmation prompts and overwrite
  * @returns {Promise<boolean>} true if written successfully, false if user cancelled
  */
-async function writeTomlMcpConfig (filePath, force) {
-  const tomlEntry = generateTomlConfig()
-
+async function writeTomlMcpConfig (filePath, servers, force) {
   if (fs.existsSync(filePath)) {
-    const existingContent = fs.readFileSync(filePath, 'utf8')
+    let content = fs.readFileSync(filePath, 'utf8')
 
-    // Check if commerce-extensibility is already configured
-    if (existingContent.includes('[mcp_servers.commerce-extensibility]')) {
-      if (!force) {
-        const shouldOverride = await promptConfirm(
-          'commerce-extensibility MCP server already exists in .codex/config.toml. Do you want to override it?'
-        )
-        if (!shouldOverride) {
-          return false
-        }
-      }
-
-      // Replace existing commerce-extensibility block
-      const updated = existingContent.replace(
-        /\[mcp_servers\.commerce-extensibility][^[]*(?=\[|$)/s,
-        tomlEntry
+    const alreadyPresent = servers.filter(s => content.includes(`[mcp_servers.${s.key}]`))
+    if (alreadyPresent.length > 0 && !force) {
+      const keys = alreadyPresent.map(s => s.key).join(', ')
+      const shouldOverride = await promptConfirm(
+        `MCP server(s) "${keys}" already exist in .codex/config.toml. Do you want to override them?`
       )
-      fs.writeFileSync(filePath, updated)
-      return true
+      if (!shouldOverride) {
+        return false
+      }
     }
 
-    // Append to existing file
-    fs.writeFileSync(filePath, existingContent.trimEnd() + '\n\n' + tomlEntry)
+    // Replace existing blocks and collect new ones to append
+    const toAppend = []
+    for (const server of servers) {
+      const tomlBlock = generateTomlConfig([server])
+      if (content.includes(`[mcp_servers.${server.key}]`)) {
+        content = content.replace(
+          new RegExp(`\\[mcp_servers\\.${server.key}][^[]*(?=\\[|$)`, 's'),
+          tomlBlock
+        )
+      } else {
+        toAppend.push(tomlBlock)
+      }
+    }
+
+    const appended = toAppend.length > 0 ? '\n' + toAppend.join('\n') : ''
+    fs.writeFileSync(filePath, content.trimEnd() + appended)
     return true
   }
 
@@ -162,7 +196,7 @@ async function writeTomlMcpConfig (filePath, force) {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
-  fs.writeFileSync(filePath, tomlEntry)
+  fs.writeFileSync(filePath, generateTomlConfig(servers))
   return true
 }
 
@@ -178,14 +212,16 @@ async function writeTomlMcpConfig (filePath, force) {
  * @param {string} agentKey - The agent key from agents.json, or 'Other'
  * @param {object} [options] - Options
  * @param {boolean} [options.force] - If true, skip confirmation prompts and overwrite existing configs
+ * @param {string} [options.starterKitFolder] - Starter kit folder name used to filter applicable MCP servers
  */
 export async function installMCP (targetDir, agentKey, options = {}) {
-  const force = options.force || false
+  const { force = false, starterKitFolder } = options
+  const servers = getApplicableServers(starterKitFolder)
+
   if (agentKey === 'Other') {
+    const mcpEntries = Object.fromEntries(servers.map(s => [s.key, s.entry]))
     console.log('\n📋 MCP server configuration for your coding agent:')
-    console.log(JSON.stringify({
-      'commerce-extensibility': MCP_SERVER_ENTRY
-    }, null, 2))
+    console.log(JSON.stringify(mcpEntries, null, 2))
     console.log('\n   Please add this to your coding agent\'s MCP configuration file.')
     console.log('   Refer to your agent\'s documentation for the correct file location and format.')
     return
@@ -207,9 +243,9 @@ export async function installMCP (targetDir, agentKey, options = {}) {
   let success = false
 
   if (mcpConfig.format === 'toml') {
-    success = await writeTomlMcpConfig(filePath, force)
+    success = await writeTomlMcpConfig(filePath, servers, force)
   } else {
-    success = await writeJsonMcpConfig(filePath, mcpConfig.topKey, isGlobal, force)
+    success = await writeJsonMcpConfig(filePath, mcpConfig.topKey, servers, isGlobal, force)
   }
 
   if (success) {
