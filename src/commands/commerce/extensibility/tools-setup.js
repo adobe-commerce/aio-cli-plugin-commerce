@@ -175,9 +175,21 @@ export class ToolsSetupCommand extends Command {
         throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
+      // Install @dropins/mcp globally for AEM Boilerplate Commerce projects
+      if (selectedStarterKit.folder === 'aem-boilerplate-commerce') {
+        console.log('📦 Installing @dropins/mcp globally (latest)...')
+        try {
+          await runCommand('npm install -g @dropins/mcp@latest')
+          console.log('✅ @dropins/mcp installed successfully')
+        } catch (error) {
+          console.warn('⚠️  @dropins/mcp global install failed:', error.message)
+          console.warn('   The MCP server will be fetched via npx --yes on first use (no prompt).')
+        }
+      }
+
       // Install MCP configuration and skills
       currentStep = 'MCP configuration'
-      await installMCP(targetDir, selectedAgent, { force })
+      await installMCP(targetDir, selectedAgent, { force, starterKitFolder: selectedStarterKit.folder })
       currentStep = 'skills installation'
       await installSkills(targetDir, selectedStarterKit.folder, selectedAgent)
 
