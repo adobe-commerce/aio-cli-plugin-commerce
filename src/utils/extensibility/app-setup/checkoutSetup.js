@@ -15,10 +15,21 @@ import { createSpinner } from '../../spinner.js'
 /**
  * Runs Checkout Starter Kit-specific setup steps.
  *
- * @param {string} projectDir - Project root directory
+ * @param {string} projectDir - Project root directory@param {object}
+ * @param {object} [options={}] - Setup options from CLI flags
+ * @param {string} [options.instanceUrl] - Commerce GraphQL URL (--instance flag)
+ * @param {string} [options.instanceName] - Commerce instance name (--instance-name flag)
+ * @param {string} [options.eventPrefix] - Event prefix for workspace (--event-prefix flag)
  */
-export async function runCheckoutSetup (projectDir) {
+export async function runCheckoutSetup (projectDir, options = {}) {
   console.log('\n📋 Configuring Checkout Starter Kit...')
+
+  if (options.instanceUrl || options.instanceName) {
+    console.log('   ⚠ --instance or --instance-name flags are not supported for Checkout apps. Please associate the app once developed using the Commerce App Management UI.')
+  }
+  if (options.eventPrefix) {
+    console.log('   ⚠ --event-prefix flag is not supported for Checkout apps. Check app.commerce.config.ts for event prefix configuration.')
+  }
 
   let spinner = createSpinner('Downloading workspace configuration...').start()
   await downloadWorkspaceConfig(projectDir)

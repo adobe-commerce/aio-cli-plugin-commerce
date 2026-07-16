@@ -180,6 +180,8 @@ The command needs a Commerce GraphQL endpoint URL. You can provide it in three w
 | By name | `--instance-name` | Looks up the instance by name from available instances (case-insensitive match). If no match is found, displays the available instances and falls back to interactive selection |
 | Interactive | _(neither flag)_ | Fetches available instances and prompts you to select one |
 
+Checkout app starter kits do not respect this flags since the association is done in the app-management UI.
+
 The `--instance` and `--instance-name` flags are **mutually exclusive** — providing both will result in an error.
 
 ## `aio commerce init`
