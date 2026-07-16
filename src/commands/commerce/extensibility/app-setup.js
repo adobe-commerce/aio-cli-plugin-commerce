@@ -93,9 +93,10 @@ export class AppSetupCommand extends Command {
         )
       }
 
+      const isCheckoutStarterKit = CHECKOUT_STARTER_KIT_FOLDERS.includes(selectedStarterKit.folder)
       const isIntegrationOrCheckout =
         selectedStarterKit.folder === 'integration-starter-kit' ||
-        CHECKOUT_STARTER_KIT_FOLDERS.includes(selectedStarterKit.folder)
+        isCheckoutStarterKit
       const isBoilerplate =
         selectedStarterKit.folder === 'aem-boilerplate-commerce'
 
@@ -137,8 +138,8 @@ export class AppSetupCommand extends Command {
       currentStep = 'kit-specific setup'
       if (selectedStarterKit.folder === 'integration-starter-kit') {
         await runIntegrationSetup(projectDir, setupOptions)
-      } else if (CHECKOUT_STARTER_KIT_FOLDERS.includes(selectedStarterKit.folder)) {
-        await runCheckoutSetup(projectDir, setupOptions)
+      } else if (isCheckoutStarterKit) {
+        await runCheckoutSetup(projectDir)
       } else if (isBoilerplate) {
         await runBoilerplateSetup(projectDir, commerceGraphQLUrl)
       }

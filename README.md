@@ -161,12 +161,14 @@ This command automates the full project setup workflow for Commerce Extensibilit
 5. **Clone and install** — clones the starter kit repo and installs dependencies
 6. **Console configuration** _(Integration/Checkout only)_ — selects Adobe I/O Console org, project, and workspace
 7. **Workspace credentials** _(Integration/Checkout only)_ — creates OAuth server-to-server credentials and subscribes to required services (ACCS REST API, I/O Management API, I/O Events, Adobe I/O Events for Adobe Commerce)
-8. **Kit-specific setup** _(Integration/Checkout only)_ — creates `.env` from template, configures Commerce instance, downloads workspace config, populates workspace IDs and OAuth credentials
+8. **Kit-specific setup** _(Integration only)_ — creates `.env` from template, configures Commerce instance, downloads workspace config, populates workspace IDs and OAuth credentials
 9. **Tools setup** — runs `tools-setup` to install Commerce Extensibility MCP tools and agent skills
 
 All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
 
 Checkout app starter kits are checked out from subfolders of the checkout starter kit repository. The generated project directory contains only the selected app files and does not include the source repository `.git` directory. Integration Starter Kit and AEM Boilerplate Commerce projects keep the `.git` directory from their full repository clone.
+
+Checkout app starter kits do not create or update `.env` during `app-setup`; app-management handles app configuration for these projects.
 
 ### Commerce Instance Selection
 
