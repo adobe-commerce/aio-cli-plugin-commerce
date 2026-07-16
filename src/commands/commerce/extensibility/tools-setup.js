@@ -225,7 +225,7 @@ ToolsSetupCommand.flags = {
   }),
   'starter-kit': Flags.string({
     char: 's',
-    description: 'Starter kit to use. e.g. "integration-starter-kit"',
+    description: 'Starter kit to use. e.g. "integration-starter-kit", "checkout-shipping-method", "checkout-payment-method", "checkout-totals-collector", "checkout-tax-integration"',
     required: false,
     options: VALID_STARTER_KITS
   }),
@@ -253,7 +253,7 @@ ToolsSetupCommand.examples = [
   '$ aio commerce:extensibility:tools-setup',
   '$ aio commerce:extensibility:tools-setup --tools-version 1.2.3',
   '$ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm',
-  '$ aio commerce:extensibility:tools-setup --starter-kit checkout-starter-kit --agent Cursor --package-manager npm',
+  '$ aio commerce:extensibility:tools-setup --starter-kit checkout-shipping-method --agent Cursor --package-manager npm',
   '$ aio commerce:extensibility:tools-setup --starter-kit aem-boilerplate-commerce --agent Cursor --package-manager npm',
   '$ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f'
 ]

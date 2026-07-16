@@ -123,7 +123,9 @@ USAGE
     [-i <value>] [-I <value>] [-e <value>]
 
 FLAGS
-  -s, --starter-kit=<value>      Starter kit folder (e.g. integration-starter-kit, checkout-starter-kit, aem-boilerplate-commerce)
+  -s, --starter-kit=<value>      Starter kit folder (e.g. integration-starter-kit, checkout-shipping-method,
+                                 checkout-payment-method, checkout-totals-collector, checkout-tax-integration,
+                                 aem-boilerplate-commerce)
   -n, --project-name=<value>     Name for the project directory
   -a, --agent=<value>            Coding agent to install skills for (see Supported Agents in tools-setup)
   -p, --package-manager=<option> Package manager: npm or yarn
@@ -140,7 +142,10 @@ DESCRIPTION
 EXAMPLES
   $ aio commerce extensibility app-setup
   $ aio commerce extensibility app-setup --starter-kit integration-starter-kit --project-name my-app --agent Cursor
-  $ aio commerce extensibility app-setup -s checkout-starter-kit -n checkout-app -a Cursor -p npm
+  $ aio commerce extensibility app-setup -s checkout-shipping-method -n shipping-method-app -a Cursor -p npm
+  $ aio commerce extensibility app-setup -s checkout-payment-method -n payment-method-app -a Cursor -p npm
+  $ aio commerce extensibility app-setup -s checkout-totals-collector -n totals-collector-app -a Cursor -p npm
+  $ aio commerce extensibility app-setup -s checkout-tax-integration -n tax-integration-app -a Cursor -p npm
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"
@@ -150,7 +155,7 @@ EXAMPLES
 This command automates the full project setup workflow for Commerce Extensibility. It runs the following steps:
 
 1. **Login check** — verifies you are authenticated via `aio auth login`
-2. **Starter kit selection** — prompts for Integration Starter Kit, Checkout Starter Kit, or AEM Boilerplate Commerce
+2. **Starter kit selection** — prompts for Integration Starter Kit, one of the checkout app starter kits, or AEM Boilerplate Commerce
 3. **Project name** — prompts for a directory name for the new project
 4. **Agent selection** — prompts for which coding agent to install skills for
 5. **Clone and install** — clones the starter kit repo and installs dependencies
@@ -160,6 +165,8 @@ This command automates the full project setup workflow for Commerce Extensibilit
 9. **Tools setup** — runs `tools-setup` to install Commerce Extensibility MCP tools and agent skills
 
 All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
+
+Checkout app starter kits are checked out from subfolders of the checkout starter kit repository. The generated project directory contains only the selected app files and does not include the source repository `.git` directory. Integration Starter Kit and AEM Boilerplate Commerce projects keep the `.git` directory from their full repository clone.
 
 ### Commerce Instance Selection
 
@@ -218,7 +225,8 @@ USAGE
 
 FLAGS
   -v, --tools-version=<value>    Version of @adobe-commerce/commerce-extensibility-tools to install (defaults to latest)
-  -s, --starter-kit=<option>     Starter kit to use. e.g. "integration-starter-kit"
+  -s, --starter-kit=<option>     Starter kit to use. e.g. "integration-starter-kit", "checkout-shipping-method",
+                                 "checkout-payment-method", "checkout-totals-collector", "checkout-tax-integration"
   -a, --agent=<value>            Coding agent to configure (see Supported Agents below)
   -p, --package-manager=<option> Package manager: "npm" or "yarn" (auto-detected from lock files if omitted)
   -f, --force                    Force overwrite of existing MCP configuration without prompting
@@ -230,13 +238,17 @@ EXAMPLES
   $ aio commerce:extensibility:tools-setup
   $ aio commerce:extensibility:tools-setup --tools-version 1.2.3
   $ aio commerce:extensibility:tools-setup --starter-kit integration-starter-kit --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup --starter-kit checkout-shipping-method --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup --starter-kit checkout-payment-method --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup --starter-kit checkout-totals-collector --agent Cursor --package-manager npm
+  $ aio commerce:extensibility:tools-setup --starter-kit checkout-tax-integration --agent Cursor --package-manager npm
   $ aio commerce:extensibility:tools-setup --starter-kit aem-boilerplate-commerce --agent Cursor --package-manager npm
   $ aio commerce:extensibility:tools-setup -s integration-starter-kit -a Cursor -p npm -f
 ```
 
 This command sets up Commerce Extensibility Tools for use with your preferred coding agent using [Agent Skills](https://agentskills.io/), an open standard for giving AI coding agents domain-specific expertise. The command will:
 
-1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit, Checkout Starter Kit, or AEM Boilerplate Commerce)
+1. Prompt you to select a **starter kit** (e.g. Integration Starter Kit, a checkout app starter kit, or AEM Boilerplate Commerce)
 2. Prompt you to select your **coding agent** from 9 supported agents (plus an "Other" option)
 3. Install the `@adobe-commerce/commerce-extensibility-tools` package as a dev dependency
 4. Create MCP (Model Context Protocol) configuration for your agent
@@ -264,7 +276,7 @@ This command sets up Commerce Extensibility Tools for use with your preferred co
 | Flag | Short | Description |
 |------|-------|-------------|
 | `--tools-version` | `-v` | Version of the tools package to install. Accepts semver (`1.2.3`, `^1.2.3`), ranges (`>=1.0.0`), or npm tags (`latest`, `next`). Defaults to `latest`. |
-| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`, `checkout-starter-kit`, `aem-boilerplate-commerce`. |
+| `--starter-kit` | `-s` | Starter kit folder name. e.g. `integration-starter-kit`, `checkout-shipping-method`, `checkout-payment-method`, `checkout-totals-collector`, `checkout-tax-integration`, `aem-boilerplate-commerce`. |
 | `--agent` | `-a` | Coding agent name: `Cursor`, `Claude Code`, `GitHub Copilot`, `Windsurf`, `Gemini CLI`, `OpenAI Codex`, `Cline`, `Kilo Code`, `Antigravity`, `Other`. |
 | `--package-manager` | `-p` | Package manager: `npm` or `yarn`. Auto-detected from lock files when omitted (see below). |
 | `--force` | `-f` | Force overwrite of existing MCP configuration without prompting for confirmation. |

@@ -49,7 +49,7 @@ function countMatches (str, pattern) {
 
 describe('installMCP', () => {
   describe('server filtering by starter kit', () => {
-    it.each(['integration-starter-kit', 'checkout-starter-kit', undefined])(
+    it.each(['integration-starter-kit', 'checkout-shipping-method', 'checkout-payment-method', 'checkout-totals-collector', 'checkout-tax-integration', undefined])(
       'writes only commerce-extensibility for %s',
       async (kit) => {
         const dir = makeTmpDir()
@@ -117,11 +117,7 @@ describe('installMCP', () => {
 
       const toml = readToml(dir)
       expect(toml).toContain('[mcp_servers.commerce-extensibility]')
-      if (expectDropins) {
-        expect(toml).toContain('[mcp_servers.dropins]')
-      } else {
-        expect(toml).not.toContain('[mcp_servers.dropins]')
-      }
+      expect(toml.includes('[mcp_servers.dropins]')).toBe(expectDropins)
     })
 
     it('appends to an existing file with unrelated sections', async () => {
