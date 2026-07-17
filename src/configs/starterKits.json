@@ -6,8 +6,30 @@
     "branch": "main"
   },
   {
-    "name": "Checkout Starter Kit",
-    "folder": "checkout-starter-kit",
+    "name": "Checkout Shipping Method",
+    "folder": "checkout-shipping-method",
+    "path": "apps/shipping-method",
+    "repo": "https://github.com/adobe/commerce-checkout-starter-kit.git",
+    "branch": "main"
+  },
+  {
+    "name": "Checkout Payment Method",
+    "folder": "checkout-payment-method",
+    "path": "apps/payment-method",
+    "repo": "https://github.com/adobe/commerce-checkout-starter-kit.git",
+    "branch": "main"
+  },
+  {
+    "name": "Checkout Totals Collector",
+    "folder": "checkout-totals-collector",
+    "path": "apps/totals-collector",
+    "repo": "https://github.com/adobe/commerce-checkout-starter-kit.git",
+    "branch": "main"
+  },
+  {
+    "name": "Checkout Tax Integration",
+    "folder": "checkout-tax-integration",
+    "path": "apps/tax-integration",
     "repo": "https://github.com/adobe/commerce-checkout-starter-kit.git",
     "branch": "main"
   },

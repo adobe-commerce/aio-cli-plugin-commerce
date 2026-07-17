@@ -13,3 +13,4 @@ junit.xml
 package-lock.json
 .env
 .aio
+.idea

@@ -25,11 +25,11 @@ const PROJECT_NAME_PATTERN = /^[a-zA-Z0-9_-]+$/
 /**
  * Clones a starter kit and installs dependencies.
  *
- * @param {object} starterKit - { name, folder, repo, branch } from starterKits.json
+ * @param {object} starterKit - { name, folder, path, repo, branch } from starterKits.json
  * @param {string} projectName - Name for the project directory
  * @param {string} parentDir - Directory to clone into (default: process.cwd())
  * @param {string} [packageManagerOverride] - Optional: 'npm' or 'yarn' to skip detection/prompt
- * @returns {Promise<{ projectDir: string, packageManager: string }>}
+ * @returns {Promise<{ projectDir: string, packageManager: string }>} Project directory and selected package manager
  */
 export async function cloneAndInstall (starterKit, projectName, parentDir = process.cwd(), packageManagerOverride = null) {
   const { repo, branch } = starterKit
@@ -63,8 +63,33 @@ export async function cloneAndInstall (starterKit, projectName, parentDir = proc
   console.log(`\n📦 Cloning ${starterKit.name}...`)
 
   let spinner = createSpinner('Cloning repository...').start()
-  const cloneCommand = `git clone --branch ${branch} ${repo} ${trimmed}`
-  await runCommand(cloneCommand, { cwd: parentDir })
+  if (starterKit.path) {
+    const checkoutDir = fs.mkdtempSync(path.join(parentDir, `.${trimmed}-checkout-`))
+    try {
+      const cloneCommand = [
+        'git clone',
+        '--filter=blob:none',
+        '--sparse',
+        '--branch',
+        branch,
+        repo,
+        checkoutDir
+      ].join(' ')
+      await runCommand(cloneCommand, { cwd: parentDir })
+      await runCommand(`git sparse-checkout set ${starterKit.path}`, { cwd: checkoutDir })
+
+      const sourceDir = path.join(checkoutDir, starterKit.path)
+      if (!fs.existsSync(sourceDir)) {
+        throw new Error(`Starter kit path "${starterKit.path}" was not found in ${starterKit.name}.`)
+      }
+      fs.renameSync(sourceDir, projectDir)
+    } finally {
+      fs.rmSync(checkoutDir, { recursive: true, force: true })
+    }
+  } else {
+    const cloneCommand = `git clone --branch ${branch} ${repo} ${trimmed}`
+    await runCommand(cloneCommand, { cwd: parentDir })
+  }
   spinner.succeed('Repository cloned')
 
   let packageManager = packageManagerOverride
