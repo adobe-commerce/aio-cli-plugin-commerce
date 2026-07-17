@@ -133,7 +133,8 @@ FLAGS
   -f, --force                    Force overwrite of existing MCP configuration in tools-setup
   -i, --instance=<value>         Commerce GraphQL endpoint URL (mutually exclusive with --instance-name)
   -I, --instance-name=<value>    Commerce instance name to select from available instances (mutually exclusive with --instance)
-  -e, --event-prefix=<value>     Event prefix for your workspace (Integration/Checkout starter kits only)
+  -e, --event-prefix=<value>     Event prefix (unused by all starter kits; Integration/Checkout kits configure
+                                 events via app.commerce.config.ts and print a warning if this is set)
 
 DESCRIPTION
   Setup your Commerce Extensibility app: clone starter kit, configure aio console,
@@ -149,7 +150,7 @@ EXAMPLES
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql
   $ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"
-  $ aio commerce extensibility app-setup -s integration-starter-kit -n my-app -a Cursor -I "My Instance" -e my-event-prefix
+  $ aio commerce extensibility app-setup -s integration-starter-kit -n my-app -a Cursor
 ```
 
 This command automates the full project setup workflow for Commerce Extensibility. It runs the following steps:
@@ -161,14 +162,14 @@ This command automates the full project setup workflow for Commerce Extensibilit
 5. **Clone and install** — clones the starter kit repo and installs dependencies
 6. **Console configuration** _(Integration/Checkout only)_ — selects Adobe I/O Console org, project, and workspace
 7. **Workspace credentials** _(Integration/Checkout only)_ — creates OAuth server-to-server credentials and subscribes to required services (ACCS REST API, I/O Management API, I/O Events, Adobe I/O Events for Adobe Commerce)
-8. **Kit-specific setup** _(Integration only)_ — creates `.env` from template, configures Commerce instance, downloads workspace config, populates workspace IDs and OAuth credentials
+8. **Kit-specific setup** _(Integration/Checkout only)_ — downloads workspace config and connects the app to the remote workspace
 9. **Tools setup** — runs `tools-setup` to install Commerce Extensibility MCP tools and agent skills
 
 All flags are optional. When omitted, the command prompts interactively. When all flags are provided, the command runs non-interactively.
 
 Checkout app starter kits are checked out from subfolders of the checkout starter kit repository. The generated project directory contains only the selected app files and does not include the source repository `.git` directory. Integration Starter Kit and AEM Boilerplate Commerce projects keep the `.git` directory from their full repository clone.
 
-Checkout app starter kits do not create or update `.env` during `app-setup`; app-management handles app configuration for these projects.
+Neither the Integration Starter Kit nor Checkout app starter kits create or update `.env` during `app-setup`; app-management handles app configuration for both.
 
 ### Commerce Instance Selection
 
@@ -180,7 +181,7 @@ The command needs a Commerce GraphQL endpoint URL. You can provide it in three w
 | By name | `--instance-name` | Looks up the instance by name from available instances (case-insensitive match). If no match is found, displays the available instances and falls back to interactive selection |
 | Interactive | _(neither flag)_ | Fetches available instances and prompts you to select one |
 
-Checkout app starter kits do not respect this flags since the association is done in the app-management UI.
+Integration Starter Kit and Checkout app starter kits don't use these flags — Commerce instance association for those kits happens in the app-management UI instead.
 
 The `--instance` and `--instance-name` flags are **mutually exclusive** — providing both will result in an error.
 

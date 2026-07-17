@@ -139,7 +139,7 @@ export class AppSetupCommand extends Command {
       if (selectedStarterKit.folder === 'integration-starter-kit') {
         await runIntegrationSetup(projectDir, setupOptions)
       } else if (isCheckoutStarterKit) {
-        await runCheckoutSetup(projectDir)
+        await runCheckoutSetup(projectDir, setupOptions)
       } else if (isBoilerplate) {
         await runBoilerplateSetup(projectDir, commerceGraphQLUrl)
       }
@@ -217,7 +217,7 @@ AppSetupCommand.flags = {
   }),
   'event-prefix': Flags.string({
     char: 'e',
-    description: 'Event prefix for your workspace (Integration/Checkout starter kits only)',
+    description: 'Event prefix (unused by all starter kits; Integration/Checkout kits configure events via app.commerce.config.ts and print a warning if this is set)',
     required: false
   })
 }
@@ -226,7 +226,7 @@ AppSetupCommand.description =
   'Setup your Commerce Extensibility app: clone starter kit, configure aio console, install dependencies, and run tools-setup'
 AppSetupCommand.examples = [
   '$ aio commerce extensibility app-setup',
-  '$ aio commerce extensibility app-setup --starter-kit integration-starter-kit --project-name my-app --agent Cursor',
+  '$ aio commerce extensibility app-setup -s integration-starter-kit --project-name my-app --agent Cursor',
   '$ aio commerce extensibility app-setup -s checkout-shipping-method -n shipping-method-app -a Cursor -p npm',
   '$ aio commerce extensibility app-setup -s checkout-payment-method -n payment-method-app -a Cursor -p npm',
   '$ aio commerce extensibility app-setup -s checkout-tax-integration -n tax-integration-app -a Cursor -p npm',
@@ -234,5 +234,4 @@ AppSetupCommand.examples = [
   '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor',
   '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance https://example.api.commerce.adobe.com/tenant/graphql',
   '$ aio commerce extensibility app-setup -s aem-boilerplate-commerce -n storefront -a Cursor --instance-name "My Commerce Instance"',
-  '$ aio commerce extensibility app-setup -s integration-starter-kit -n my-app -a Cursor -I "My Instance" -e my-event-prefix'
 ]
