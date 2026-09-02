@@ -87,7 +87,7 @@ describe('installMCP', () => {
     it('dropins runs via npx --yes (non-interactive, safe for MCP hosts)', () => {
       expect(mcpServers.dropins.command).toBe('npx')
       expect(mcpServers.dropins.args).toContain('--yes')
-      expect(mcpServers.dropins.args).toContain('@dropins/mcp')
+      expect(mcpServers.dropins.args).toContain('@dropins/ai-tools')
     })
 
     it('merges new entries without removing pre-existing keys', async () => {
@@ -104,6 +104,26 @@ describe('installMCP', () => {
       expect(config.mcpServers).toHaveProperty('my-custom-server')
       expect(config.mcpServers).toHaveProperty('commerce-extensibility')
       expect(config.mcpServers).toHaveProperty('dropins')
+    })
+
+    it('migrates an existing dropins entry from @dropins/mcp to @dropins/ai-tools', async () => {
+      const dir = makeTmpDir()
+      const configPath = path.join(dir, '.cursor', 'mcp.json')
+      fs.mkdirSync(path.dirname(configPath), { recursive: true })
+      fs.writeFileSync(configPath, JSON.stringify({
+        mcpServers: {
+          dropins: { command: 'npx', args: ['--yes', '@dropins/mcp'] },
+          'my-custom-server': { command: 'node', args: ['custom.js'] }
+        }
+      }))
+
+      await installMCP(dir, 'Cursor', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
+
+      const config = readJson(configPath)
+      // The server key stays the same, so existing prompts and rules keep working.
+      expect(config.mcpServers.dropins.args).toContain('@dropins/ai-tools')
+      expect(config.mcpServers.dropins.args).not.toContain('@dropins/mcp')
+      expect(config.mcpServers).toHaveProperty('my-custom-server')
     })
   })
 
@@ -169,7 +189,24 @@ describe('installMCP', () => {
       expect(countMatches(toml, /\[mcp_servers\.dropins\]/g)).toBe(1)
       expect(toml).not.toContain('old/path.js')
       expect(toml).not.toContain('old-dropins-pkg')
-      expect(toml).toContain('@dropins/mcp')
+      expect(toml).toContain('@dropins/ai-tools')
+    })
+
+    it('migrates an existing dropins block from @dropins/mcp to @dropins/ai-tools', async () => {
+      const dir = makeTmpDir()
+      writeToml(dir, [
+        '[mcp_servers.dropins]',
+        'command = "npx"',
+        'args = ["--yes", "@dropins/mcp"]',
+        ''
+      ].join('\n'))
+
+      await installMCP(dir, 'OpenAI Codex', { force: true, starterKitFolder: 'aem-boilerplate-commerce' })
+
+      const toml = readToml(dir)
+      expect(countMatches(toml, /\[mcp_servers\.dropins\]/g)).toBe(1)
+      expect(toml).toContain('@dropins/ai-tools')
+      expect(toml).not.toContain('@dropins/mcp"')
     })
 
     it('preserves unrelated sections when replacing existing blocks', async () => {
