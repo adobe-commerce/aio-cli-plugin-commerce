@@ -197,6 +197,9 @@ export class ToolsSetupCommand extends Command {
       console.log('\nNext steps:')
       console.log('1. Restart your coding agent to load the new MCP tools and skills')
       console.log('2. The Commerce App Builder tools should now be available in your environment')
+      if (selectedStarterKit.folder === 'aem-boilerplate-commerce') {
+        console.log('\nNote: Dropins AI Tools is fetched on first use, so the first agent start may take a few seconds.')
+      }
     } catch (error) {
       if (error.name === 'ExitPromptError') {
         console.log(`\n⚠️  Setup cancelled by user during ${currentStep}.`)
