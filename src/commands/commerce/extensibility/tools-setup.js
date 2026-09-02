@@ -175,11 +175,9 @@ export class ToolsSetupCommand extends Command {
         throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
-      // Note: @dropins/ai-tools is not installed here. The MCP configuration
-      // written below runs it with `npx --yes`, which resolves the package from
-      // the registry, so a global install would be downloaded and never used.
-      // Developers who want the standalone CLI can install it themselves:
-      // npm install -g @dropins/ai-tools
+      // No global install for @dropins/ai-tools: the MCP entry written below
+      // runs it with `npx --yes <package>`, which always resolves from the
+      // registry and ignores globally installed packages.
 
       // Install MCP configuration and skills
       currentStep = 'MCP configuration'
