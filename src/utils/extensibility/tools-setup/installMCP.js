@@ -34,7 +34,7 @@ const MCP_REGISTRY = [
     key: 'dropins',
     entry: {
       command: 'npx',
-      args: ['--yes', '@dropins/mcp']
+      args: ['--yes', '@dropins/ai-tools']
     },
     starterKits: ['aem-boilerplate-commerce']
   }

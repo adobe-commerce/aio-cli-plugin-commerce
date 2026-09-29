@@ -175,17 +175,9 @@ export class ToolsSetupCommand extends Command {
         throw new Error('Package installation failed. Please try again. Error: ' + error.message)
       }
 
-      // Install @dropins/mcp globally for AEM Boilerplate Commerce projects
-      if (selectedStarterKit.folder === 'aem-boilerplate-commerce') {
-        console.log('📦 Installing @dropins/mcp globally (latest)...')
-        try {
-          await runCommand('npm install -g @dropins/mcp@latest')
-          console.log('✅ @dropins/mcp installed successfully')
-        } catch (error) {
-          console.warn('⚠️  @dropins/mcp global install failed:', error.message)
-          console.warn('   The MCP server will be fetched via npx --yes on first use (no prompt).')
-        }
-      }
+      // No global install for @dropins/ai-tools: the MCP entry written below
+      // runs it with `npx --yes <package>`, which always resolves from the
+      // registry and ignores globally installed packages.
 
       // Install MCP configuration and skills
       currentStep = 'MCP configuration'
@@ -205,6 +197,9 @@ export class ToolsSetupCommand extends Command {
       console.log('\nNext steps:')
       console.log('1. Restart your coding agent to load the new MCP tools and skills')
       console.log('2. The Commerce App Builder tools should now be available in your environment')
+      if (selectedStarterKit.folder === 'aem-boilerplate-commerce') {
+        console.log('\nNote: Dropins AI Tools is fetched on first use, so the first agent start may take a few seconds.')
+      }
     } catch (error) {
       if (error.name === 'ExitPromptError') {
         console.log(`\n⚠️  Setup cancelled by user during ${currentStep}.`)
